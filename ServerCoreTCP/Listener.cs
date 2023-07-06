@@ -10,20 +10,24 @@ namespace ServerCoreTCP
 {
     public class Listener
     {
-        readonly Socket listenSocket;
+        readonly Socket _listenSocket;
+        readonly Func<Session> _sessionFactory;
 
         /// <summary>
         /// Create a socket and bind the endpoint.
         /// </summary>
-        /// <param name="endPoint">the endpoint to bind to socket</param>
-        public Listener(IPEndPoint endPoint)
+        /// <param name="endPoint">The endpoint to bind to socket</param>
+        /// <param name="session">The session of the socket</param>
+        public Listener(IPEndPoint endPoint, Func<Session> sessionFactory)
         {
-            listenSocket = new(
+            _listenSocket = new(
                 endPoint.AddressFamily,
                 SocketType.Stream,
                 ProtocolType.Tcp);
 
-            listenSocket.Bind(endPoint);
+            this._sessionFactory = sessionFactory;
+
+            _listenSocket.Bind(endPoint);
         }
 
         /// <summary>
@@ -34,12 +38,12 @@ namespace ServerCoreTCP
         public Listener(IPAddress ipAddress, int port)
         {
             IPEndPoint endPoint = new(ipAddress, port);
-            listenSocket = new(
+            _listenSocket = new(
                 endPoint.AddressFamily,
                 SocketType.Stream,
                 ProtocolType.Tcp);
 
-            listenSocket.Bind(endPoint);
+            _listenSocket.Bind(endPoint);
         }
 
         /// <summary>
@@ -47,9 +51,9 @@ namespace ServerCoreTCP
         /// </summary>
         /// <param name="backLog">The maximum length of the pending connections queue</param>
         /// <param name="register">The maximum number of waiting for accept.</param>
-        public void Listen(int backLog = 100, int register = 10)
+        public void Listen(int backLog = 10, int register = 10)
         {
-            listenSocket.Listen(backLog);
+            _listenSocket.Listen(backLog);
 
             for (int i=0; i<register; ++i)
             {
@@ -70,7 +74,7 @@ namespace ServerCoreTCP
             // Reset for re-using
             e.AcceptSocket = null;
 
-            bool pending = listenSocket.AcceptAsync(e);
+            bool pending = _listenSocket.AcceptAsync(e);
 
             // If pending is false => call callback function right away
             if (pending == false) OnAcceptCompleted(null, e);
@@ -90,6 +94,14 @@ namespace ServerCoreTCP
             {
                 ServerLogger.Instance.LogInfo($@"Accpeted: {e.RemoteEndPoint}");
                 // TODO with session
+
+                // You must create session here
+                // Why? Each thread has each session.
+
+                // create session through factory
+                Session session = _sessionFactory.Invoke();
+                session.Init(e.AcceptSocket);
+                session.OnConnected(e.AcceptSocket.RemoteEndPoint);
             }
             else
             {

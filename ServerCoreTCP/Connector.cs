@@ -6,19 +6,23 @@ namespace ServerCoreTCP
 {
     public class Connector
     {
+        Func<Session> _sessionFactory;
+
         /// <summary>
         /// Create a socket and connect to end point
         /// </summary>
         /// <param name="endPoint">The endpoint to connect to</param>
+        /// <param name="session">The session of the socket</param>
         /// <param name="count">[Debug] The count of socket to connect</param>
-        public void Connect(IPEndPoint endPoint, int count = 1)
+        public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory, int count = 1)
         {
-            for (int i=0; i<count; i++)
+            for (int i = 0; i < count; i++)
             {
                 Socket socket = new(
                     endPoint.AddressFamily,
                     SocketType.Stream,
                     ProtocolType.Tcp);
+                this._sessionFactory = sessionFactory;
 
                 SocketAsyncEventArgs e = new();
                 e.Completed += OnConnectCompleted;
@@ -30,12 +34,14 @@ namespace ServerCoreTCP
             }
         }
 
-        public void ConnectSync(IPEndPoint endPoint, Action<Socket> callback = null)
+        public void ConnectSync(IPEndPoint endPoint, Func<Session> sessionFactory, Action<Socket> callback = null)
         {
             Socket socket = new(
                     endPoint.AddressFamily,
                     SocketType.Stream,
                     ProtocolType.Tcp);
+            this._sessionFactory = sessionFactory;
+
             socket.Connect(endPoint);
             callback?.Invoke(socket);
         }
@@ -69,6 +75,9 @@ namespace ServerCoreTCP
             {
                 ClientLogger.Instance.LogInfo($@"Connected");
                 // TODO with Session
+                Session session = _sessionFactory.Invoke();
+                session.Init(e.ConnectSocket);
+                session.OnConnected(e.RemoteEndPoint);
             }
             else
             {

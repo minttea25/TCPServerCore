@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -16,15 +17,18 @@ namespace TCPServer
 
             // TEMP
             {
-                Thread.Sleep(1000);
                 string msg = "This is Server!";
-                byte[] msgBuffer = Encoding.UTF8.GetBytes(msg);
-                var segment = SendBufferTLS.Reserve(1024);
 
-                Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
-                var buffer = SendBufferTLS.Return(msgBuffer.Length);
+                //byte[] msgBuffer = Encoding.UTF8.GetBytes(msg);
+                //var segment = SendBufferTLS.Reserve(1024);
+                //Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
+                //var buffer = SendBufferTLS.Return(msgBuffer.Length);
+                //Send(buffer);
 
-                Send(buffer);
+                Memory<byte> buffer = MSendBufferTLS.Reserve(1024);
+                int n = Encoding.UTF8.GetBytes(msg, buffer.Span);
+                var send = MSendBufferTLS.Return(n);
+                Send(send);
             }
         }
 
@@ -39,6 +43,14 @@ namespace TCPServer
             Console.WriteLine("Received: {0}", buffer.Count);
             Console.WriteLine("Contents: {0}", Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count));
             return buffer.Count;
+        }
+
+        public override int OnRecv(Memory<byte> buffer)
+        {
+            // TEMP
+            Console.WriteLine("Received: {0}", buffer.Length);
+            Console.WriteLine("Contents: {0}", Encoding.UTF8.GetString(buffer.Span));
+            return buffer.Length;
         }
 
         public override void OnSend(int numOfBytes)

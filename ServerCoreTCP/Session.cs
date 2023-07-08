@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define MEMORY_BUFFER
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -14,7 +16,11 @@ namespace ServerCoreTCP
         const int RecvBufferSize = 65535;
 
         Socket _socket;
+#if MEMORY_BUFFER
+        readonly MRecvBuffer _mRecvBuffer = new(RecvBufferSize);
+#else
         readonly RecvBuffer _recvBuffer = new(RecvBufferSize);
+#endif
 
         /// <summary>
         /// Each session reuses one SendEventArgs.
@@ -34,8 +40,9 @@ namespace ServerCoreTCP
         /// [Temp] The byte segment to store send buffer temporarily.
         /// </summary>
         ArraySegment<byte> _sendSegment;
+        Memory<byte> _sendMemory;
 
-        #region Abstract Methods
+#region Abstract Methods
         /// <summary>
         /// Called when the socket is connected.
         /// </summary>
@@ -58,7 +65,8 @@ namespace ServerCoreTCP
         /// <param name="endPoint">The end point of the socket.</param>
         /// <param name="error">The additional object of error</param>
         public abstract void OnDisconnected(EndPoint endPoint, object error = null);
-        #endregion
+        public abstract int OnRecv(Memory<byte> buffer);
+#endregion
 
         /// <summary>
         /// The value to check the session disconnected. (Used with Interlocked)
@@ -92,6 +100,15 @@ namespace ServerCoreTCP
             }
         }
 
+        public void Send(Memory<byte> sendBuffer)
+        {
+            lock (_lock)
+            {
+                _sendMemory = sendBuffer;
+                RegisterSend();
+            }
+        }
+
         /// <summary>
         /// Reserve 'Send' for async-send (Note: It needs to be protected for race-condition.)
         /// </summary>
@@ -100,12 +117,13 @@ namespace ServerCoreTCP
             // If it is already disconnected, return
             if (_disconnected == 1) return;
 
-            // TODO - Check memory and byte[]
-            //sendEvent.SetBuffer(new Memory<byte>(buffer.Array, 0, buffer.Count));
-            // sendEvent.SetBuffer(buffer, 0, buffer.Length);
-
             // Set data buffer on the buffer of SendEventArgs
+
+#if MEMORY_BUFFER
+            sendEvent.SetBuffer(_sendMemory);
+#else
             sendEvent.SetBuffer(_sendSegment.Array, 0, _sendSegment.Count);
+#endif
             // After using data buffer, make it null
             _sendSegment = null;
 
@@ -127,10 +145,14 @@ namespace ServerCoreTCP
         {
             if (_disconnected == 1) return;
 
+#if MEMORY_BUFFER
+            _mRecvBuffer.CleanUp();
+            recvEvent.SetBuffer(_mRecvBuffer.WriteMemory);
+#else
             _recvBuffer.CleanUp(); // expensive
-
             var segment = _recvBuffer.WriteSegment;
             recvEvent.SetBuffer(segment.Array, segment.Offset, segment.Count);
+#endif
 
             try
             {
@@ -159,12 +181,18 @@ namespace ServerCoreTCP
                     try
                     {
                         OnSend(e.BytesTransferred);
-                        // e.SetBuffer(null);
+#if MEMORY_BUFFER
+                        e.SetBuffer(null);
+#endif
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine("Error: OnSendCompleted - {0}", ex);
                     }
+                }
+                else if (e.BytesTransferred == 0)
+                {
+                    Console.WriteLine($"The length of sent data was 0.");
                 }
                 else
                 {
@@ -185,6 +213,27 @@ namespace ServerCoreTCP
             {
                 try
                 {
+#if MEMORY_BUFFER
+                    if (_mRecvBuffer.OnWrite(e.BytesTransferred) == false)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    var processLength = OnRecv(_mRecvBuffer.DataMemory);
+                    if (processLength < 0 || _mRecvBuffer.DataSize < processLength)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    if (_mRecvBuffer.OnRead(processLength) == false)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+#else
                     // Check if there is enough size to write on RecvBuffer.
                     if (_recvBuffer.OnWrite(e.BytesTransferred) == false)
                     {
@@ -206,6 +255,7 @@ namespace ServerCoreTCP
                         Disconnect();
                         return;
                     }
+#endif
 
                     // Wait to receive again.
                     RegisterRecv();
@@ -215,6 +265,10 @@ namespace ServerCoreTCP
                 {
                     Console.WriteLine("Error: OnRecvCompleted - {0}", ex);
                 }
+            }
+            else if (e.BytesTransferred == 0)
+            {
+                Console.WriteLine($"The length of received data is 0.");
             }
             else
             {

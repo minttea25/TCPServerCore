@@ -14,23 +14,33 @@ namespace ServerCoreTCP
     {
         public static int BufferSize { get; private set; } = 65535;
 
-        public readonly static ThreadLocal<SendBuffer> TLS_CurrentBuffer = new(() => new(BufferSize), false);
+        public readonly static ThreadLocal<SendBuffer> TLS_CurrentBuffer 
+            = new(() => new(BufferSize), false);
 
         /// <summary>
         /// Helper method of SendBuffer.Reserve
         /// </summary>
-        /// <param name="reserveSize"></param>
-        /// <returns></returns>
-        public static ArraySegment<byte> Reserve(int reserveSize)
+        /// <param name="reserveSize">The size to reserve.</param>
+        /// <param name="extend">If true, when reserve size > usable size, reset the buffer through pointer = 0. </param>
+        /// <returns>The segment of Memory reserved</returns>
+        public static ArraySegment<byte> Reserve(int reserveSize, bool extend = false)
         {
-            return TLS_CurrentBuffer.Value.Reserve(reserveSize);
+#if DEBUG
+            if (reserveSize > BufferSize)
+            {
+                Console.WriteLine($"The reserveSize[{reserveSize}] is bigger than the bufferSize[{BufferSize}] => return null");
+                return null;
+            }
+#endif
+
+            return TLS_CurrentBuffer.Value.Reserve(reserveSize, extend);
         }
 
         /// <summary>
         /// Helper method of SendBuffer.Return
         /// </summary>
-        /// <param name="usedSize"></param>
-        /// <returns></returns>
+        /// <param name="usedSize">The size used actually.</param>
+        /// <returns>The segment of array used</returns>
         public static ArraySegment<byte> Return(int usedSize)
         {
             return TLS_CurrentBuffer.Value.Return(usedSize);
@@ -42,8 +52,6 @@ namespace ServerCoreTCP
     /// </summary>
     public class SendBuffer
     {
-        // TODO - change to arraysegment? or memory?
-
         readonly byte[] buffer;
         int usedSize = 0;
 
@@ -59,9 +67,13 @@ namespace ServerCoreTCP
         /// </summary>
         /// <param name="reserveSize"></param>
         /// <returns>If there is no enough size to reserve, returns null.</returns>
-        public ArraySegment<byte> Reserve(int reserveSize)
+        public ArraySegment<byte> Reserve(int reserveSize, bool extend = false)
         {
-            if (reserveSize > FreeSize) return null;
+            if (reserveSize > FreeSize)
+            {
+                if (extend == false) return null;
+                else usedSize = 0;
+            }
 
             // return buffer segment from usedSize to usedSize + reserveSize
             return new(buffer, usedSize, reserveSize);

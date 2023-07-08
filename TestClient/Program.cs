@@ -13,18 +13,20 @@ namespace TestClient
         {
             Console.WriteLine("OnConnected: {0}", endPoint);
 
-            for (int i=0; i<5; i++)
+            for (int i = 0; i < 5; i++)
             {
-                byte[] buffer1 = Encoding.UTF8.GetBytes($"This is Client! {i}");
-                Send(buffer1);
-            }
-            string msg = "Message";
-            byte[] msgBuffer = Encoding.UTF8.GetBytes(msg);
-            var segment = SendBufferTLS.Reserve(1024);
+                //byte[] msgBuffer = Encoding.UTF8.GetBytes($"This is Client! {i}");
+                //var segment = SendBufferTLS.Reserve(1024);
+                //Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
+                //var buffer = SendBufferTLS.Return(msgBuffer.Length);
+                //Send(buffer);
 
-            Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
-            var buffer = SendBufferTLS.Return(msgBuffer.Length);
-            Send(buffer);
+                Memory<byte> buffer = MSendBufferTLS.Reserve(1024);
+                int n = Encoding.UTF8.GetBytes($"This is Client! {i}", buffer.Span);
+                var send = MSendBufferTLS.Return(n);
+                Send(send);
+            }
+            
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
@@ -39,6 +41,14 @@ namespace TestClient
             Console.WriteLine("Contents: {0}", Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count));
 
             return buffer.Count;
+        }
+
+        public override int OnRecv(Memory<byte> buffer)
+        {
+            // TEMP
+            Console.WriteLine("Received: {0}", buffer.Length);
+            Console.WriteLine("Contents: {0}", Encoding.UTF8.GetString(buffer.Span));
+            return buffer.Length;
         }
 
         public override void OnSend(int numOfBytes)

@@ -73,7 +73,7 @@ namespace ServerCoreTCP
         {
             if (e.SocketError == SocketError.Success)
             {
-                ClientLogger.Instance.LogInfo($@"Connected");
+                Logger.Instance.LogInfo($@"Connected");
                 // TODO with Session
                 Session session = _sessionFactory.Invoke();
                 session.Init(e.ConnectSocket);
@@ -82,7 +82,7 @@ namespace ServerCoreTCP
             else
             {
                 // error
-                ClientLogger.Instance.LogError($@"Connector: {e.SocketError}");
+                Logger.Instance.LogError($@"Connector: {e.SocketError}");
             }
         }
     }

@@ -51,7 +51,7 @@ namespace ServerCoreTCP
         /// </summary>
         /// <param name="backLog">The maximum length of the pending connections queue</param>
         /// <param name="register">The maximum number of waiting for accept.</param>
-        public void Listen(int backLog = 10, int register = 10)
+        public void Listen(int backLog = 100, int register = 10)
         {
             _listenSocket.Listen(backLog);
 
@@ -92,7 +92,7 @@ namespace ServerCoreTCP
         {
             if (e.SocketError == SocketError.Success)
             {
-                ServerLogger.Instance.LogInfo($@"Accpeted: {e.RemoteEndPoint}");
+                Logger.Instance.LogInfo($@"Accpeted: {e.RemoteEndPoint}");
                 // TODO with session
 
                 // You must create session here
@@ -106,7 +106,7 @@ namespace ServerCoreTCP
             else
             {
                 // error
-                ServerLogger.Instance.LogError($@"Listner: {e.SocketError}");
+                Logger.Instance.LogError($@"Listner: {e.SocketError}");
             }
 
             // After Accept, wait again for other Accepts.

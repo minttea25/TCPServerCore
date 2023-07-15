@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define MEMORY_BUFFER
+
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -18,17 +20,18 @@ namespace TCPServer
             // TEMP
             {
                 string msg = "This is Server!";
-
-                //byte[] msgBuffer = Encoding.UTF8.GetBytes(msg);
-                //var segment = SendBufferTLS.Reserve(1024);
-                //Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
-                //var buffer = SendBufferTLS.Return(msgBuffer.Length);
-                //Send(buffer);
-
+#if MEMORY_BUFFER
                 Memory<byte> buffer = MSendBufferTLS.Reserve(1024);
                 int n = Encoding.UTF8.GetBytes(msg, buffer.Span);
                 var send = MSendBufferTLS.Return(n);
                 Send(send);
+#else
+                byte[] msgBuffer = Encoding.UTF8.GetBytes(msg);
+                var segment = SendBufferTLS.Reserve(1024);
+                Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
+                var buffer = SendBufferTLS.Return(msgBuffer.Length);
+                Send(buffer);
+#endif
             }
         }
 
@@ -70,11 +73,11 @@ namespace TCPServer
 
             var session = new ClientSession();
             Listener listener = new(endPoint, () => { return new ClientSession(); });
-            listener.Listen(register: 10);
+            listener.Listen(register: 10, backLog: 100) ;
 
             while (true)
             {
-                ;
+                Thread.Sleep(3000);
             }
         }
     }

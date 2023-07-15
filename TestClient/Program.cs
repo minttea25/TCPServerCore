@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define MEMORY_BUFFER
+
+using System;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -13,20 +15,21 @@ namespace TestClient
         {
             Console.WriteLine("OnConnected: {0}", endPoint);
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 10; i++)
             {
-                //byte[] msgBuffer = Encoding.UTF8.GetBytes($"This is Client! {i}");
-                //var segment = SendBufferTLS.Reserve(1024);
-                //Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
-                //var buffer = SendBufferTLS.Return(msgBuffer.Length);
-                //Send(buffer);
-
+#if MEMORY_BUFFER
                 Memory<byte> buffer = MSendBufferTLS.Reserve(1024);
                 int n = Encoding.UTF8.GetBytes($"This is Client! {i}", buffer.Span);
                 var send = MSendBufferTLS.Return(n);
                 Send(send);
+#else
+                byte[] msgBuffer = Encoding.UTF8.GetBytes($"This is Client! {i}");
+                var segment = SendBufferTLS.Reserve(1024);
+                Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
+                var buffer = SendBufferTLS.Return(msgBuffer.Length);
+                Send(buffer);
+#endif
             }
-            
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
@@ -70,11 +73,10 @@ namespace TestClient
 
             Connector connector = new();
             ServerSession session = new();
-            connector.Connect(endPoint, () => { return new ServerSession(); }, 5);
+            connector.Connect(endPoint, () => { return new ServerSession(); }, 3000);
 
             while (true)
             {
-                Thread.Sleep(3000);
             }
         }
     }

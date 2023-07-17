@@ -11,24 +11,27 @@ namespace TestClient
 {
     public class ServerSession : Session
     {
+        Random random = new();
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine("OnConnected: {0}", endPoint);
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 1; i < 10; i++)
             {
+                TClass t = new();
+                t.id = (ushort)i;
+                t.value = (float)random.NextDouble();
+                t.msg = $"It is client : {i}";
+                t.list.Add(new TClass.NestedT((uint)i, $"This is item {i}"));
+                t.list.Add(new TClass.NestedT((uint)i + 1, $"This is item {i * 10}"));
+                t.list.Add(new TClass.NestedT((uint)i + 2, $"This is item {i * 100}"));
 #if MEMORY_BUFFER
-                Memory<byte> buffer = MSendBufferTLS.Reserve(1024);
-                int n = Encoding.UTF8.GetBytes($"This is Client! {i}", buffer.Span);
-                var send = MSendBufferTLS.Return(n);
-                Send(send);
+                Send(t.MSerialize());
 #else
-                byte[] msgBuffer = Encoding.UTF8.GetBytes($"This is Client! {i}");
-                var segment = SendBufferTLS.Reserve(1024);
-                Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
-                var buffer = SendBufferTLS.Return(msgBuffer.Length);
-                Send(buffer);
+                Send(t.Serialize());
 #endif
+
+                Thread.Sleep(200);
             }
         }
 
@@ -37,21 +40,12 @@ namespace TestClient
             Console.WriteLine("OnDisconnected: {0}", endPoint);
         }
 
-        public override int OnRecv(ArraySegment<byte> buffer)
+        public override void OnRecv(ArraySegment<byte> buffer)
         {
-            // TEMP
-            Console.WriteLine("Received: {0}", buffer.Count);
-            Console.WriteLine("Contents: {0}", Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count));
-
-            return buffer.Count;
         }
 
-        public override int OnRecv(Memory<byte> buffer)
+        public override void OnRecv(Memory<byte> buffer)
         {
-            // TEMP
-            Console.WriteLine("Received: {0}", buffer.Length);
-            Console.WriteLine("Contents: {0}", Encoding.UTF8.GetString(buffer.Span));
-            return buffer.Length;
         }
 
         public override void OnSend(int numOfBytes)
@@ -73,7 +67,7 @@ namespace TestClient
 
             Connector connector = new();
             ServerSession session = new();
-            connector.Connect(endPoint, () => { return new ServerSession(); }, 3000);
+            connector.Connect(endPoint, () => { return new ServerSession(); }, 1000);
 
             while (true)
             {

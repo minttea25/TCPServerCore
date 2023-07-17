@@ -16,23 +16,6 @@ namespace TCPServer
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine("OnConnected: {0}", endPoint);
-
-            // TEMP
-            {
-                string msg = "This is Server!";
-#if MEMORY_BUFFER
-                Memory<byte> buffer = MSendBufferTLS.Reserve(1024);
-                int n = Encoding.UTF8.GetBytes(msg, buffer.Span);
-                var send = MSendBufferTLS.Return(n);
-                Send(send);
-#else
-                byte[] msgBuffer = Encoding.UTF8.GetBytes(msg);
-                var segment = SendBufferTLS.Reserve(1024);
-                Array.Copy(msgBuffer, 0, segment.Array, segment.Offset, msgBuffer.Length);
-                var buffer = SendBufferTLS.Return(msgBuffer.Length);
-                Send(buffer);
-#endif
-            }
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
@@ -40,20 +23,18 @@ namespace TCPServer
             Console.WriteLine("OnDisconnected: {0}", endPoint);
         }
 
-        public override int OnRecv(ArraySegment<byte> buffer)
+        public override void OnRecv(ArraySegment<byte> buffer)
         {
-            // TEMP
-            Console.WriteLine("Received: {0}", buffer.Count);
-            Console.WriteLine("Contents: {0}", Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count));
-            return buffer.Count;
+            TClass t = new();
+            t.Deserialize(buffer);
+            Console.WriteLine("ArraySegment - Received: {0}", t);
         }
 
-        public override int OnRecv(Memory<byte> buffer)
+        public override void OnRecv(Memory<byte> buffer)
         {
-            // TEMP
-            Console.WriteLine("Received: {0}", buffer.Length);
-            Console.WriteLine("Contents: {0}", Encoding.UTF8.GetString(buffer.Span));
-            return buffer.Length;
+            TClass t = new();
+            t.MDeserialize(buffer);
+            Console.WriteLine("Memory - Received: {0}", t);
         }
 
         public override void OnSend(int numOfBytes)
@@ -73,11 +54,10 @@ namespace TCPServer
 
             var session = new ClientSession();
             Listener listener = new(endPoint, () => { return new ClientSession(); });
-            listener.Listen(register: 10, backLog: 100) ;
+            listener.Listen(register: 10, backLog: 100);
 
             while (true)
             {
-                Thread.Sleep(3000);
             }
         }
     }

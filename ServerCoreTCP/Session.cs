@@ -11,7 +11,8 @@ namespace ServerCoreTCP
 {
     public abstract class Session
     {
-        const int RecvBufferSize = 65535;
+        const int HeaderSize = sizeof(ushort);
+        const int RecvBufferSize = 1024;
 
         Socket _socket;
 #if MEMORY_BUFFER
@@ -45,7 +46,7 @@ namespace ServerCoreTCP
         //ArraySegment<byte> _sendSegment;
         //Memory<byte> _sendMemory;
 
-#region Abstract Methods
+        #region Abstract Methods
         /// <summary>
         /// Called when the socket is connected.
         /// </summary>
@@ -55,8 +56,7 @@ namespace ServerCoreTCP
         /// Called when the socket received data(buffer)
         /// </summary>
         /// <param name="buffer">The data received</param>
-        /// <returns>The length of bytes processed in this method</returns>
-        public abstract int OnRecv(ArraySegment<byte> buffer);
+        public abstract void OnRecv(ArraySegment<byte> buffer);
         /// <summary>
         /// Called when the socket sent data.
         /// </summary>
@@ -68,8 +68,8 @@ namespace ServerCoreTCP
         /// <param name="endPoint">The end point of the socket.</param>
         /// <param name="error">The additional object of error</param>
         public abstract void OnDisconnected(EndPoint endPoint, object error = null);
-        public abstract int OnRecv(Memory<byte> buffer);
-#endregion
+        public abstract void OnRecv(Memory<byte> buffer);
+        #endregion
 
         /// <summary>
         /// The value to check the session disconnected. (Used with Interlocked)
@@ -179,7 +179,7 @@ namespace ServerCoreTCP
         }
 
         /// <summary>
-        /// Reserve 'Recieve' for async-receive
+        /// Reserve 'Receive' for async-receive
         /// </summary>
         void RegisterRecv()
         {
@@ -269,12 +269,21 @@ namespace ServerCoreTCP
                         return;
                     }
 
-                    var processLength = OnRecv(_mRecvBuffer.DataMemory);
-                    if (processLength < 0 || _mRecvBuffer.DataSize < processLength)
+                    int processLength = OnRecvProcess(_mRecvBuffer.DataMemory);
+                    if (processLength <= 0)
+                    {
+                        Console.WriteLine("Not enough buffer size");
+                        Disconnect();
+                        return;
+                    }
+
+                    if (_mRecvBuffer.DataSize < processLength)
                     {
                         Disconnect();
                         return;
                     }
+
+                    OnRecv(_mRecvBuffer.DataMemory);
 
                     if (_mRecvBuffer.OnRead(processLength) == false)
                     {
@@ -291,12 +300,21 @@ namespace ServerCoreTCP
                     }
 
                     // Check that the data has been processed normally from OnRecv.
-                    var processLength = OnRecv(_recvBuffer.DataSegment);
-                    if (processLength < 0 || _recvBuffer.DataSize < processLength)
+                    int processLength = OnRecvProcess(_recvBuffer.DataSegment);
+                    if (processLength <= 0)
+                    {
+                        Console.WriteLine("Not enough buffer size");
+                        Disconnect();
+                        return;
+                    }
+
+                    if (_recvBuffer.DataSize < processLength)
                     {
                         Disconnect();
                         return;
                     }
+
+                    OnRecv(_recvBuffer.DataSegment);
 
                     // Check the written data was readable normally => notice 'the data is read'
                     if (_recvBuffer.OnRead(processLength) == false)
@@ -326,7 +344,55 @@ namespace ServerCoreTCP
             {
                 Disconnect();
             }
-            
+
+        }
+
+        /// <summary>
+        /// Check the received buffer is totally complete.
+        /// Note: The header is ushort type and presents the whole size of the data.
+        /// </summary>
+        /// <param name="buffer">The length of processed bytes in buffer.</param>
+        /// <returns></returns>
+        int OnRecvProcess(Memory<byte> buffer) 
+        {
+            int processed = 0;
+
+            // If the size of received buffer is shorter than the header size, it is not the whole data.
+            if (buffer.Length < HeaderSize) return 0;
+
+            // Check the whole data is received.
+            ushort fullSize = BitConverter.ToUInt16(buffer.Span.Slice(0, HeaderSize));
+            // If the size of recieved buffer is hosrter than the whole size of the data, it is not the whole data.
+            if (buffer.Length < fullSize) return 0;
+
+            processed += fullSize;
+            // buffer = buffer.Slice(fullSize);
+
+            return processed;
+        }
+
+        /// <summary>
+        /// Check the received buffer is totally complete.
+        /// Note: The header is ushort type and presents the whole size of the data.
+        /// </summary>
+        /// <param name="buffer">The length of processed bytes in buffer.</param>
+        /// <returns></returns>
+        int OnRecvProcess(ArraySegment<byte> buffer)
+        {
+            int processed = 0;
+
+            // If the size of received buffer is shorter than the header size, it is not the whole data.
+            if (buffer.Count < HeaderSize) return 0;
+
+            // Check the whole data is received.
+            ushort fullSize = BitConverter.ToUInt16(buffer.Array , buffer.Offset);
+            // If the size of recieved buffer is hosrter than the whole size of the data, it is not the whole data.
+            if (buffer.Count < fullSize) return 0;
+
+            processed += fullSize;
+            // buffer = buffer.Slice(fullSize);
+
+            return processed;
         }
 
         /// <summary>
@@ -348,7 +414,7 @@ namespace ServerCoreTCP
 
         void Clear()
         {
-            lock(_lock)
+            lock (_lock)
             {
                 _sendQueue.Clear();
                 _sendPendingList.Clear();

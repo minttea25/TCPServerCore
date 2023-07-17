@@ -88,6 +88,7 @@ namespace ServerCoreTCP
         {
             ArraySegment<byte> segment = new(buffer, this.usedSize, usedSize);
             this.usedSize += usedSize;
+            Console.WriteLine($"used: {usedSize}, nowUsedSize: {this.usedSize}");
             return segment;
         }
     }

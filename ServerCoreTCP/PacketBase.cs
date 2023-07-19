@@ -1,16 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace ServerCoreTCP
+using ServerCoreTCP;
+
+namespace TestNamespace
 {
-    // Note: The first data is always the whole size of the data. (ushort)
+    public enum Packets : ushort
+    {
+        TestPacket = 1,
+        TestPacket2 = 2,
+        
+    }
 
+    // Note: The first data is always the whole size of the data. (ushort)
     public interface IPacket
     {
-        public PacketType Packet { get; }
+        public ushort PacketType { get; }
         public Memory<byte> MSerialize();
         public ArraySegment<byte> Serialize();
         public void MDeserialize(Memory<byte> data);
@@ -23,10 +27,5 @@ namespace ServerCoreTCP
         public bool Serialize(Span<byte> span, ref int offset);
         public void MDeserialize(Memory<byte> buffer, ref int offset);
         public void Deserialize(ReadOnlySpan<byte> span, ref int offset);
-    }
-
-    public enum PacketType : ushort
-    {
-        TClass = 1,
     }
 }

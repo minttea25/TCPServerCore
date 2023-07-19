@@ -89,7 +89,7 @@ namespace ServerCoreTCP
         {
             Memory<byte> m = buffer.Slice(start: this.usedSize, length: usedSize);
             this.usedSize += usedSize;
-            Console.WriteLine($"used: {usedSize}, nowUsedSize: {this.usedSize}");
+            //Console.WriteLine($"used: {usedSize}, nowUsedSize: {this.usedSize}");
             return m;
         }
     }

@@ -1,262 +1,102 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
-namespace ServerCoreTCP
+using ServerCoreTCP;
+
+namespace TestNamespace
 {
-    public class TClass : IPacket
+    public class TestPacket : IPacket
     {
-        public ushort id; // 2
-        public float value; // 3
-        public string msg; // 4
-        public List<NestedT> list = new(); // 5
-        public struct NestedT : IItemPacket
-        {
-            public uint itemNo;
-            public string info;
-
-            public NestedT(uint itemNo, string info)
-            {
-                this.itemNo = itemNo;
-                this.info = info;
-            }
-
-            public void MDeserialize(Memory<byte> buffer, ref int offset)
-            {
-                itemNo = BitConverter.ToUInt32(buffer.Span.Slice(offset, sizeof(uint)));
-                offset += sizeof(uint);
-
-                ushort infoLen = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
-                offset += sizeof(ushort);
-                info = Encoding.Unicode.GetString(buffer.Span.Slice(offset, infoLen));
-                offset += infoLen;
-            }
-
-            public bool MSerialize(Memory<byte> buffer, ref int offset)
-            {
-                bool suc = true;
-
-                suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(uint)), itemNo);
-                offset += sizeof(uint);
-
-                if (string.IsNullOrEmpty(info) == false)
-                {
-                    byte[] s = Encoding.Unicode.GetBytes(info);
-                    suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), (ushort)s.Length);
-                    offset += sizeof(ushort);
-
-                    int b = Encoding.Unicode.GetBytes(info, buffer.Span.Slice(offset, s.Length));
-                    suc &= (b > 0);
-                    offset += s.Length;
-                }
-                else
-                {
-                    suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), 0);
-                    offset += sizeof(ushort);
-                }
-
-                return suc;
-            }
-
-            public void Deserialize(ReadOnlySpan<byte> span, ref int offset)
-            {
-                itemNo = BitConverter.ToUInt32(span.Slice(offset, sizeof(uint)));
-                offset += sizeof(uint);
-
-                ushort infoLen = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
-                offset += sizeof(ushort);
-                info = Encoding.Unicode.GetString(span.Slice(offset, infoLen));
-                offset += infoLen;
-            }
-
-            public bool Serialize(Span<byte> span, ref int offset)
-            {
-                bool suc = true;
-
-                suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(uint)), itemNo);
-                offset += sizeof(uint);
-
-                if (string.IsNullOrEmpty(info) == false)
-                {
-                    byte[] s = Encoding.Unicode.GetBytes(info);
-                    suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), (ushort)s.Length);
-                    offset += sizeof(ushort);
-
-                    int b = Encoding.Unicode.GetBytes(info, span.Slice(offset, s.Length));
-                    suc &= (b > 0);
-                    offset += s.Length;
-                }
-                else
-                {
-                    suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), 0);
-                    offset += sizeof(ushort);
-                }
-
-                return suc;
-            }
-
-            public override string ToString()
-            {
-                return $"[{itemNo}, {info}]";
-            }
-        }
-        public PacketType Packet { get; private set; } = PacketType.TClass; // 1
-
-        public void MDeserialize(Memory<byte> data)
-        {
-            int offset = 0;
-
-            offset += sizeof(ushort);
-
-            Packet = (PacketType)BitConverter.ToUInt16(data.Span.Slice(offset, sizeof(ushort)));
-            offset += sizeof(ushort);
-
-            id = BitConverter.ToUInt16(data.Span.Slice(offset, sizeof(ushort)));
-            offset += sizeof(ushort);
-
-            value = BitConverter.ToSingle(data.Span.Slice(offset, sizeof(float)));
-            offset += sizeof(float);
-
-            int msgLen = BitConverter.ToUInt16(data.Span.Slice(offset, sizeof(ushort)));
-            offset += sizeof(ushort);
-            if (msgLen > 0)
-            {
-                msg = Encoding.Unicode.GetString(data.Span.Slice(offset, msgLen));
-                offset += msgLen;
-            }
-
-            list.Clear();
-            ushort listCnt = BitConverter.ToUInt16(data.Span.Slice(offset, sizeof(ushort)));
-            offset += sizeof(ushort);
-            for (ushort i = 0; i < listCnt; i++)
-            {
-                NestedT t = new();
-                t.MDeserialize(data, ref offset);
-                list.Add(t);
-            }
-        }
-
+        public ushort PacketType { get; private set; } = (ushort)Packets.TestPacket; // 1st
+        public ushort itemId;
+        public List<string> titles = new();
+        public Item items;
+        
         public Memory<byte> MSerialize()
         {
-            Memory<byte> buffer = MSendBufferTLS.Reserve(4096);
+            Memory<byte> buffer = MSendBufferTLS.Reserve(2048);
             bool suc = true;
             int offset = 0;
 
             offset += sizeof(ushort); // the header size
 
-            suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), (ushort)Packet);
+            suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), PacketType);
             offset += sizeof(ushort);
 
-            suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), id);
+            suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), itemId);
             offset += sizeof(ushort);
-
-            suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(float)), value);
-            offset += sizeof(float);
-            if (string.IsNullOrEmpty(msg) == false)
+            suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), (ushort)titles.Count);
+            offset += sizeof(ushort);
+            foreach (string _t in titles)
             {
-                byte[] s = Encoding.Unicode.GetBytes(msg);
-
-                // write the size of the string(msg) first
-                suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), (ushort)s.Length);
+                ushort _tLen = (ushort)Encoding.Unicode.GetBytes(_t, buffer.Span.Slice(offset + sizeof(ushort)));
+                suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), _tLen);
                 offset += sizeof(ushort);
-
-                int b = Encoding.Unicode.GetBytes(msg, buffer.Span.Slice(offset, s.Length));
-                suc &= (b > 0);
-                offset += s.Length;
+                offset += _tLen;
             }
-            else
-            {
-                suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), 0);
-                offset += sizeof(ushort);
-            }
-
-            suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), (ushort)list.Count);
-            offset += sizeof(ushort);
-            foreach (NestedT t in list)
-            {
-                suc &= t.MSerialize(buffer, ref offset);
-            }
-
-            // Set the header with the whole size of the data
+            suc &= items.MSerialize(buffer, ref offset);
+            
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(0, sizeof(ushort)), (ushort)offset);
 
-            if (suc == false)
-            {
-                Console.WriteLine("Error when serializing");
-                return null;
-            }
-
-            return MSendBufferTLS.Return(offset);
+            return suc == true ? MSendBufferTLS.Return(offset) : null;
         }
-
-        public override string ToString()
+        
+        public void MDeserialize(Memory<byte> buffer)
         {
-            string s = "";
-            s += $"Packet: {Packet}, id: {id}, value: {value}, msg: {msg}, cnt of list: {list.Count}\n";
-            foreach (var l in list)
+            int offset = 0;
+
+            offset += sizeof(ushort);
+
+            PacketType = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
+            offset += sizeof(ushort);
+
+            itemId = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
+            offset += sizeof(ushort);
+            titles.Clear();
+            ushort titlesCnt = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
+            offset += sizeof(ushort);
+            for (ushort i = 0; i < titlesCnt; ++i)
             {
-                s += $"{l}, ";
+                int _len = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
+                offset += sizeof(ushort);
+                titles.Add(Encoding.Unicode.GetString(buffer.Span.Slice(offset, _len)));
+                offset += _len;
             }
-            return s;
+            items = new();
+            items.MDeserialize(buffer, ref offset);
+            
         }
 
         public ArraySegment<byte> Serialize()
         {
-            var buffer = SendBufferTLS.Reserve(4096);
+            ArraySegment<byte> buffer = SendBufferTLS.Reserve(2048);
             bool suc = true;
             int offset = 0;
 
             Span<byte> span = new(buffer.Array, buffer.Offset, buffer.Count);
 
-            offset += sizeof(ushort); // the header size
-
-            suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), (ushort)Packet);
             offset += sizeof(ushort);
 
-            suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), id);
+            suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), PacketType);
             offset += sizeof(ushort);
 
-            suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(float)), value);
-            offset += sizeof(float);
-            if (string.IsNullOrEmpty(msg) == false)
+            suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), itemId);
+            offset += sizeof(ushort);
+            suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), (ushort)titles.Count);
+            offset += sizeof(ushort);
+            foreach (string _t in titles)
             {
-                byte[] s = Encoding.Unicode.GetBytes(msg);
-
-                // write the size of the string(msg) first
-                suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), (ushort)s.Length);
+                ushort _tLen = (ushort)Encoding.Unicode.GetBytes(_t, span.Slice(offset + sizeof(ushort)));
+                suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), _tLen);
                 offset += sizeof(ushort);
-
-                int b = Encoding.Unicode.GetBytes(msg, span.Slice(offset, s.Length));
-                suc &= (b > 0);
-                offset += s.Length;
+                offset += _tLen;
             }
-            else
-            {
-                suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), 0);
-                offset += sizeof(ushort);
-            }
-
-            suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), (ushort)list.Count);
-            offset += sizeof(ushort);
-            foreach (NestedT t in list)
-            {
-                suc &= t.MSerialize(buffer, ref offset);
-            }
-
-            // Set the header with the whole size of the data
+            suc &= items.Serialize(buffer, ref offset);
+            
             suc &= BitConverter.TryWriteBytes(span.Slice(0, sizeof(ushort)), (ushort)offset);
 
-            if (suc == false)
-            {
-                Console.WriteLine("Error when serializing");
-                return null;
-            }
-
-            return SendBufferTLS.Return(offset);
+            return suc == true ? SendBufferTLS.Return(offset) : null;
         }
 
         public void Deserialize(ReadOnlySpan<byte> span)
@@ -265,32 +105,38 @@ namespace ServerCoreTCP
 
             offset += sizeof(ushort);
 
-            Packet = (PacketType)BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
+            PacketType = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
             offset += sizeof(ushort);
 
-            id = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
+            itemId = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
             offset += sizeof(ushort);
-
-            value = BitConverter.ToSingle(span.Slice(offset, sizeof(float)));
-            offset += sizeof(float);
-
-            int msgLen = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
+            titles.Clear();
+            ushort titlesCnt = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
             offset += sizeof(ushort);
-            if (msgLen > 0)
+            for (ushort i = 0; i < titlesCnt; ++i)
             {
-                msg = Encoding.Unicode.GetString(span.Slice(offset, msgLen));
-                offset += msgLen;
+                int _len = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
+                offset += sizeof(ushort);
+                titles.Add(Encoding.Unicode.GetString(span.Slice(offset, _len)));
+                offset += _len;
             }
+            items = new();
+            items.Deserialize(span, ref offset);
+            
+        }
 
-            list.Clear();
-            ushort listCnt = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
-            offset += sizeof(ushort);
-            for (ushort i = 0; i < listCnt; i++)
+        public override string ToString()
+        {
+            string s = $"type: {(Packets)PacketType}, itemId: {itemId}\n";
+            s += $"titles count: {titles.Count}\n[";
+            foreach(var n in titles)
             {
-                NestedT t = new();
-                t.Deserialize(span, ref offset);
-                list.Add(t);
+                s += $"{n}, ";
             }
+            s += "]\n";
+            s += $"{items}";
+
+            return s;
         }
     }
 }

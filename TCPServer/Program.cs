@@ -9,6 +9,8 @@ using System.Threading;
 
 using ServerCoreTCP;
 
+using TestNamespace;
+
 namespace TCPServer
 {
     class ClientSession : Session
@@ -25,16 +27,46 @@ namespace TCPServer
 
         public override void OnRecv(ArraySegment<byte> buffer)
         {
-            TClass t = new();
-            t.Deserialize(buffer);
-            Console.WriteLine("ArraySegment - Received: {0}", t);
+            int offset = sizeof(ushort);
+
+            Packets pkt = (Packets)BitConverter.ToUInt16(buffer.Slice(offset, sizeof(ushort)));
+            offset += sizeof(ushort);
+
+            switch (pkt)
+            {
+                case Packets.TestPacket:
+                    TestPacket t = new();
+                    t.Deserialize(buffer);
+                    Console.WriteLine(t);
+                    break;
+                case Packets.TestPacket2:
+                    TestPacket2 t2 = new();
+                    t2.Deserialize(buffer);
+                    Console.WriteLine(t2);
+                    break;
+            }
         }
 
         public override void OnRecv(Memory<byte> buffer)
         {
-            TClass t = new();
-            t.MDeserialize(buffer);
-            Console.WriteLine("Memory - Received: {0}", t);
+            int offset = sizeof(ushort);
+
+            Packets pkt = (Packets)BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
+            offset += sizeof(ushort);
+
+            switch (pkt)
+            {
+                case Packets.TestPacket:
+                    TestPacket t = new();
+                    t.MDeserialize(buffer);
+                    Console.WriteLine(t);
+                    break;
+                case Packets.TestPacket2:
+                    TestPacket2 t2 = new();
+                    t2.MDeserialize(buffer);
+                    Console.WriteLine(t2);
+                    break;
+            }
         }
 
         public override void OnSend(int numOfBytes)

@@ -12,6 +12,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerCoreTCP", "ServerCore
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestClient", "TestClient\TestClient.csproj", "{83199375-CADD-4457-9BFD-19BF92136BAE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PacketFactory", "PacketFactory\PacketFactory.csproj", "{0305B7EF-3704-4E6C-83FD-98DDA1519EF6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +32,10 @@ Global
 		{83199375-CADD-4457-9BFD-19BF92136BAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83199375-CADD-4457-9BFD-19BF92136BAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83199375-CADD-4457-9BFD-19BF92136BAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0305B7EF-3704-4E6C-83FD-98DDA1519EF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0305B7EF-3704-4E6C-83FD-98DDA1519EF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0305B7EF-3704-4E6C-83FD-98DDA1519EF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0305B7EF-3704-4E6C-83FD-98DDA1519EF6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

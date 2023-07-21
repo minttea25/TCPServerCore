@@ -14,6 +14,14 @@ namespace ServerCoreTCP
         const int HeaderSize = sizeof(ushort);
         const int RecvBufferSize = 1024;
 
+        public EndPoint EndPoint
+        {
+            get
+            {
+                return _socket?.RemoteEndPoint;
+            }
+        }
+
         Socket _socket;
 #if MEMORY_BUFFER
         readonly MRecvBuffer _mRecvBuffer = new(RecvBufferSize);

@@ -102,7 +102,7 @@ namespace TestClient
 
             Connector connector = new();
             ServerSession session = new();
-            connector.Connect(endPoint, () => { return new ServerSession(); }, 1);
+            connector.Connect(endPoint, () => { return new ServerSession(); }, 10);
 
             while (true)
             {

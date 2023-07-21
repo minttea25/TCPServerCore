@@ -141,24 +141,5 @@ namespace TestNamespace
             }
             
         }
-
-        public override string ToString()
-        {
-            string s = $"type: {(Packets)PacketType} itemId: {itemId}\n";
-            s += $"numbers count: {numbers.Count}\n[";
-            foreach(var n in numbers)
-            {
-                s += $"{n}, ";
-            }
-            s += "]\n";
-            s += $"weapons count: {weapons.Count}\n[";
-            foreach (var n in weapons)
-            {
-                s += $"{n}\n";
-            }
-            s += "]";
-
-            return s;
-        }
     }
 }

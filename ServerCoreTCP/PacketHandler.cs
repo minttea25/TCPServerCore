@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using ServerCoreTCP;
 
@@ -8,16 +8,22 @@ namespace TestNamespace
     {
         public static void TestPacketHandler(IPacket packet, Session session)
         {
+            TestPacket pkt = packet as TestPacket;
+
             // TODO
             Console.WriteLine(session.EndPoint);
-            Console.WriteLine(packet);
+            Console.WriteLine(pkt);
         }
-
+        
         public static void TestPacket2Handler(IPacket packet, Session session)
         {
+            TestPacket2 pkt = packet as TestPacket2;
+
             // TODO
             Console.WriteLine(session.EndPoint);
-            Console.WriteLine(packet);
+            Console.WriteLine(pkt);
         }
+        
+        
     }
 }

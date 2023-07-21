@@ -124,19 +124,5 @@ namespace TestNamespace
             items.Deserialize(span, ref offset);
             
         }
-
-        public override string ToString()
-        {
-            string s = $"type: {(Packets)PacketType}, itemId: {itemId}\n";
-            s += $"titles count: {titles.Count}\n[";
-            foreach(var n in titles)
-            {
-                s += $"{n}, ";
-            }
-            s += "]\n";
-            s += $"{items}";
-
-            return s;
-        }
     }
 }

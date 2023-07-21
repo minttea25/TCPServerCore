@@ -1,4 +1,4 @@
-﻿//#define MEMORY_BUFFER
+#define MEMORY_BUFFER
 
 using System;
 using System.Collections.Generic;
@@ -34,9 +34,11 @@ namespace TestNamespace
         {
             _packetFactory.Add((ushort)Packets.TestPacket, MakePacket<TestPacket>);
             _handlers.Add((ushort)Packets.TestPacket, PacketHandler.TestPacketHandler);
-
+            
             _packetFactory.Add((ushort)Packets.TestPacket2, MakePacket<TestPacket2>);
             _handlers.Add((ushort)Packets.TestPacket2, PacketHandler.TestPacket2Handler);
+            
+            
         }
 #if MEMORY_BUFFER
         public void OnRecvPacket(Session session, Memory<byte> buffer, Action<Session, IPacket> callback = null)

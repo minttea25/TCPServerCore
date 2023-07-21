@@ -60,11 +60,6 @@ namespace TestNamespace
             offset += playerNameLen;
             
         }
-
-        public override string ToString()
-        {
-            return $"playerId: {playerId}, playerName: {playerName}";
-        }
     }
     
     public class Weapon : IItemPacket
@@ -134,17 +129,6 @@ namespace TestNamespace
             date = BitConverter.ToSingle(span.Slice(offset, sizeof(float)));
             offset += sizeof(float);
             
-        }
-
-        public override string ToString()
-        {
-            string s = $"date: {date} weaponId count: {weaponId.Count}\n[";
-            foreach(var n in weaponId)
-            {
-                s += $"{n}, ";
-            }
-            s += "]";
-            return s;
         }
     }
     

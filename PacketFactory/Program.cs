@@ -85,6 +85,8 @@ namespace PacketFactory
         const string packetDefFile = "PacketDef.json";
         const string packetBaseFile = "PacketBase.cs";
         const string itemsFile = "PacketItems.cs";
+        const string packetManagerFile = "PacketManager.cs";
+        const string packetHandlerFile = "PacketHandler.cs";
 
         static void Main(string[] args)
         {
@@ -96,124 +98,166 @@ namespace PacketFactory
 
             List<string> createdFiles = new();
 
-            List<string> packetTypes = new();
-
             #region Packet Files
-            List<Packet> packets = format.Packets;
-            foreach (Packet pkt in packets)
             {
-                packetTypes.Add(pkt.Name);
-
-                string filename = $"{pkt.Name}.cs";
-                string content = "";
-
-                string members = "";
-                string s_m_members = "";
-                string d_m_members = "";
-                string s_members = "";
-                string d_members = "";
-
-                foreach (Member m in pkt.Members)
+                List<Packet> packets = format.Packets;
+                foreach (Packet pkt in packets)
                 {
-                    members += ParseMember(m);
-                    s_m_members += ParseMSerialize(m);
-                    d_m_members += ParseMDeserialize(m);
-                    s_members += ParseSerialize(m);
-                    d_members += ParseDeserialize(m);
+                    string filename = $"{pkt.Name}.cs";
+                    string content = "";
 
-                    members += Environment.NewLine;
-                    s_m_members += Environment.NewLine;
-                    d_m_members += Environment.NewLine;
-                    s_members += Environment.NewLine;
-                    d_members += Environment.NewLine;
+                    string members = "";
+                    string s_m_members = "";
+                    string d_m_members = "";
+                    string s_members = "";
+                    string d_members = "";
+
+                    foreach (Member m in pkt.Members)
+                    {
+                        members += ParseMember(m);
+                        s_m_members += ParseMSerialize(m);
+                        d_m_members += ParseMDeserialize(m);
+                        s_members += ParseSerialize(m);
+                        d_members += ParseDeserialize(m);
+
+                        members += Environment.NewLine;
+                        s_m_members += Environment.NewLine;
+                        d_m_members += Environment.NewLine;
+                        s_members += Environment.NewLine;
+                        d_members += Environment.NewLine;
+                    }
+
+                    members = members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
+                    s_m_members = s_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
+                    d_m_members = d_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
+                    s_members = s_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
+                    d_members = d_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
+
+                    content += string.Format(
+                        PacketFormat.packetFormat,
+                        format.Namespace,
+                        pkt.Name,
+                        members,
+                        pkt.ReserveBufferSize,
+                        s_m_members, d_m_members,
+                        s_members, d_members);
+
+                    content = content.Replace("\t", "    ");
+                    File.WriteAllText(filename, content);
+
+                    createdFiles.Add(filename);
                 }
-
-                members = members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
-                s_m_members = s_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
-                d_m_members = d_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
-                s_members = s_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
-                d_members = d_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
-
-                content += string.Format(
-                    PacketFormat.packetFormat,
-                    format.Namespace,
-                    pkt.Name,
-                    members,
-                    pkt.ReserveBufferSize,
-                    s_m_members, d_m_members,
-                    s_members, d_members);
-
-                content = content.Replace("\t", "    ");
-                File.WriteAllText(filename, content);
-
-                createdFiles.Add(filename);
             }
             #endregion
 
             #region Packet Base
-            string types = "";
-            for (int i = 1; i <= packetTypes.Count; ++i)
             {
-                types += string.Format(PacketFormat.packetNameFormat, packetTypes[i - 1], i);
-                types += Environment.NewLine;
+                List<string> packetTypes = new();
+                foreach (var pkt in format.Packets)
+                {
+                    packetTypes.Add(pkt.Name);
+                }
+                string types = "";
+                for (int i = 1; i <= packetTypes.Count; ++i)
+                {
+                    types += string.Format(PacketFormat.packetNameFormat, packetTypes[i - 1], i);
+                    types += Environment.NewLine;
+                }
+                types = types.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
+                types = types.Replace("\t", "    ");
+                File.WriteAllText(packetBaseFile, string.Format(
+                        PacketFormat.basePacketFileFormat,
+                        format.Namespace, types));
+                createdFiles.Add(packetBaseFile);
             }
-            types = types.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
-            types = types.Replace("\t", "    ");
-            File.WriteAllText(packetBaseFile, string.Format(
-                    PacketFormat.basePacketFileFormat,
-                    format.Namespace, types));
-            createdFiles.Add(packetBaseFile);
             #endregion
 
             #region Packet Items
-
-            List<PacketItem> items = format.Items;
-            string text = "";
-            foreach (PacketItem item in items)
             {
-                string members = "";
-                string s_m_members = "";
-                string d_m_members = "";
-                string s_members = "";
-                string d_members = "";
-
-                foreach (Member m in item.Members)
+                List<PacketItem> items = format.Items;
+                string packetItems = "";
+                foreach (PacketItem item in items)
                 {
-                    members += ParseMember(m);
-                    s_m_members += ParseMSerialize(m);
-                    d_m_members += ParseMDeserialize(m);
-                    s_members += ParseSerialize(m);
-                    d_members += ParseDeserialize(m);
+                    string members = "";
+                    string s_m_members = "";
+                    string d_m_members = "";
+                    string s_members = "";
+                    string d_members = "";
 
-                    members += Environment.NewLine;
-                    s_m_members += Environment.NewLine;
-                    d_m_members += Environment.NewLine;
-                    s_members += Environment.NewLine;
-                    d_members += Environment.NewLine;
+                    foreach (Member m in item.Members)
+                    {
+                        members += ParseMember(m);
+                        s_m_members += ParseMSerialize(m);
+                        d_m_members += ParseMDeserialize(m);
+                        s_members += ParseSerialize(m);
+                        d_members += ParseDeserialize(m);
+
+                        members += Environment.NewLine;
+                        s_m_members += Environment.NewLine;
+                        d_m_members += Environment.NewLine;
+                        s_members += Environment.NewLine;
+                        d_members += Environment.NewLine;
+                    }
+
+                    members = members.Replace(Environment.NewLine, $"{Environment.NewLine}\t");
+                    s_m_members = s_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
+                    d_m_members = d_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
+                    s_members = s_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
+                    d_members = d_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
+
+                    packetItems += string.Format(
+                            PacketFormat.packetItemClassFormat,
+                            item.Name,
+                            members,
+                            s_m_members,
+                            d_m_members,
+                            s_members,
+                            d_members
+                        );
                 }
-
-                members = members.Replace(Environment.NewLine, $"{Environment.NewLine}\t");
-                s_m_members = s_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
-                d_m_members = d_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
-                s_members = s_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
-                d_members = d_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
-
-                text += string.Format(
-                        PacketFormat.packetItemClassFormat,
-                        item.Name,
-                        members,
-                        s_m_members,
-                        d_m_members,
-                        s_members,
-                        d_members
-                    );
+                packetItems = packetItems.Replace(Environment.NewLine, $"{Environment.NewLine}\t");
+                packetItems = packetItems.Replace("\t", "    ");
+                File.WriteAllText(itemsFile, string.Format(
+                    PacketFormat.itemsFormat,
+                    format.Namespace, packetItems));
+                createdFiles.Add(itemsFile);
             }
-            text = text.Replace(Environment.NewLine, $"{Environment.NewLine}\t");
-            text = text.Replace("\t", "    ");
-            File.WriteAllText(itemsFile, string.Format(
-                PacketFormat.itemsFormat,
-                format.Namespace, text));
-            createdFiles.Add(itemsFile);
+            #endregion
+
+            #region Packet Manager
+            {
+                string packetMapping = "";
+                foreach (Packet pkt in format.Packets)
+                {
+                    packetMapping += string.Format(
+                        PacketFormat.packetManagerMappingFormat,
+                        pkt.Name);
+                    packetMapping += Environment.NewLine;
+                }
+                File.WriteAllText(packetManagerFile, string.Format(
+                    PacketFormat.packetManagerFormat,
+                    format.Namespace,
+                    packetMapping.Replace(Environment.NewLine, $"{Environment.NewLine}            ")));
+                createdFiles.Add(packetManagerFile);
+            }
+            #endregion
+
+            #region Packet Handler
+            {
+                string packetHandlerItem = "";
+                foreach (Packet pkt in format.Packets)
+                {
+                    packetHandlerItem += string.Format(
+                        PacketFormat.packetHandlerItemFormat,
+                        pkt.Name);
+                    packetHandlerItem += Environment.NewLine;
+                }
+                File.WriteAllText(packetHandlerFile, string.Format(
+                    PacketFormat.packetHandlerFormat,
+                    format.Namespace,
+                    packetHandlerItem.Replace(Environment.NewLine, $"{Environment.NewLine}        ")));
+                createdFiles.Add(packetHandlerFile);
+            }
             #endregion
 
             Console.WriteLine("The files are created:");

@@ -1,0 +1,6 @@
+suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), (ushort){0}.Count);
+offset += sizeof(ushort);
+foreach ({1} _t in {0})
+{{
+    {2}
+}}

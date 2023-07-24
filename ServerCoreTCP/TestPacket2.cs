@@ -26,19 +26,24 @@ namespace TestNamespace
 
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(double)), itemId);
             offset += sizeof(double);
+            
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), (ushort)numbers.Count);
             offset += sizeof(ushort);
             foreach (int _t in numbers)
             {
                 suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(int)), _t);
                 offset += sizeof(int);
+                
             }
+            
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), (ushort)weapons.Count);
             offset += sizeof(ushort);
             foreach (Weapon _t in weapons)
             {
                 suc &= _t.MSerialize(buffer, ref offset);
+                
             }
+            
             
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(0, sizeof(ushort)), (ushort)offset);
 
@@ -56,6 +61,7 @@ namespace TestNamespace
 
             itemId = BitConverter.ToDouble(buffer.Span.Slice(offset, sizeof(double)));
             offset += sizeof(double);
+            
             numbers.Clear();
             ushort numbersCnt = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
             offset += sizeof(ushort);
@@ -64,6 +70,7 @@ namespace TestNamespace
                 numbers.Add(BitConverter.ToInt32(buffer.Span.Slice(offset, sizeof(int))));
                 offset += sizeof(int);
             }
+            
             weapons.Clear();
             ushort weaponsCnt = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
             offset += sizeof(ushort);
@@ -73,6 +80,7 @@ namespace TestNamespace
                 _t.MDeserialize(buffer, ref offset);
                 weapons.Add(_t);
             }
+            
             
         }
 
@@ -91,19 +99,23 @@ namespace TestNamespace
 
             suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(double)), itemId);
             offset += sizeof(double);
+            
             suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), (ushort)numbers.Count);
             offset += sizeof(ushort);
             foreach (int _t in numbers)
             {
                 suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(int)), _t);
                 offset += sizeof(int);
+                
             }
+            
             suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), (ushort)weapons.Count);
             offset += sizeof(ushort);
             foreach (Weapon _t in weapons)
             {
                 suc &= _t.Serialize(buffer, ref offset);
             }
+            
             
             suc &= BitConverter.TryWriteBytes(span.Slice(0, sizeof(ushort)), (ushort)offset);
 
@@ -129,6 +141,7 @@ namespace TestNamespace
                 numbers.Add(BitConverter.ToInt32(span.Slice(offset, sizeof(int))));
                 offset += sizeof(int);
             }
+            
             weapons.Clear();
             ushort weaponsCnt = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
             offset += sizeof(ushort);
@@ -137,8 +150,8 @@ namespace TestNamespace
                 Weapon _t = new();
                 _t.Deserialize(span, ref offset);
                 weapons.Add(_t);
-                
             }
+            
             
         }
     }

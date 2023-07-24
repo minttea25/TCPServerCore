@@ -26,6 +26,7 @@ namespace TestNamespace
 
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), itemId);
             offset += sizeof(ushort);
+            
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), (ushort)titles.Count);
             offset += sizeof(ushort);
             foreach (string _t in titles)
@@ -34,8 +35,11 @@ namespace TestNamespace
                 suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), _tLen);
                 offset += sizeof(ushort);
                 offset += _tLen;
+                
             }
+            
             suc &= items.MSerialize(buffer, ref offset);
+            
             
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(0, sizeof(ushort)), (ushort)offset);
 
@@ -53,6 +57,7 @@ namespace TestNamespace
 
             itemId = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
             offset += sizeof(ushort);
+            
             titles.Clear();
             ushort titlesCnt = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
             offset += sizeof(ushort);
@@ -63,8 +68,10 @@ namespace TestNamespace
                 titles.Add(Encoding.Unicode.GetString(buffer.Span.Slice(offset, _len)));
                 offset += _len;
             }
+            
             items = new();
             items.MDeserialize(buffer, ref offset);
+            
             
         }
 
@@ -83,6 +90,7 @@ namespace TestNamespace
 
             suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), itemId);
             offset += sizeof(ushort);
+            
             suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), (ushort)titles.Count);
             offset += sizeof(ushort);
             foreach (string _t in titles)
@@ -91,7 +99,9 @@ namespace TestNamespace
                 suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), _tLen);
                 offset += sizeof(ushort);
                 offset += _tLen;
+                
             }
+            
             suc &= items.Serialize(buffer, ref offset);
             
             suc &= BitConverter.TryWriteBytes(span.Slice(0, sizeof(ushort)), (ushort)offset);
@@ -120,8 +130,10 @@ namespace TestNamespace
                 titles.Add(Encoding.Unicode.GetString(span.Slice(offset, _len)));
                 offset += _len;
             }
+            
             items = new();
             items.Deserialize(span, ref offset);
+            
             
         }
     }

@@ -1,0 +1,4 @@
+ushort {0}Len = (ushort)Encoding.{1}.GetBytes({0}, span.Slice(offset + sizeof(ushort)));
+suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), {0}Len);
+offset += sizeof(ushort);
+offset += {0}Len;

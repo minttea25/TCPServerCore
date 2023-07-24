@@ -1,0 +1,1 @@
+suc &= {0}.Serialize(buffer, ref offset);

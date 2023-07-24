@@ -1,0 +1,2 @@
+{0} = new();
+{0}.MDeserialize(buffer, ref offset);

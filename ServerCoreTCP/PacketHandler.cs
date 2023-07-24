@@ -11,8 +11,7 @@ namespace TestNamespace
             TestPacket pkt = packet as TestPacket;
 
             // TODO
-            Console.WriteLine(session.EndPoint);
-            Console.WriteLine(pkt);
+            Console.WriteLine(IPacket.ToString(pkt));
         }
         
         public static void TestPacket2Handler(IPacket packet, Session session)
@@ -20,8 +19,7 @@ namespace TestNamespace
             TestPacket2 pkt = packet as TestPacket2;
 
             // TODO
-            Console.WriteLine(session.EndPoint);
-            Console.WriteLine(pkt);
+            Console.WriteLine(IPacket.ToString(pkt));
         }
         
         

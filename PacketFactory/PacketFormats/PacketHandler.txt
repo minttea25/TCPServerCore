@@ -1,0 +1,11 @@
+using System;
+
+using ServerCoreTCP;
+
+namespace {0}
+{{
+    public class PacketHandler
+    {{
+        {1}
+    }}
+}}

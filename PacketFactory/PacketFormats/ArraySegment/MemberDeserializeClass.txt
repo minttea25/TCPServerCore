@@ -1,0 +1,2 @@
+{0} = new();
+{0}.Deserialize(span, ref offset);

@@ -1,0 +1,2 @@
+{0}.Add(BitConverter.{1}(span.Slice(offset, sizeof({2}))));
+offset += sizeof({2});

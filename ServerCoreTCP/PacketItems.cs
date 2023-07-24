@@ -6,51 +6,57 @@ using ServerCoreTCP;
 
 namespace TestNamespace 
 {
-    public class Item : IItemPacket
+    public class Item : PacketItem
     {
         public long playerId;
         public string playerName;
         
-        public bool MSerialize(Memory<byte> buffer, ref int offset)
+        public override bool MSerialize(Memory<byte> buffer, ref int offset)
         {
             bool suc = true;
     
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(long)), playerId);
             offset += sizeof(long);
+            
             ushort playerNameLen = (ushort)Encoding.Unicode.GetBytes(playerName, buffer.Span.Slice(offset + sizeof(ushort)));
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), playerNameLen);
             offset += sizeof(ushort);
             offset += playerNameLen;
             
+            
             return suc;
         }
     
-        public void MDeserialize(Memory<byte> buffer, ref int offset)
+        public override void MDeserialize(Memory<byte> buffer, ref int offset)
         {
             playerId = BitConverter.ToInt64(buffer.Span.Slice(offset, sizeof(long)));
             offset += sizeof(long);
+            
             int playerNameLen = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
             offset += sizeof(ushort);
             playerName = Encoding.Unicode.GetString(buffer.Span.Slice(offset, playerNameLen));
             offset += playerNameLen;
             
+            
         }
     
-        public bool Serialize(Span<byte> span, ref int offset)
+        public override bool Serialize(Span<byte> span, ref int offset)
         {
             bool suc = true;
     
             suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(long)), playerId);
             offset += sizeof(long);
+            
             ushort playerNameLen = (ushort)Encoding.Unicode.GetBytes(playerName, span.Slice(offset + sizeof(ushort)));
             suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), playerNameLen);
             offset += sizeof(ushort);
             offset += playerNameLen;
             
+            
             return suc;
         }
     
-        public void Deserialize(ReadOnlySpan<byte> span, ref int offset)
+        public override void Deserialize(ReadOnlySpan<byte> span, ref int offset)
         {
             playerId = BitConverter.ToInt64(span.Slice(offset, sizeof(long)));
             offset += sizeof(long);
@@ -59,15 +65,14 @@ namespace TestNamespace
             playerName = Encoding.Unicode.GetString(span.Slice(offset, playerNameLen));
             offset += playerNameLen;
             
+            
         }
-    }
-    
-    public class Weapon : IItemPacket
+    }public class Weapon : PacketItem
     {
         public List<ushort> weaponId = new();
         public float date;
         
-        public bool MSerialize(Memory<byte> buffer, ref int offset)
+        public override bool MSerialize(Memory<byte> buffer, ref int offset)
         {
             bool suc = true;
     
@@ -77,14 +82,17 @@ namespace TestNamespace
             {
                 suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), _t);
                 offset += sizeof(ushort);
+                
             }
+            
             suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(float)), date);
             offset += sizeof(float);
+            
             
             return suc;
         }
     
-        public void MDeserialize(Memory<byte> buffer, ref int offset)
+        public override void MDeserialize(Memory<byte> buffer, ref int offset)
         {
             weaponId.Clear();
             ushort weaponIdCnt = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
@@ -94,12 +102,14 @@ namespace TestNamespace
                 weaponId.Add(BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort))));
                 offset += sizeof(ushort);
             }
+            
             date = BitConverter.ToSingle(buffer.Span.Slice(offset, sizeof(float)));
             offset += sizeof(float);
             
+            
         }
     
-        public bool Serialize(Span<byte> span, ref int offset)
+        public override bool Serialize(Span<byte> span, ref int offset)
         {
             bool suc = true;
     
@@ -109,14 +119,17 @@ namespace TestNamespace
             {
                 suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(ushort)), _t);
                 offset += sizeof(ushort);
+                
             }
+            
             suc &= BitConverter.TryWriteBytes(span.Slice(offset, sizeof(float)), date);
             offset += sizeof(float);
+            
             
             return suc;
         }
     
-        public void Deserialize(ReadOnlySpan<byte> span, ref int offset)
+        public override void Deserialize(ReadOnlySpan<byte> span, ref int offset)
         {
             weaponId.Clear();
             ushort weaponIdCnt = BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort)));
@@ -126,11 +139,10 @@ namespace TestNamespace
                 weaponId.Add(BitConverter.ToUInt16(span.Slice(offset, sizeof(ushort))));
                 offset += sizeof(ushort);
             }
+            
             date = BitConverter.ToSingle(span.Slice(offset, sizeof(float)));
             offset += sizeof(float);
             
         }
     }
-    
-    
 }

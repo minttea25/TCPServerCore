@@ -1,0 +1,7 @@
+{0}.Clear();
+ushort {0}Cnt = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
+offset += sizeof(ushort);
+for (ushort i = 0; i < {0}Cnt; ++i)
+{{
+    {1}
+}}

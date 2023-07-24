@@ -1,0 +1,6 @@
+public static void {0}Handler(IPacket packet, Session session)
+{{
+    {0} pkt = packet as {0};
+
+    // TODO
+}}

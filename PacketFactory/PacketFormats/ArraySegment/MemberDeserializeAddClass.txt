@@ -1,0 +1,3 @@
+{0} _t = new();
+_t.Deserialize(span, ref offset);
+{1}.Add(_t);

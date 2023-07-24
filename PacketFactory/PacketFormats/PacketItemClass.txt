@@ -1,0 +1,29 @@
+public class {0} : PacketItem
+{{
+    {1}
+    public override bool MSerialize(Memory<byte> buffer, ref int offset)
+    {{
+        bool suc = true;
+
+        {2}
+        return suc;
+    }}
+
+    public override void MDeserialize(Memory<byte> buffer, ref int offset)
+    {{
+        {3}
+    }}
+
+    public override bool Serialize(Span<byte> span, ref int offset)
+    {{
+        bool suc = true;
+
+        {4}
+        return suc;
+    }}
+
+    public override void Deserialize(ReadOnlySpan<byte> span, ref int offset)
+    {{
+        {5}
+    }}
+}}

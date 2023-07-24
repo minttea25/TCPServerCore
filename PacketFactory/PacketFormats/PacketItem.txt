@@ -1,0 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+using ServerCoreTCP;
+
+namespace {0} 
+{{
+    {1}
+}}

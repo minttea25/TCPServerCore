@@ -1,0 +1,2 @@
+_packetFactory.Add((ushort)Packets.{0}, MakePacket<{0}>);
+_handlers.Add((ushort)Packets.{0}, PacketHandler.{0}Handler);

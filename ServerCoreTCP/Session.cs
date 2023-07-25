@@ -99,6 +99,19 @@ namespace ServerCoreTCP
         }
 
         /// <summary>
+        /// Send data to endpoint of the socket
+        /// </summary>
+        /// <param name="packet">The packet to send</param>
+        public void Send(IPacket packet)
+        {
+#if MEMORY_BUFFER
+            Send(packet.MSerialize());
+#else
+            Send(packet.Serialize());
+#endif
+        }
+
+        /// <summary>
         /// Send data to endpoint of the socket.
         /// </summary>
         /// <param name="sendBuffer">A byte buffer which contains data</param>

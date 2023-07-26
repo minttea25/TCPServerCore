@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.23.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ServerCoreTCP\ServerCoreTCP.csproj" />
   </ItemGroup>
 

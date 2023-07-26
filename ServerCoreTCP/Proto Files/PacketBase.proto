@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+option csharp_namespace = "ServerCoreTCP.Protobuf";
+
+enum PacketType {
+    PINVALID = 0;
+    Ptest1 = 1;
+    Ptest2 = 2;
+    Pvector3 = 3;
+}

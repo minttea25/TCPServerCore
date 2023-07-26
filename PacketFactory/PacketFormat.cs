@@ -104,7 +104,7 @@ using System.Collections;
 using System.Reflection;
 using System.Text;
 
-namespace ServerCoreTCP
+namespace ServerCoreTCP.CustomBuffer
 {{
     public enum Packets : ushort
     {{

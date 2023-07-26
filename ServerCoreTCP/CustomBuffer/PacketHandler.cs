@@ -2,7 +2,7 @@ using System;
 
 using ServerCoreTCP;
 
-namespace TestNamespace
+namespace ServerCoreTCP.CustomBuffer
 {
     public class PacketHandler
     {
@@ -13,7 +13,7 @@ namespace TestNamespace
             // TODO
             Console.WriteLine(IPacket.ToString(pkt));
         }
-        
+
         public static void TestPacket2Handler(IPacket packet, Session session)
         {
             TestPacket2 pkt = packet as TestPacket2;
@@ -21,7 +21,7 @@ namespace TestNamespace
             // TODO
             Console.WriteLine(IPacket.ToString(pkt));
         }
-        
-        
+
+
     }
 }

@@ -12,7 +12,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerCoreTCP", "ServerCore
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestClient", "TestClient\TestClient.csproj", "{83199375-CADD-4457-9BFD-19BF92136BAE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PacketFactory", "PacketFactory\PacketFactory.csproj", "{0305B7EF-3704-4E6C-83FD-98DDA1519EF6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PacketFactory", "PacketFactory\PacketFactory.csproj", "{0305B7EF-3704-4E6C-83FD-98DDA1519EF6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

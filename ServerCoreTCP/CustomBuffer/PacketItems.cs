@@ -4,7 +4,7 @@ using System.Text;
 
 using ServerCoreTCP;
 
-namespace TestNamespace 
+namespace ServerCoreTCP.CustomBuffer 
 {
     public class Item : PacketItem
     {

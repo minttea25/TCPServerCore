@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+import "proto/PacketBase.proto";
+
+option csharp_namespace = "ServerCoreTCP.Protobuf";
+
+message Vector3 {
+    fixed32 size = 1;
+    PacketType packetType = 2;
+    float x = 3;
+    float y = 4;
+    float z = 5;
+}

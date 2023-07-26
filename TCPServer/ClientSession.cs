@@ -2,7 +2,7 @@
 using System.Net;
 
 using ServerCoreTCP;
-using TestNamespace;
+using ServerCoreTCP.Protobuf;
 
 namespace TCPServer
 {
@@ -25,14 +25,9 @@ namespace TCPServer
             Console.WriteLine("OnDisconnected: {0}", endPoint);
         }
 
-        public override void OnRecv(ArraySegment<byte> buffer)
+        public override void OnRecv(ReadOnlySpan<byte> buffer)
         {
             PacketManager.Instance.OnRecvPacket(this, buffer);
-        }
-
-        public override void OnRecv(Memory<byte> buffer)
-        {
-            //PacketManager.Instance.OnRecvPacket(this, buffer);
         }
 
         public override void OnSend(int numOfBytes)

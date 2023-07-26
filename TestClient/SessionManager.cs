@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-using ServerCoreTCP;
+using Google.Protobuf;
 
 namespace TestClient
 {
@@ -24,13 +24,24 @@ namespace TestClient
             return session;
         }
 
-        public void Broadcast(IPacket packet)
+        public void Broadcast(ServerCoreTCP.CustomBuffer.IPacket packet)
         {
             lock (_lock)
             {
                 foreach (ServerSession session in _sessions)
                 {
                     session.Send(packet);
+                }
+            }
+        }
+
+        public void Broadcast<T>(T message) where T : IMessage, ServerCoreTCP.Protobuf.IPacket
+        {
+            lock (_lock)
+            {
+                foreach (ServerSession session in _sessions)
+                {
+                    session.Send(message);
                 }
             }
         }

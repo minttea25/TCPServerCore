@@ -18,7 +18,7 @@ namespace TestClient
             IPEndPoint endPoint = new(address: ipAddr, port: 8888);
 
             Connector connector = new();
-            connector.Connect(endPoint, () => { return SessionManager.Instance.CreateNewSession(); }, 100);
+            connector.Connect(endPoint, () => { return SessionManager.Instance.CreateNewSession(); }, 1);
 
             while (true)
             {

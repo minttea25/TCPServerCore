@@ -1,5 +1,10 @@
 ﻿#define MEMORY_BUFFER
-#define PROTOBUF
+
+
+// Use one of 3.
+//#define PROTOBUF
+#define PROTOBUF_WRAPPER
+//#define CUSTOM_PACKET
 
 using System;
 using System.Collections.Generic;
@@ -9,18 +14,20 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Google.Protobuf;
+using ServerCoreTCP.ProtobufWrapper;
+using ServerCoreTCP.CustomBuffer;
 
 namespace ServerCoreTCP
 {
     public abstract class Session
     {
+        const int RecvBufferSize = 1024;
+
 #if PROTOBUF
         const int HeaderSize = sizeof(uint);
 #else
         const int HeaderSize = sizeof(ushort);
 #endif
-
-        const int RecvBufferSize = 1024;
 
         public EndPoint EndPoint
         {
@@ -65,7 +72,7 @@ namespace ServerCoreTCP
         /// <summary>
         /// Called when the socket received data(buffer)
         /// </summary>
-        /// <param name="buffer">The data received</param>
+        /// <param name="buffer">The buffer of unit packet received.</param>
         public abstract void OnRecv(ReadOnlySpan<byte> buffer);
         /// <summary>
         /// Called when the socket sent data.
@@ -100,21 +107,9 @@ namespace ServerCoreTCP
             RegisterRecv();
         }
 
+#if PROTOBUF
         /// <summary>
-        /// Send data to endpoint of the socket
-        /// </summary>
-        /// <param name="packet">The packet to send</param>
-        public void Send(CustomBuffer.IPacket packet)
-        {
-#if MEMORY_BUFFER
-            Send(packet.MSerialize());
-#else
-            Send(packet.Serialize());
-#endif
-        }
-
-        /// <summary>
-        /// Send message packet to endpoint of the socket.
+        /// Send message packet to endpoint of the socket. [Protobuf]
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage and ServerCoreTCP.Protobuf.IPacket</typeparam>
         /// <param name="message">The message to send.</param>
@@ -127,7 +122,7 @@ namespace ServerCoreTCP
             var sendBuffer = MSendBufferTLS.Return(size);
 #else
             ArraySegment<byte> buffer = SendBufferTLS.Reserve(size);
-            packet.WriteTo(buffer);
+            message.WriteTo(buffer);
             var sendBuffer = SendBufferTLS.Return(size);
 #endif
 
@@ -138,11 +133,43 @@ namespace ServerCoreTCP
                 if (_sendPendingList.Count == 0) RegisterSend();
             }
         }
+#endif
+
+#if PROTOBUF_WRAPPER
+        /// <summary>
+        /// Send message to endpoint of the socket [Protobuf Wrapper]
+        /// </summary>
+        /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
+        /// <param name="packet">The message to send.</param>
+        public void Send<T>(T message) where T : IMessage
+        {
+#if MEMORY_BUFFER
+            Send(message.MSerializeWrapper());
+#else
+            Send(message.SerializeWrapper());
+#endif
+        }
+#endif
+
+#if CUSTOM_PACKET
+        /// <summary>
+        /// Send message packet to endpoint of the socket. [Custom Packet]
+        /// </summary>
+        /// <param name="packet">The packet to send</param>
+        public void Send(CustomBuffer.IPacket packet)
+        {
+#if MEMORY_BUFFER
+            Send(packet.MSerialize());
+#else
+            Send(packet.Serialize());
+#endif
+        }
+#endif
 
         /// <summary>
-        /// Send data to endpoint of the socket.
+        /// Send data to endpoint of the socket. [ArraySegment]
         /// </summary>
-        /// <param name="sendBuffer">A byte buffer which contains data</param>
+        /// <param name="sendBuffer">Serialized data to send</param>
         public void Send(ArraySegment<byte> sendBuffer)
         {
 #if MEMORY_BUFFER
@@ -158,9 +185,9 @@ namespace ServerCoreTCP
         }
 
         /// <summary>
-        /// Send data to endpoint of the socket.
+        /// Send data to endpoint of the socket. [Memory]
         /// </summary>
-        /// <param name="sendBuffer">A byte buffer which contains data</param>
+        /// <param name="sendBuffer">Serialized data to send</param>
         public void Send(Memory<byte> sendBuffer)
         {
 #if MEMORY_BUFFER
@@ -307,6 +334,10 @@ namespace ServerCoreTCP
         /// <param name="e">An object that contains the socket-async-recv-event data</param>
         void OnRecvCompleted(object sender, SocketAsyncEventArgs e)
         {
+#if DEBUG
+            Console.WriteLine($"Received: {e.BytesTransferred} bytes");
+#endif
+
             // Check the length of bytes transferred and SocketError==Success
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
@@ -383,7 +414,9 @@ namespace ServerCoreTCP
                 // Get total size of the unit packet (sizeof(uint) = 4)
                 // Jump the tag size (1 byte)
                 int size = (int)BitConverter.ToUInt32(buffer.Span.Slice(processed + 1, HeaderSize));
-
+#elif PROTOBUF_WRAPPER
+                // Get total size of the unit packet (ushort)
+                ushort size = BitConverter.ToUInt16(buffer.Span.Slice(processed, HeaderSize));
 #else
                 // Get total size of the unit packet (ushort)
                 ushort size = BitConverter.ToUInt16(buffer.Span.Slice(processed, HeaderSize));
@@ -419,7 +452,9 @@ namespace ServerCoreTCP
                 // Get total size of the unit packet (sizeof(uint) = 4)
                 // Jump the tag size (1 byte)
                 int size = (int)BitConverter.ToUInt32(buffer.Slice(processed + 1, HeaderSize));
-
+#elif PROTOBUF_WRAPPER
+                // Get total size of the unit packet (ushort)
+                ushort size = BitConverter.ToUInt16(buffer.Slice(processed, HeaderSize));
 #else
                 // Get total size of the unit packet (ushort)
                 ushort size = BitConverter.ToUInt16(buffer.Slice(processed, HeaderSize));

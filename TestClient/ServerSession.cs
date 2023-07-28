@@ -2,7 +2,6 @@
 using System.Net;
 
 using ServerCoreTCP;
-using ServerCoreTCP.Protobuf;
 
 namespace TestClient
 {
@@ -13,9 +12,9 @@ namespace TestClient
         {
             Console.WriteLine("OnConnected: {0}", endPoint);
 
-            for(int i=0; i<5; i++)
+            for (int i = 0; i < 5; i++)
             {
-                Vector3 v = new()
+                ServerCoreTCP.ProtobufWrapper.Vector3 v = new()
                 {
                     X = (float)random.NextDouble(),
                     Y = (float)random.NextDouble(),
@@ -32,7 +31,7 @@ namespace TestClient
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
         {
-            
+
         }
 
         public override void OnSend(int numOfBytes)

@@ -2,7 +2,6 @@
 using System.Net;
 
 using ServerCoreTCP;
-using ServerCoreTCP.Protobuf;
 
 namespace TCPServer
 {
@@ -27,7 +26,7 @@ namespace TCPServer
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
         {
-            PacketManager.Instance.OnRecvPacket(this, buffer);
+            ServerCoreTCP.ProtobufWrapper.PacketManager.Instance.OnRecvPacket(this, buffer);
         }
 
         public override void OnSend(int numOfBytes)

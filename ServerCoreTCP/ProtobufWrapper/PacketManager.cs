@@ -1,14 +1,13 @@
-﻿using System;
+﻿using Google.Protobuf;
+using System;
 using System.Collections.Generic;
 
-using Google.Protobuf;
-
-namespace ServerCoreTCP.Protobuf
+namespace ServerCoreTCP.ProtobufWrapper
 {
     public class PacketManager
     {
-        public const int PacketTypeBytesOffset = 6;
-        public const int PacketTypeBytesLength = 1;
+        public const int PacketSizeLength = sizeof(ushort);
+        public const int PacketTypeLength = sizeof(ushort);
 
         #region Singleton
         readonly static PacketManager _instance = new();
@@ -32,21 +31,19 @@ namespace ServerCoreTCP.Protobuf
 
         public void OnRecvPacket(Session session, ReadOnlySpan<byte> buffer, Action<Session, IMessage> callback = null)
         {
-            ushort packetType = (ushort)ReadPacketType(buffer);
+            ushort packetType = ReadPacketType(buffer);
 
             if (_messageTypes.TryGetValue(packetType, out var parser))
             {
-                var msg = parser.ParseFrom(buffer);
+                var msg = parser.ParseFrom(buffer.Slice(PacketSizeLength + PacketTypeLength));
                 callback?.Invoke(session, msg);
                 HandlePacket(packetType, msg, session);
             }
         }
 
-        static int ReadPacketType(ReadOnlySpan<byte> buffer)
+        static ushort ReadPacketType(ReadOnlySpan<byte> buffer)
         {
-            ReadOnlySpan<byte> span = buffer.Slice(PacketTypeBytesOffset, PacketTypeBytesLength);
-            using CodedInputStream stream = new(span.ToArray());
-            return stream.ReadEnum();
+            return BitConverter.ToUInt16(buffer.Slice(PacketSizeLength, PacketTypeLength));
         }
 
         void HandlePacket(ushort packetType, IMessage msg, Session session)

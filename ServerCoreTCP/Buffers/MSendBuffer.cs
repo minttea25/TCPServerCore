@@ -23,7 +23,7 @@ namespace ServerCoreTCP
         /// <param name="reserveSize">The size to reserve.</param>
         /// <param name="extend">If true, when reserve size > usable size, reset the buffer through pointer = 0. </param>
         /// <returns>The segment of Memory reserved</returns>
-        public static Memory<byte> Reserve(int reserveSize, bool extend = false)
+        public static Memory<byte> Reserve(int reserveSize)
         {
 #if DEBUG
             if (reserveSize > BufferSize)
@@ -33,7 +33,7 @@ namespace ServerCoreTCP
             }
 #endif
 
-            return TLS_CurrentBuffer.Value.Reserve(reserveSize, extend);
+            return TLS_CurrentBuffer.Value.Reserve(reserveSize);
         }
 
         /// <summary>
@@ -45,6 +45,12 @@ namespace ServerCoreTCP
         {
             return TLS_CurrentBuffer.Value.Return(usedSize);
         }
+
+        public static Memory<byte> Use(int size)
+        {
+            return TLS_CurrentBuffer.Value.Use(size);
+        }
+
     }
 
     /// <summary>
@@ -52,7 +58,7 @@ namespace ServerCoreTCP
     /// </summary>
     public class MSendBuffer
     {
-        readonly Memory<byte> buffer;
+        readonly byte[] buffer;
         int usedSize = 0;
 
         public int FreeSize { get { return buffer.Length - usedSize; } }
@@ -68,16 +74,15 @@ namespace ServerCoreTCP
         /// <param name="reserveSize">The size reserved</param>
         /// <param name="extend">If true, when the reserveSize > usableSize, reset the pointer = 0.</param>
         /// <returns>A segment of Memory which can be used of the size of reserveSize.</returns>
-        public Memory<byte> Reserve(int reserveSize, bool extend = false)
+        public Memory<byte> Reserve(int reserveSize)
         {
             if (reserveSize > FreeSize)
             {
-                if (extend == false) return null;
-                else usedSize = 0;
+                usedSize = 0;
             }
 
             // return sliced memory from usedSize to usedSize + reserveSize
-            return buffer.Slice(start: usedSize, length: reserveSize);
+            return new(buffer, start: usedSize, length: reserveSize);
         }
 
         /// <summary>
@@ -87,9 +92,17 @@ namespace ServerCoreTCP
         /// <returns>The Memory segment of the actually used buffer.</returns>
         public Memory<byte> Return(int usedSize)
         {
-            Memory<byte> m = buffer.Slice(start: this.usedSize, length: usedSize);
+            Memory<byte> m = new(buffer, start: this.usedSize, length: usedSize);
             this.usedSize += usedSize;
-            //Console.WriteLine($"used: {usedSize}, nowUsedSize: {this.usedSize}");
+            return m;
+        }
+
+        public Memory<byte> Use(int size)
+        {
+            if (size > FreeSize) usedSize = 0;
+
+            Memory<byte> m = new(buffer, start: usedSize, length: size);
+            usedSize += size;
             return m;
         }
     }

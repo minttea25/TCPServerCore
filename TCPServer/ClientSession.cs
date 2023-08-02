@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Net;
 
-using ServerCoreTCP;
+using ServerCoreTCP.ProtobufWrapper;
 
 namespace TCPServer
 {
-    public class ClientSession : Session
+    public class ClientSession : PacketSession
     {
         public readonly uint SessionId;
 
@@ -26,7 +26,7 @@ namespace TCPServer
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
         {
-            ServerCoreTCP.ProtobufWrapper.PacketManager.Instance.OnRecvPacket(this, buffer);
+            PacketManager.Instance.OnRecvPacket(this, buffer);
         }
 
         public override void OnSend(int numOfBytes)

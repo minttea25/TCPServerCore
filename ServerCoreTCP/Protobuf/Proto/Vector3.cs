@@ -25,13 +25,13 @@ namespace ServerCoreTCP.Protobuf {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChNwcm90by9WZWN0b3IzLnByb3RvGhZwcm90by9QYWNrZXRCYXNlLnByb3Rv",
-            "IlkKB1ZlY3RvcjMSDAoEc2l6ZRgBIAEoBxIfCgpwYWNrZXRUeXBlGAIgASgO",
-            "MgsuUGFja2V0VHlwZRIJCgF4GAMgASgCEgkKAXkYBCABKAISCQoBehgFIAEo",
-            "AkIZqgIWU2VydmVyQ29yZVRDUC5Qcm90b2J1ZmIGcHJvdG8z"));
+            "IksKB1ZlY3RvcjMSHwoKcGFja2V0VHlwZRgBIAEoDjILLlBhY2tldFR5cGUS",
+            "CQoBeBgCIAEoAhIJCgF5GAMgASgCEgkKAXoYBCABKAJCGaoCFlNlcnZlckNv",
+            "cmVUQ1AuUHJvdG9idWZiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::ServerCoreTCP.Protobuf.PacketBaseReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ServerCoreTCP.Protobuf.Vector3), global::ServerCoreTCP.Protobuf.Vector3.Parser, new[]{ "Size", "PacketType", "X", "Y", "Z" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::ServerCoreTCP.Protobuf.Vector3), global::ServerCoreTCP.Protobuf.Vector3.Parser, new[]{ "PacketType", "X", "Y", "Z" }, null, null, null, null)
           }));
     }
     #endregion
@@ -72,7 +72,6 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Vector3(Vector3 other) : this() {
-      size_ = other.size_;
       packetType_ = other.packetType_;
       x_ = other.x_;
       y_ = other.y_;
@@ -86,20 +85,8 @@ namespace ServerCoreTCP.Protobuf {
       return new Vector3(this);
     }
 
-    /// <summary>Field number for the "size" field.</summary>
-    public const int SizeFieldNumber = 1;
-    private uint size_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public uint Size {
-      get { return size_; }
-      set {
-        size_ = value;
-      }
-    }
-
     /// <summary>Field number for the "packetType" field.</summary>
-    public const int PacketTypeFieldNumber = 2;
+    public const int PacketTypeFieldNumber = 1;
     private global::ServerCoreTCP.Protobuf.PacketType packetType_ = global::ServerCoreTCP.Protobuf.PacketType.Pinvalid;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -111,7 +98,7 @@ namespace ServerCoreTCP.Protobuf {
     }
 
     /// <summary>Field number for the "x" field.</summary>
-    public const int XFieldNumber = 3;
+    public const int XFieldNumber = 2;
     private float x_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -123,7 +110,7 @@ namespace ServerCoreTCP.Protobuf {
     }
 
     /// <summary>Field number for the "y" field.</summary>
-    public const int YFieldNumber = 4;
+    public const int YFieldNumber = 3;
     private float y_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -135,7 +122,7 @@ namespace ServerCoreTCP.Protobuf {
     }
 
     /// <summary>Field number for the "z" field.</summary>
-    public const int ZFieldNumber = 5;
+    public const int ZFieldNumber = 4;
     private float z_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -161,7 +148,6 @@ namespace ServerCoreTCP.Protobuf {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (Size != other.Size) return false;
       if (PacketType != other.PacketType) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(X, other.X)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Y, other.Y)) return false;
@@ -173,7 +159,6 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (Size != 0) hash ^= Size.GetHashCode();
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) hash ^= PacketType.GetHashCode();
       if (X != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(X);
       if (Y != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Y);
@@ -196,24 +181,20 @@ namespace ServerCoreTCP.Protobuf {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Size != 0) {
-        output.WriteRawTag(13);
-        output.WriteFixed32(Size);
-      }
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
-        output.WriteRawTag(16);
+        output.WriteRawTag(8);
         output.WriteEnum((int) PacketType);
       }
       if (X != 0F) {
-        output.WriteRawTag(29);
+        output.WriteRawTag(21);
         output.WriteFloat(X);
       }
       if (Y != 0F) {
-        output.WriteRawTag(37);
+        output.WriteRawTag(29);
         output.WriteFloat(Y);
       }
       if (Z != 0F) {
-        output.WriteRawTag(45);
+        output.WriteRawTag(37);
         output.WriteFloat(Z);
       }
       if (_unknownFields != null) {
@@ -226,24 +207,20 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Size != 0) {
-        output.WriteRawTag(13);
-        output.WriteFixed32(Size);
-      }
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
-        output.WriteRawTag(16);
+        output.WriteRawTag(8);
         output.WriteEnum((int) PacketType);
       }
       if (X != 0F) {
-        output.WriteRawTag(29);
+        output.WriteRawTag(21);
         output.WriteFloat(X);
       }
       if (Y != 0F) {
-        output.WriteRawTag(37);
+        output.WriteRawTag(29);
         output.WriteFloat(Y);
       }
       if (Z != 0F) {
-        output.WriteRawTag(45);
+        output.WriteRawTag(37);
         output.WriteFloat(Z);
       }
       if (_unknownFields != null) {
@@ -256,9 +233,6 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (Size != 0) {
-        size += 1 + 4;
-      }
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) PacketType);
       }
@@ -282,9 +256,6 @@ namespace ServerCoreTCP.Protobuf {
     public void MergeFrom(Vector3 other) {
       if (other == null) {
         return;
-      }
-      if (other.Size != 0) {
-        Size = other.Size;
       }
       if (other.PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
         PacketType = other.PacketType;
@@ -313,23 +284,19 @@ namespace ServerCoreTCP.Protobuf {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 13: {
-            Size = input.ReadFixed32();
-            break;
-          }
-          case 16: {
+          case 8: {
             PacketType = (global::ServerCoreTCP.Protobuf.PacketType) input.ReadEnum();
             break;
           }
-          case 29: {
+          case 21: {
             X = input.ReadFloat();
             break;
           }
-          case 37: {
+          case 29: {
             Y = input.ReadFloat();
             break;
           }
-          case 45: {
+          case 37: {
             Z = input.ReadFloat();
             break;
           }
@@ -348,23 +315,19 @@ namespace ServerCoreTCP.Protobuf {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 13: {
-            Size = input.ReadFixed32();
-            break;
-          }
-          case 16: {
+          case 8: {
             PacketType = (global::ServerCoreTCP.Protobuf.PacketType) input.ReadEnum();
             break;
           }
-          case 29: {
+          case 21: {
             X = input.ReadFloat();
             break;
           }
-          case 37: {
+          case 29: {
             Y = input.ReadFloat();
             break;
           }
-          case 45: {
+          case 37: {
             Z = input.ReadFloat();
             break;
           }

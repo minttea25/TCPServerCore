@@ -5,9 +5,8 @@ import "proto/PacketBase.proto";
 option csharp_namespace = "ServerCoreTCP.Protobuf";
 
 message Vector3 {
-    fixed32 size = 1;
-    PacketType packetType = 2;
-    float x = 3;
-    float y = 4;
-    float z = 5;
+    PacketType packetType = 1;
+    float x = 2;
+    float y = 3;
+    float z = 4;
 }

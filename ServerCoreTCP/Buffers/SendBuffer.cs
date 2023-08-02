@@ -17,13 +17,14 @@ namespace ServerCoreTCP
         public readonly static ThreadLocal<SendBuffer> TLS_CurrentBuffer 
             = new(() => new(BufferSize), false);
 
+
         /// <summary>
         /// Helper method of SendBuffer.Reserve
         /// </summary>
         /// <param name="reserveSize">The size to reserve.</param>
         /// <param name="extend">If true, when reserve size > usable size, reset the buffer through pointer = 0. </param>
         /// <returns>The segment of Memory reserved</returns>
-        public static ArraySegment<byte> Reserve(int reserveSize, bool extend = false)
+        public static ArraySegment<byte> Reserve(int reserveSize)
         {
 #if DEBUG
             if (reserveSize > BufferSize)
@@ -33,7 +34,7 @@ namespace ServerCoreTCP
             }
 #endif
 
-            return TLS_CurrentBuffer.Value.Reserve(reserveSize, extend);
+            return TLS_CurrentBuffer.Value.Reserve(reserveSize);
         }
 
         /// <summary>
@@ -44,6 +45,11 @@ namespace ServerCoreTCP
         public static ArraySegment<byte> Return(int usedSize)
         {
             return TLS_CurrentBuffer.Value.Return(usedSize);
+        }
+
+        public static ArraySegment<byte> Use(int size)
+        {
+            return TLS_CurrentBuffer.Value.Use(size);
         }
     }
 
@@ -67,12 +73,11 @@ namespace ServerCoreTCP
         /// </summary>
         /// <param name="reserveSize"></param>
         /// <returns>If there is no enough size to reserve, returns null.</returns>
-        public ArraySegment<byte> Reserve(int reserveSize, bool extend = false)
+        public ArraySegment<byte> Reserve(int reserveSize)
         {
             if (reserveSize > FreeSize)
             {
-                if (extend == false) return null;
-                else usedSize = 0;
+                usedSize = 0;
             }
 
             // return buffer segment from usedSize to usedSize + reserveSize
@@ -88,7 +93,14 @@ namespace ServerCoreTCP
         {
             ArraySegment<byte> segment = new(buffer, this.usedSize, usedSize);
             this.usedSize += usedSize;
-            //Console.WriteLine($"used: {usedSize}, nowUsedSize: {this.usedSize}");
+            return segment;
+        }
+
+        public ArraySegment<byte> Use(int size)
+        {
+            if (size > FreeSize) usedSize = 0;
+            ArraySegment<byte> segment = new(buffer, usedSize, size);
+            usedSize += size;
             return segment;
         }
     }

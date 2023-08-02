@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+import "proto/PacketBase.proto";
+
+option csharp_namespace = "ServerCoreTCP.Protobuf";
+
+message Test1 {
+    PacketType packetType = 1;
+    uint32 playerId = 2;
+    string playerName = 3;
+}
+
+message Test2 {
+    PacketType packetType = 1;
+    string msg = 2;
+    int64 time = 3;
+    float duration = 4;
+}

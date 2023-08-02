@@ -1,26 +1,39 @@
 ﻿using System;
 using System.Net;
-
+using System.Threading;
 using ServerCoreTCP;
+
+using ServerCoreTCP.ProtobufWrapper;
 
 namespace TestClient
 {
-    public class ServerSession : Session
+    public class ServerSession : PacketSession
     {
         readonly Random random = new();
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine("OnConnected: {0}", endPoint);
 
-            for (int i = 0; i < 5; i++)
+            while (true)
             {
-                ServerCoreTCP.ProtobufWrapper.Vector3 v = new()
+                for (int i = 0; i < 10; i++)
                 {
-                    X = (float)random.NextDouble(),
-                    Y = (float)random.NextDouble(),
-                    Z = (float)random.NextDouble()
-                };
-                Send(v);
+                    Vector3 v = new()
+                    {
+                        X = (float)random.NextDouble(),
+                        Y = (float)random.NextDouble(),
+                        Z = (float)random.NextDouble()
+                    };
+                    Send(v);
+
+                    Test1 t = new()
+                    {
+                        PlayerId = (uint)i,
+                        PlayerName = $"playerasdfasdfasdf {i}"
+                    };
+                    Send(t);
+                }
+                Thread.Sleep(500);
             }
         }
 

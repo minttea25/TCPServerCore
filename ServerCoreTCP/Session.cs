@@ -1,11 +1,5 @@
 ﻿#define MEMORY_BUFFER
 
-
-// Use one of 3.
-//#define PROTOBUF
-#define PROTOBUF_WRAPPER
-//#define CUSTOM_PACKET
-
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -13,23 +7,13 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-using Google.Protobuf;
-using ServerCoreTCP.ProtobufWrapper;
-using ServerCoreTCP.CustomBuffer;
-
 namespace ServerCoreTCP
 {
-    public abstract class Session
+    public abstract class Session : ISession
     {
-        const int RecvBufferSize = 1024;
+        protected const int RecvBufferSize = 65535;
 
-#if PROTOBUF
-        const int HeaderSize = sizeof(uint);
-#else
-        const int HeaderSize = sizeof(ushort);
-#endif
-
-        public EndPoint EndPoint
+        public EndPoint ConnectedEndPoint
         {
             get
             {
@@ -37,31 +21,31 @@ namespace ServerCoreTCP
             }
         }
 
-        Socket _socket;
+        protected Socket _socket;
 #if MEMORY_BUFFER
-        readonly MRecvBuffer _recvBuffer = new(RecvBufferSize);
-        readonly Queue<Memory<byte>> _sendQueue = new();
-        readonly List<Memory<byte>> _sendPendingList = new();
-        readonly List<ArraySegment<byte>> _sendBufferList = new();
+        protected readonly MRecvBuffer _recvBuffer = new(RecvBufferSize);
+        protected readonly Queue<Memory<byte>> _sendQueue = new();
+        protected readonly List<Memory<byte>> _sendPendingList = new();
+        protected readonly List<ArraySegment<byte>> _sendBufferList = new();
 #else
-        readonly RecvBuffer _recvBuffer = new(RecvBufferSize);
-        readonly Queue<ArraySegment<byte>> _sendQueue = new();
-        readonly List<ArraySegment<byte>> _sendPendingList = new();
+        protected readonly RecvBuffer _recvBuffer = new(RecvBufferSize);
+        protected readonly Queue<ArraySegment<byte>> _sendQueue = new();
+        protected readonly List<ArraySegment<byte>> _sendPendingList = new();
 #endif
 
         /// <summary>
         /// Each session reuses one SendEventArgs.
         /// </summary>
-        readonly SocketAsyncEventArgs _sendEvent = new();
+        protected readonly SocketAsyncEventArgs _sendEvent = new();
         /// <summary>
         /// Each session reuses one RecvEventArgs.
         /// </summary>
-        readonly SocketAsyncEventArgs _recvEvent = new();
+        protected readonly SocketAsyncEventArgs _recvEvent = new();
 
         /// <summary>
         /// Note: Send/Recv can be occurred in multiple threads
         /// </summary>
-        readonly object _lock = new();
+        protected readonly object _lock = new();
 
 #region Abstract Methods
         /// <summary>
@@ -85,8 +69,21 @@ namespace ServerCoreTCP
         /// <param name="endPoint">The end point of the socket.</param>
         /// <param name="error">The additional object of error</param>
         public abstract void OnDisconnected(EndPoint endPoint, object error = null);
-        
-#endregion
+
+        /// <summary>
+        /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
+        /// </summary>
+        /// <param name="buffer">The buffer received on socket.</param>
+        /// <returns>The length of processed bytes.</returns>
+        protected abstract int OnRecvProcess(Memory<byte> buffer);
+        /// <summary>
+        /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
+        /// </summary>
+        /// <param name="buffer">The buffer received on socket.</param>
+        /// <returns>The length of processed bytes.</returns>
+        protected abstract int OnRecvProcess(ArraySegment<byte> buffer);
+
+        #endregion
 
         /// <summary>
         /// The value to check the session disconnected. (Used with Interlocked)
@@ -107,74 +104,20 @@ namespace ServerCoreTCP
             RegisterRecv();
         }
 
-#if PROTOBUF
-        /// <summary>
-        /// Send message packet to endpoint of the socket. [Protobuf]
-        /// </summary>
-        /// <typeparam name="T">Google.Protobuf.IMessage and ServerCoreTCP.Protobuf.IPacket</typeparam>
-        /// <param name="message">The message to send.</param>
-        public void Send<T>(T message) where T : IMessage, Protobuf.IPacket
-        {
-            int size = (int)message.CalcSize();
-#if MEMORY_BUFFER
-            Memory<byte> buffer = MSendBufferTLS.Reserve(size);
-            message.WriteTo(buffer.Span);
-            var sendBuffer = MSendBufferTLS.Return(size);
-#else
-            ArraySegment<byte> buffer = SendBufferTLS.Reserve(size);
-            message.WriteTo(buffer);
-            var sendBuffer = SendBufferTLS.Return(size);
-#endif
-
-            lock (_lock)
-            {
-                _sendQueue.Enqueue(sendBuffer);
-
-                if (_sendPendingList.Count == 0) RegisterSend();
-            }
-        }
-#endif
-
-#if PROTOBUF_WRAPPER
-        /// <summary>
-        /// Send message to endpoint of the socket [Protobuf Wrapper]
-        /// </summary>
-        /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
-        /// <param name="packet">The message to send.</param>
-        public void Send<T>(T message) where T : IMessage
-        {
-#if MEMORY_BUFFER
-            Send(message.MSerializeWrapper());
-#else
-            Send(message.SerializeWrapper());
-#endif
-        }
-#endif
-
-#if CUSTOM_PACKET
-        /// <summary>
-        /// Send message packet to endpoint of the socket. [Custom Packet]
-        /// </summary>
-        /// <param name="packet">The packet to send</param>
-        public void Send(CustomBuffer.IPacket packet)
-        {
-#if MEMORY_BUFFER
-            Send(packet.MSerialize());
-#else
-            Send(packet.Serialize());
-#endif
-        }
-#endif
-
         /// <summary>
         /// Send data to endpoint of the socket. [ArraySegment]
         /// </summary>
         /// <param name="sendBuffer">Serialized data to send</param>
-        public void Send(ArraySegment<byte> sendBuffer)
+        public void SendRaw(ArraySegment<byte> sendBuffer)
         {
 #if MEMORY_BUFFER
             throw new Exception("The session uses Memory<byte> buffer now.");
 #else
+            int len = sendBuffer.Count;
+            var b = SendBufferTLS.Reserve(len);
+            sendBuffer.CopyTo(b);
+            sendBuffer = SendBufferTLS.Return(len);
+
             lock (_lock)
             {
                 _sendQueue.Enqueue(sendBuffer);
@@ -188,7 +131,7 @@ namespace ServerCoreTCP
         /// Send data to endpoint of the socket. [Memory]
         /// </summary>
         /// <param name="sendBuffer">Serialized data to send</param>
-        public void Send(Memory<byte> sendBuffer)
+        public void SendRaw(Memory<byte> sendBuffer)
         {
 #if MEMORY_BUFFER
             lock (_lock)
@@ -205,7 +148,7 @@ namespace ServerCoreTCP
         /// <summary>
         /// Reserve 'Send' for async-send (Note: It needs to be protected for race-condition.)
         /// </summary>
-        void RegisterSend()
+        protected void RegisterSend()
         {
             // If it is already disconnected, return
             if (_disconnected == 1) return;
@@ -259,7 +202,7 @@ namespace ServerCoreTCP
         /// <summary>
         /// Reserve 'Receive' for async-receive
         /// </summary>
-        void RegisterRecv()
+        protected void RegisterRecv()
         {
             if (_disconnected == 1) return;
 
@@ -393,83 +336,6 @@ namespace ServerCoreTCP
             }
 
         }
-
-        /// <summary>
-        /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
-        /// </summary>
-        /// <param name="buffer">The buffer received on socket.</param>
-        /// <returns>The length of processed bytes.</returns>
-        int OnRecvProcess(Memory<byte> buffer) 
-        {
-            // If the size of received buffer is shorter than the header size, it is not the whole data.
-            if (buffer.Length < HeaderSize) return 0;
-
-            int processed = 0;
-
-            while (processed < buffer.Length)
-            {
-#if PROTOBUF
-                // Note: the protobuf packet buffer (The size type is fixed32 that has 4 bytes on PROTO and it becomes uint type on C#)
-                // [tag, 1][size, 4][tag, 1][pacektType, 1][data, ~]
-                // Get total size of the unit packet (sizeof(uint) = 4)
-                // Jump the tag size (1 byte)
-                int size = (int)BitConverter.ToUInt32(buffer.Span.Slice(processed + 1, HeaderSize));
-#elif PROTOBUF_WRAPPER
-                // Get total size of the unit packet (ushort)
-                ushort size = BitConverter.ToUInt16(buffer.Span.Slice(processed, HeaderSize));
-#else
-                // Get total size of the unit packet (ushort)
-                ushort size = BitConverter.ToUInt16(buffer.Span.Slice(processed, HeaderSize));
-#endif
-                if (size + processed > buffer.Length) break;
-
-                ReadOnlySpan<byte> data = buffer.Span.Slice(processed, size);
-                OnRecv(data);
-
-                processed += size;
-            }
-
-            return processed;
-        }
-
-        /// <summary>
-        /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
-        /// </summary>
-        /// <param name="buffer">The buffer received on socket.</param>
-        /// <returns>The length of processed bytes.</returns>
-        int OnRecvProcess(ArraySegment<byte> buffer)
-        {
-            // If the size of received buffer is shorter than the header size, it is not the whole data.
-            if (buffer.Count < HeaderSize) return 0;
-
-            int processed = 0;
-
-            while (processed < buffer.Count)
-            {
-#if PROTOBUF
-                // Note: the protobuf packet buffer (The size type is fixed32 that has 4 bytes on PROTO and it becomes uint type on C#)
-                // [tag, 1][size, 4][tag, 1][pacektType, 1][data, ~]
-                // Get total size of the unit packet (sizeof(uint) = 4)
-                // Jump the tag size (1 byte)
-                int size = (int)BitConverter.ToUInt32(buffer.Slice(processed + 1, HeaderSize));
-#elif PROTOBUF_WRAPPER
-                // Get total size of the unit packet (ushort)
-                ushort size = BitConverter.ToUInt16(buffer.Slice(processed, HeaderSize));
-#else
-                // Get total size of the unit packet (ushort)
-                ushort size = BitConverter.ToUInt16(buffer.Slice(processed, HeaderSize));
-#endif
-                if (size + processed > buffer.Count) break;
-
-                ReadOnlySpan<byte> data = buffer.Slice(processed, size);
-                OnRecv(data);
-
-                processed += size;
-            }
-
-            return processed;
-        }
-
 
         /// <summary>
         /// Close the socket and clear the session.

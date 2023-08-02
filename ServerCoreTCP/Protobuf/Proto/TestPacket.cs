@@ -25,17 +25,16 @@ namespace ServerCoreTCP.Protobuf {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChZwcm90by9UZXN0UGFja2V0LnByb3RvGhZwcm90by9QYWNrZXRCYXNlLnBy",
-            "b3RvIlwKBVRlc3QxEgwKBHNpemUYASABKAcSHwoKcGFja2V0VHlwZRgCIAEo",
-            "DjILLlBhY2tldFR5cGUSEAoIcGxheWVySWQYAyABKA0SEgoKcGxheWVyTmFt",
-            "ZRgEIAEoCSJjCgVUZXN0MhIMCgRzaXplGAEgASgHEh8KCnBhY2tldFR5cGUY",
-            "AiABKA4yCy5QYWNrZXRUeXBlEgsKA21zZxgDIAEoCRIMCgR0aW1lGAQgASgD",
-            "EhAKCGR1cmF0aW9uGAUgASgCQhmqAhZTZXJ2ZXJDb3JlVENQLlByb3RvYnVm",
-            "YgZwcm90bzM="));
+            "b3RvIk4KBVRlc3QxEh8KCnBhY2tldFR5cGUYASABKA4yCy5QYWNrZXRUeXBl",
+            "EhAKCHBsYXllcklkGAIgASgNEhIKCnBsYXllck5hbWUYAyABKAkiVQoFVGVz",
+            "dDISHwoKcGFja2V0VHlwZRgBIAEoDjILLlBhY2tldFR5cGUSCwoDbXNnGAIg",
+            "ASgJEgwKBHRpbWUYAyABKAMSEAoIZHVyYXRpb24YBCABKAJCGaoCFlNlcnZl",
+            "ckNvcmVUQ1AuUHJvdG9idWZiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::ServerCoreTCP.Protobuf.PacketBaseReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ServerCoreTCP.Protobuf.Test1), global::ServerCoreTCP.Protobuf.Test1.Parser, new[]{ "Size", "PacketType", "PlayerId", "PlayerName" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ServerCoreTCP.Protobuf.Test2), global::ServerCoreTCP.Protobuf.Test2.Parser, new[]{ "Size", "PacketType", "Msg", "Time", "Duration" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::ServerCoreTCP.Protobuf.Test1), global::ServerCoreTCP.Protobuf.Test1.Parser, new[]{ "PacketType", "PlayerId", "PlayerName" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ServerCoreTCP.Protobuf.Test2), global::ServerCoreTCP.Protobuf.Test2.Parser, new[]{ "PacketType", "Msg", "Time", "Duration" }, null, null, null, null)
           }));
     }
     #endregion
@@ -76,7 +75,6 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Test1(Test1 other) : this() {
-      size_ = other.size_;
       packetType_ = other.packetType_;
       playerId_ = other.playerId_;
       playerName_ = other.playerName_;
@@ -89,20 +87,8 @@ namespace ServerCoreTCP.Protobuf {
       return new Test1(this);
     }
 
-    /// <summary>Field number for the "size" field.</summary>
-    public const int SizeFieldNumber = 1;
-    private uint size_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public uint Size {
-      get { return size_; }
-      set {
-        size_ = value;
-      }
-    }
-
     /// <summary>Field number for the "packetType" field.</summary>
-    public const int PacketTypeFieldNumber = 2;
+    public const int PacketTypeFieldNumber = 1;
     private global::ServerCoreTCP.Protobuf.PacketType packetType_ = global::ServerCoreTCP.Protobuf.PacketType.Pinvalid;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -114,7 +100,7 @@ namespace ServerCoreTCP.Protobuf {
     }
 
     /// <summary>Field number for the "playerId" field.</summary>
-    public const int PlayerIdFieldNumber = 3;
+    public const int PlayerIdFieldNumber = 2;
     private uint playerId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -126,7 +112,7 @@ namespace ServerCoreTCP.Protobuf {
     }
 
     /// <summary>Field number for the "playerName" field.</summary>
-    public const int PlayerNameFieldNumber = 4;
+    public const int PlayerNameFieldNumber = 3;
     private string playerName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -152,7 +138,6 @@ namespace ServerCoreTCP.Protobuf {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (Size != other.Size) return false;
       if (PacketType != other.PacketType) return false;
       if (PlayerId != other.PlayerId) return false;
       if (PlayerName != other.PlayerName) return false;
@@ -163,7 +148,6 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (Size != 0) hash ^= Size.GetHashCode();
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) hash ^= PacketType.GetHashCode();
       if (PlayerId != 0) hash ^= PlayerId.GetHashCode();
       if (PlayerName.Length != 0) hash ^= PlayerName.GetHashCode();
@@ -185,20 +169,16 @@ namespace ServerCoreTCP.Protobuf {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Size != 0) {
-        output.WriteRawTag(13);
-        output.WriteFixed32(Size);
-      }
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
-        output.WriteRawTag(16);
+        output.WriteRawTag(8);
         output.WriteEnum((int) PacketType);
       }
       if (PlayerId != 0) {
-        output.WriteRawTag(24);
+        output.WriteRawTag(16);
         output.WriteUInt32(PlayerId);
       }
       if (PlayerName.Length != 0) {
-        output.WriteRawTag(34);
+        output.WriteRawTag(26);
         output.WriteString(PlayerName);
       }
       if (_unknownFields != null) {
@@ -211,20 +191,16 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Size != 0) {
-        output.WriteRawTag(13);
-        output.WriteFixed32(Size);
-      }
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
-        output.WriteRawTag(16);
+        output.WriteRawTag(8);
         output.WriteEnum((int) PacketType);
       }
       if (PlayerId != 0) {
-        output.WriteRawTag(24);
+        output.WriteRawTag(16);
         output.WriteUInt32(PlayerId);
       }
       if (PlayerName.Length != 0) {
-        output.WriteRawTag(34);
+        output.WriteRawTag(26);
         output.WriteString(PlayerName);
       }
       if (_unknownFields != null) {
@@ -237,9 +213,6 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (Size != 0) {
-        size += 1 + 4;
-      }
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) PacketType);
       }
@@ -260,9 +233,6 @@ namespace ServerCoreTCP.Protobuf {
     public void MergeFrom(Test1 other) {
       if (other == null) {
         return;
-      }
-      if (other.Size != 0) {
-        Size = other.Size;
       }
       if (other.PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
         PacketType = other.PacketType;
@@ -288,19 +258,15 @@ namespace ServerCoreTCP.Protobuf {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 13: {
-            Size = input.ReadFixed32();
-            break;
-          }
-          case 16: {
+          case 8: {
             PacketType = (global::ServerCoreTCP.Protobuf.PacketType) input.ReadEnum();
             break;
           }
-          case 24: {
+          case 16: {
             PlayerId = input.ReadUInt32();
             break;
           }
-          case 34: {
+          case 26: {
             PlayerName = input.ReadString();
             break;
           }
@@ -319,19 +285,15 @@ namespace ServerCoreTCP.Protobuf {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 13: {
-            Size = input.ReadFixed32();
-            break;
-          }
-          case 16: {
+          case 8: {
             PacketType = (global::ServerCoreTCP.Protobuf.PacketType) input.ReadEnum();
             break;
           }
-          case 24: {
+          case 16: {
             PlayerId = input.ReadUInt32();
             break;
           }
-          case 34: {
+          case 26: {
             PlayerName = input.ReadString();
             break;
           }
@@ -376,7 +338,6 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Test2(Test2 other) : this() {
-      size_ = other.size_;
       packetType_ = other.packetType_;
       msg_ = other.msg_;
       time_ = other.time_;
@@ -390,20 +351,8 @@ namespace ServerCoreTCP.Protobuf {
       return new Test2(this);
     }
 
-    /// <summary>Field number for the "size" field.</summary>
-    public const int SizeFieldNumber = 1;
-    private uint size_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public uint Size {
-      get { return size_; }
-      set {
-        size_ = value;
-      }
-    }
-
     /// <summary>Field number for the "packetType" field.</summary>
-    public const int PacketTypeFieldNumber = 2;
+    public const int PacketTypeFieldNumber = 1;
     private global::ServerCoreTCP.Protobuf.PacketType packetType_ = global::ServerCoreTCP.Protobuf.PacketType.Pinvalid;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -415,7 +364,7 @@ namespace ServerCoreTCP.Protobuf {
     }
 
     /// <summary>Field number for the "msg" field.</summary>
-    public const int MsgFieldNumber = 3;
+    public const int MsgFieldNumber = 2;
     private string msg_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -427,7 +376,7 @@ namespace ServerCoreTCP.Protobuf {
     }
 
     /// <summary>Field number for the "time" field.</summary>
-    public const int TimeFieldNumber = 4;
+    public const int TimeFieldNumber = 3;
     private long time_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -439,7 +388,7 @@ namespace ServerCoreTCP.Protobuf {
     }
 
     /// <summary>Field number for the "duration" field.</summary>
-    public const int DurationFieldNumber = 5;
+    public const int DurationFieldNumber = 4;
     private float duration_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -465,7 +414,6 @@ namespace ServerCoreTCP.Protobuf {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (Size != other.Size) return false;
       if (PacketType != other.PacketType) return false;
       if (Msg != other.Msg) return false;
       if (Time != other.Time) return false;
@@ -477,7 +425,6 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (Size != 0) hash ^= Size.GetHashCode();
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) hash ^= PacketType.GetHashCode();
       if (Msg.Length != 0) hash ^= Msg.GetHashCode();
       if (Time != 0L) hash ^= Time.GetHashCode();
@@ -500,24 +447,20 @@ namespace ServerCoreTCP.Protobuf {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Size != 0) {
-        output.WriteRawTag(13);
-        output.WriteFixed32(Size);
-      }
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
-        output.WriteRawTag(16);
+        output.WriteRawTag(8);
         output.WriteEnum((int) PacketType);
       }
       if (Msg.Length != 0) {
-        output.WriteRawTag(26);
+        output.WriteRawTag(18);
         output.WriteString(Msg);
       }
       if (Time != 0L) {
-        output.WriteRawTag(32);
+        output.WriteRawTag(24);
         output.WriteInt64(Time);
       }
       if (Duration != 0F) {
-        output.WriteRawTag(45);
+        output.WriteRawTag(37);
         output.WriteFloat(Duration);
       }
       if (_unknownFields != null) {
@@ -530,24 +473,20 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Size != 0) {
-        output.WriteRawTag(13);
-        output.WriteFixed32(Size);
-      }
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
-        output.WriteRawTag(16);
+        output.WriteRawTag(8);
         output.WriteEnum((int) PacketType);
       }
       if (Msg.Length != 0) {
-        output.WriteRawTag(26);
+        output.WriteRawTag(18);
         output.WriteString(Msg);
       }
       if (Time != 0L) {
-        output.WriteRawTag(32);
+        output.WriteRawTag(24);
         output.WriteInt64(Time);
       }
       if (Duration != 0F) {
-        output.WriteRawTag(45);
+        output.WriteRawTag(37);
         output.WriteFloat(Duration);
       }
       if (_unknownFields != null) {
@@ -560,9 +499,6 @@ namespace ServerCoreTCP.Protobuf {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (Size != 0) {
-        size += 1 + 4;
-      }
       if (PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) PacketType);
       }
@@ -586,9 +522,6 @@ namespace ServerCoreTCP.Protobuf {
     public void MergeFrom(Test2 other) {
       if (other == null) {
         return;
-      }
-      if (other.Size != 0) {
-        Size = other.Size;
       }
       if (other.PacketType != global::ServerCoreTCP.Protobuf.PacketType.Pinvalid) {
         PacketType = other.PacketType;
@@ -617,23 +550,19 @@ namespace ServerCoreTCP.Protobuf {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 13: {
-            Size = input.ReadFixed32();
-            break;
-          }
-          case 16: {
+          case 8: {
             PacketType = (global::ServerCoreTCP.Protobuf.PacketType) input.ReadEnum();
             break;
           }
-          case 26: {
+          case 18: {
             Msg = input.ReadString();
             break;
           }
-          case 32: {
+          case 24: {
             Time = input.ReadInt64();
             break;
           }
-          case 45: {
+          case 37: {
             Duration = input.ReadFloat();
             break;
           }
@@ -652,23 +581,19 @@ namespace ServerCoreTCP.Protobuf {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 13: {
-            Size = input.ReadFixed32();
-            break;
-          }
-          case 16: {
+          case 8: {
             PacketType = (global::ServerCoreTCP.Protobuf.PacketType) input.ReadEnum();
             break;
           }
-          case 26: {
+          case 18: {
             Msg = input.ReadString();
             break;
           }
-          case 32: {
+          case 24: {
             Time = input.ReadInt64();
             break;
           }
-          case 45: {
+          case 37: {
             Duration = input.ReadFloat();
             break;
           }

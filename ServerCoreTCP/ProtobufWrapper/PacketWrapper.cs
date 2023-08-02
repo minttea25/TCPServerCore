@@ -7,6 +7,9 @@ namespace ServerCoreTCP.ProtobufWrapper
 {
     public static class PacketWrapper
     {
+        public const int HeaderMessageLengthSize = sizeof(ushort);
+        public const int HeaderPacketTypeSize = sizeof(ushort);
+
         /// <summary>
         /// Serialize the message with PacketWrapper [Memory]
         /// </summary>
@@ -15,11 +18,11 @@ namespace ServerCoreTCP.ProtobufWrapper
         /// <returns>The serialized buffer with PacketWrapper.</returns>
         public static Memory<byte> MSerialize<T>(T message) where T : IMessage
         {
+            ushort size = (ushort)(message.CalculateSize() + HeaderPacketTypeSize);
             ushort messageType = (ushort)PacketBase.PacketMap[typeof(T)];
-            ushort size = (ushort)(message.CalculateSize() + sizeof(ushort) + sizeof(ushort));
 
             int offset = 0;
-            Memory<byte> buffer = MSendBufferTLS.Reserve(size);
+            Memory<byte> buffer = MSendBufferTLS.Reserve(HeaderMessageLengthSize + size);
             if (BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof(ushort)), size) == false)
             {
                 return null;
@@ -32,7 +35,7 @@ namespace ServerCoreTCP.ProtobufWrapper
             offset += sizeof(ushort);
             message.WriteTo(buffer.Span.Slice(offset));
 
-            return MSendBufferTLS.Return(size);
+            return MSendBufferTLS.Return(HeaderMessageLengthSize + size);
         }
 
         /// <summary>
@@ -43,11 +46,11 @@ namespace ServerCoreTCP.ProtobufWrapper
         /// <returns>The serialized buffer with PacketWrapper.</returns>
         public static ArraySegment<byte> Serialize<T>(T message) where T : IMessage
         {
+            ushort size = (ushort)(message.CalculateSize() + HeaderPacketTypeSize);
             ushort messageType = (ushort)PacketBase.PacketMap[typeof(T)];
-            ushort size = (ushort)(message.CalculateSize() + sizeof(ushort) + sizeof(ushort));
 
             int offset = 0;
-            ArraySegment<byte> buffer = SendBufferTLS.Reserve(size);
+            ArraySegment<byte> buffer = SendBufferTLS.Reserve(HeaderMessageLengthSize + size);
             if (BitConverter.TryWriteBytes(buffer.Slice(offset, sizeof(ushort)), size) == false)
             {
                 return null;
@@ -60,7 +63,7 @@ namespace ServerCoreTCP.ProtobufWrapper
             offset += sizeof(ushort);
             message.WriteTo(buffer.Slice(offset));
 
-            return SendBufferTLS.Return(size);
+            return SendBufferTLS.Return(HeaderMessageLengthSize + size);
         }
 
         /// <summary>

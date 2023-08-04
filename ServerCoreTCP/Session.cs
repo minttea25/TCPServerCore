@@ -128,6 +128,29 @@ namespace ServerCoreTCP
         }
 
         /// <summary>
+        /// Send a list of data to endpoint of the socket. [ArraySegment]
+        /// </summary>
+        /// <param name="sendBufferList">A list of serialized data to send</param>
+        public void SendRaw(List<ArraySegment<byte>> sendBufferList)
+        {
+            if (sendBufferList.Count == 0) return;
+
+#if MEMORY_BUFFER
+            throw new Exception("The session uses Memory<byte> buffer now.");
+#else
+            lock (_lock)
+            {
+                foreach (var buffer in sendBufferList)
+                {
+                    _sendQueue.Enqueue(buffer);
+                }
+
+                if (_sendPendingList.Count == 0) RegisterSend();
+            }
+#endif
+        }
+
+        /// <summary>
         /// Send data to endpoint of the socket. [Memory]
         /// </summary>
         /// <param name="sendBuffer">Serialized data to send</param>
@@ -137,6 +160,29 @@ namespace ServerCoreTCP
             lock (_lock)
             {
                 _sendQueue.Enqueue(sendBuffer);
+
+                if (_sendPendingList.Count == 0) RegisterSend();
+            }
+#else
+            throw new Exception("The session uses ArraySegment<byte> buffer now.");
+#endif
+        }
+
+        /// <summary>
+        /// Send a list of data to endpoint of the socket. [Memory]
+        /// </summary>
+        /// <param name="sendBufferList">A list of serialized data to send</param>
+        public void SendRaw(List<Memory<byte>> sendBufferList)
+        {
+            if (sendBufferList.Count == 0) return;
+
+#if MEMORY_BUFFER
+            lock (_lock)
+            {
+                foreach (var buffer in sendBufferList)
+                {
+                    _sendQueue.Enqueue(buffer);
+                }
 
                 if (_sendPendingList.Count == 0) RegisterSend();
             }
@@ -322,25 +368,26 @@ namespace ServerCoreTCP
                     Console.WriteLine("Error: OnRecvCompleted - {0}", ex);
                 }
             }
-            else if (e.BytesTransferred == 0)
-            {
-                Console.WriteLine($"The length of received data is 0.");
-            }
             else if (e.SocketError != SocketError.Success)
             {
                 Console.WriteLine($"SocketError: {e.SocketError}");
+                Disconnect();
+            }
+            else if (e.BytesTransferred == 0)
+            {
+                Console.WriteLine($"The length of received data is 0.");
+                Disconnect();
             }
             else
             {
                 Disconnect();
             }
-
         }
 
         /// <summary>
         /// Close the socket and clear the session.
         /// </summary>
-        void Disconnect()
+        public void Disconnect()
         {
             // Check that it is already disconnected
             if (Interlocked.Exchange(ref _disconnected, 1) == 1) return;

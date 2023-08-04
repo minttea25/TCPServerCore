@@ -15,7 +15,7 @@ namespace ServerCoreTCP
         public static int BufferSize { get; private set; } = 65535;
 
         public readonly static ThreadLocal<MSendBuffer> TLS_CurrentBuffer
-            = new(valueFactory: () => new(BufferSize), false);
+            = new(valueFactory: () => new(BufferSize));
 
         /// <summary>
         /// Helper method of MSendBuffer.Reserve

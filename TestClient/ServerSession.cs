@@ -13,28 +13,6 @@ namespace TestClient
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine("OnConnected: {0}", endPoint);
-
-            while (true)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    Vector3 v = new()
-                    {
-                        X = (float)random.NextDouble(),
-                        Y = (float)random.NextDouble(),
-                        Z = (float)random.NextDouble()
-                    };
-                    Send(v);
-
-                    Test1 t = new()
-                    {
-                        PlayerId = (uint)i,
-                        PlayerName = $"playerasdfasdfasdf {i}"
-                    };
-                    Send(t);
-                }
-                Thread.Sleep(500);
-            }
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
@@ -44,7 +22,7 @@ namespace TestClient
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
         {
-
+            PacketManager.Instance.OnRecvPacket(this, buffer);
         }
 
         public override void OnSend(int numOfBytes)

@@ -92,7 +92,7 @@ namespace ServerCoreTCP
         {
             if (e.SocketError == SocketError.Success)
             {
-                Logger.Instance.LogInfo($@"Accpeted: {e.RemoteEndPoint}");
+                //Logger.Instance.LogInfo($@"Accpeted: {e.RemoteEndPoint}");
                 // TODO with session
 
                 // You must create session here
@@ -106,7 +106,7 @@ namespace ServerCoreTCP
             else
             {
                 // error
-                Logger.Instance.LogError($@"Listner: {e.SocketError}");
+                //Logger.Instance.LogError($@"Listner: {e.SocketError}");
             }
 
             // After Accept, wait again for other Accepts.

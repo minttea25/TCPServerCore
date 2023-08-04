@@ -42,6 +42,7 @@ namespace ServerCoreTCP.ProtobufWrapper
                 ReadOnlySpan<byte> data = buffer.Span.Slice(processed, size);
                 processed += size;
 
+                Console.WriteLine("The process length: {0}, size: {1}", data.Length, size);
                 OnRecv(data);
             }
 

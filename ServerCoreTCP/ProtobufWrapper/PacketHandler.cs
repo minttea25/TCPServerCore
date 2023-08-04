@@ -10,8 +10,10 @@ namespace ServerCoreTCP.ProtobufWrapper
         {
             Test1 pkt = message as Test1;
 
+
             //TODO
-            Console.WriteLine(pkt);
+            //Console.WriteLine($"Player {pkt.PlayerName} [id={pkt.PlayerId}] left the room");
+            //Console.WriteLine(pkt);
         }
 
         public static void Test2PacketHandler(IMessage message, Session session)
@@ -27,7 +29,7 @@ namespace ServerCoreTCP.ProtobufWrapper
             Vector3 pkt = message as Vector3;
 
             //TODO
-            Console.WriteLine(pkt);
+            Console.WriteLine($"This client is spawned at [x={pkt.X}, y={pkt.Y}, z={pkt.Z}]");
         }
     }
 }

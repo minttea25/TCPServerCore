@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 
 using ServerCoreTCP;
@@ -8,11 +9,24 @@ namespace TCPServer
 {
     class Program
     {
-        public readonly static Room Room = new();
         static void FlushRoom()
         {
-            Room.AddJob(() => Room.Flush());
+            foreach (var room in Rooms.Values)
+            {
+                room.AddJob(() => room.Flush());
+            }
             JobTimer.Instance.Push(FlushRoom, 500);
+        }
+        readonly static object _lock = new();
+        public static IReadOnlyDictionary<uint, Room> Rooms => _rooms;
+        readonly static Dictionary<uint, Room> _rooms = new();
+
+        public static void AddRoom(uint roomNo, Room room)
+        {
+            lock (_lock)
+            {
+                _rooms.Add(roomNo, room);
+            }
         }
 
         static void Main(string[] args)

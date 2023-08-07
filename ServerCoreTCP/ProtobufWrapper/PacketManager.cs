@@ -18,14 +18,8 @@ namespace ServerCoreTCP.ProtobufWrapper
 
         PacketManager()
         {
-            _messageTypes.Add((ushort)PacketType.Ptest1, Test1.Parser);
-            _handlers.Add((ushort)PacketType.Ptest1, PacketHandler.Test1PacketHandler);
-
-            _messageTypes.Add((ushort)PacketType.Ptest2, Test2.Parser);
-            _handlers.Add((ushort)PacketType.Ptest2, PacketHandler.Test2PacketHandler);
-
-            _messageTypes.Add((ushort)PacketType.Pvector3, Vector3.Parser);
-            _handlers.Add((ushort)PacketType.Pvector3, PacketHandler.Vector3PacketHandler);
+            // _messageTypes.Add((ushort)PacketType.Pvector3, Vector3.Parser);
+            // _handlers.Add((ushort)PacketType.Pvector3, PacketHandler.Vector3PacketHandler);
         }
 
         /// <summary>

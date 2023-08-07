@@ -1,4 +1,4 @@
-﻿//#define MEMORY_BUFFER
+﻿#define MEMORY_BUFFER
 
 using Google.Protobuf;
 using ServerCoreTCP.Utils;
@@ -15,7 +15,6 @@ namespace ServerCoreTCP.Protobuf
     public abstract class PacketSession : Session
     {
         const int MinimumPacketLength = 2;
-        const int SendDefaultReserveSize = 1024;
 
         /// <summary>
         /// Send message packet to endpoint of the socket. [Protobuf]
@@ -26,15 +25,9 @@ namespace ServerCoreTCP.Protobuf
         {
             int size = message.CalculateSize();
 #if MEMORY_BUFFER
-            Memory<byte> buffer = MSendBufferTLS.Reserve(SendDefaultReserveSize);
-            int writtenBytes = Base128Encoding.WriteUInt32((uint)size, buffer.Span);
-            message.WriteTo(buffer.Span.Slice(writtenBytes, size));
-            var sendBuffer = MSendBufferTLS.Return(size + writtenBytes);
+            var sendBuffer = Protobuf.MSerialize(message);
 #else
-            ArraySegment<byte> buffer = SendBufferTLS.Reserve(SendDefaultReserveSize);
-            int writtenBytes = Base128Encoding.WriteUInt32((uint)size, buffer);
-            message.WriteTo(buffer.Slice(writtenBytes, size));
-            var sendBuffer = SendBufferTLS.Return(size + writtenBytes);
+            var sendBuffer = Protobuf.Serialize(message);
 #endif
 
             lock (_lock)

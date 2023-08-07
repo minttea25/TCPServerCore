@@ -19,27 +19,11 @@
      * 
     */
 
-    public partial class Test1
-    {
-        partial void OnConstruction()
-        {
-            packetType_ = PacketType.Ptest1;
-        }
-    }
-
-    public partial class Test2
-    {
-        partial void OnConstruction()
-        {
-            packetType_ = PacketType.Ptest2;
-        }
-    }
-
-    public partial class Vector3
-    {
-        partial void OnConstruction()
-        {
-            packetType_ = PacketType.Pvector3;
-        }
-    }
+    //public partial class Vector3
+    //{
+    //    partial void OnConstruction()
+    //    {
+    //        packetType_ = PacketType.Pvector3;
+    //    }
+    //}
 }

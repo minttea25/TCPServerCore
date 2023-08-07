@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
+
+using ChatTest;
 using Google.Protobuf;
+using ServerCoreTCP;
 using ServerCoreTCP.Utils;
 
-namespace ServerCoreTCP.Protobuf
+namespace TCPServer.ChatTest
 {
     public class PacketManager
     {
@@ -20,8 +22,14 @@ namespace ServerCoreTCP.Protobuf
 
         PacketManager()
         {
-            //_messageTypes.Add((ushort)PacketType.Ptest1, Test1.Parser);
-            //_handlers.Add((ushort)PacketType.Ptest1, PacketHandler.Test1PacketHandler);
+            _messageTypes.Add((ushort)PacketType.PSReqEnterRoom, S_ReqEnterRoom.Parser);
+            _handlers.Add((ushort)PacketType.PSReqEnterRoom, PacketHandler.ReqEnterRoomPacketHandler);
+
+            _messageTypes.Add((ushort)PacketType.PSLeaveRoom, S_LeaveRoom.Parser);
+            _handlers.Add((ushort)PacketType.PSLeaveRoom, PacketHandler.LeaveRoomPacketHandler);
+
+            _messageTypes.Add((ushort)PacketType.PSChat, S_Chat.Parser);
+            _handlers.Add((ushort)PacketType.PSChat, PacketHandler.ChatPacketHandler);
         }
 
         /// <summary>

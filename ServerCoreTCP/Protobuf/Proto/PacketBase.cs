@@ -9,40 +9,45 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace ServerCoreTCP.Protobuf {
+namespace ServerCoreTCP.Protobuf
+{
 
-  /// <summary>Holder for reflection information generated from proto/PacketBase.proto</summary>
-  public static partial class PacketBaseReflection {
+    /// <summary>Holder for reflection information generated from proto/PacketBase.proto</summary>
+    public static partial class PacketBaseReflection
+    {
 
-    #region Descriptor
-    /// <summary>File descriptor for proto/PacketBase.proto</summary>
-    public static pbr::FileDescriptor Descriptor {
-      get { return descriptor; }
+        #region Descriptor
+        /// <summary>File descriptor for proto/PacketBase.proto</summary>
+        public static pbr::FileDescriptor Descriptor
+        {
+            get { return descriptor; }
+        }
+        private static pbr::FileDescriptor descriptor;
+
+        static PacketBaseReflection()
+        {
+            byte[] descriptorData = global::System.Convert.FromBase64String(
+                string.Concat(
+                  "ChZwcm90by9QYWNrZXRCYXNlLnByb3RvKkAKClBhY2tldFR5cGUSDAoIUElO",
+                  "VkFMSUQQABIKCgZQdGVzdDEQARIKCgZQdGVzdDIQAhIMCghQdmVjdG9yMxAD",
+                  "QhmqAhZTZXJ2ZXJDb3JlVENQLlByb3RvYnVmYgZwcm90bzM="));
+            descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
+                new pbr::FileDescriptor[] { },
+                new pbr::GeneratedClrTypeInfo(new[] { typeof(global::ServerCoreTCP.Protobuf.PacketType), }, null, null));
+        }
+        #endregion
+
     }
-    private static pbr::FileDescriptor descriptor;
-
-    static PacketBaseReflection() {
-      byte[] descriptorData = global::System.Convert.FromBase64String(
-          string.Concat(
-            "ChZwcm90by9QYWNrZXRCYXNlLnByb3RvKkAKClBhY2tldFR5cGUSDAoIUElO",
-            "VkFMSUQQABIKCgZQdGVzdDEQARIKCgZQdGVzdDIQAhIMCghQdmVjdG9yMxAD",
-            "QhmqAhZTZXJ2ZXJDb3JlVENQLlByb3RvYnVmYgZwcm90bzM="));
-      descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::ServerCoreTCP.Protobuf.PacketType), }, null, null));
+    #region Enums
+    public enum PacketType
+    {
+        [pbr::OriginalName("PINVALID")] Pinvalid = 0,
+        [pbr::OriginalName("Ptest1")] Ptest1 = 1,
+        [pbr::OriginalName("Ptest2")] Ptest2 = 2,
+        [pbr::OriginalName("Pvector3")] Pvector3 = 3,
     }
+
     #endregion
-
-  }
-  #region Enums
-  public enum PacketType {
-    [pbr::OriginalName("PINVALID")] Pinvalid = 0,
-    [pbr::OriginalName("Ptest1")] Ptest1 = 1,
-    [pbr::OriginalName("Ptest2")] Ptest2 = 2,
-    [pbr::OriginalName("Pvector3")] Pvector3 = 3,
-  }
-
-  #endregion
 
 }
 

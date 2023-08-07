@@ -1,20 +1,30 @@
 ﻿using Google.Protobuf;
 using ServerCoreTCP;
-using ServerCoreTCP.ProtobufWrapper;
 using ServerCoreTCP.Utils;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 
+using ChatTest;
+using ServerCoreTCP.Protobuf;
+using System.Collections.Concurrent;
+
 namespace TCPServer
 {
     public class Room
     {
-        readonly static Random rand = new();
+        public readonly Dictionary<uint, string> Users = new();
+        public uint RoomNo => _roomNo;
+        readonly uint _roomNo;
 
         readonly List<ClientSession> _sessions = new();
         readonly JobQueue _jobs = new();
-        List<Memory<byte>> _pendingMessages = new();
+        readonly List<Memory<byte>> _pendingMessages = new();
+
+        public Room(uint id)
+        {
+            _roomNo = id;
+        }
 
         public void AddJob(Action job)
         {
@@ -35,20 +45,44 @@ namespace TCPServer
         {
             _sessions.Add(session);
             session.Room = this;
+            Users.Add(session.SessionId, session.UserName);
 
-            // create a new point
-            Vector3 loc = new()
+            C_EnterRoom pkt = new()
             {
-                X = rand.Next(-0, 10),
-                Y = rand.Next(-0, 10),
-                Z = rand.Next(-0, 10),
+                UserId = session.SessionId,
+                UserName = session.UserName,
             };
 
-            // send the position to connected session
-            //session.Send(loc);
+            BroadCast(pkt);
+        }
 
-            // send the position of the connected session to all
-            BroadCast(loc);
+        public void Leave(ClientSession session)
+        {
+            C_LeaveRoom send = new()
+            {
+                UserName = session.UserName
+            };
+            Console.WriteLine(send);
+
+            _sessions.Remove(session);
+            Users.Remove(session.SessionId);
+
+            session.Room.BroadCast(send);
+            session.Room = null;
+        }
+
+        public void SendChat(ClientSession session, string msg)
+        {
+            C_Chat msgPkt = new()
+            {
+                UserId = session.SessionId,
+                Msg = msg,
+                UserName = Users[session.SessionId]
+            };
+
+            Console.WriteLine(msgPkt);
+
+            BroadCast(msgPkt);
         }
 
         public void BroadCast(Memory<byte> buffer)
@@ -58,7 +92,7 @@ namespace TCPServer
 
         public void BroadCast<T>(T message) where T : IMessage
         {
-            _pendingMessages.Add(PacketWrapper.MSerialize(message));
+            _pendingMessages.Add(message.MSerializeProtobuf());
         }
     }
 }

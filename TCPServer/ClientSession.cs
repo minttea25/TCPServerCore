@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
-using ServerCoreTCP.ProtobufWrapper;
+using ServerCoreTCP.Protobuf;
 
 namespace TCPServer
 {
     public class ClientSession : PacketSession
     {
-        public readonly uint SessionId;
+        public readonly uint SessionId; // = UserId
+        public string UserName => _userName;
+        string _userName;
 
         public Room Room { get; set; }
 
@@ -18,15 +20,14 @@ namespace TCPServer
             SessionId = sessionId;
         }
 
+        public void SetUserName(string userName)
+        {
+            _userName = userName;
+        }
+
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine("OnConnected: {0}", endPoint);
-
-            while (true)
-            {
-                Program.Room.AddJob(() => Program.Room.Enter(this));
-                Thread.Sleep(rand.Next(1000, 5000));
-            }
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
@@ -38,7 +39,7 @@ namespace TCPServer
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
         {
-            PacketManager.Instance.OnRecvPacket(this, buffer);
+            ChatTest.PacketManager.Instance.OnRecvPacket(this, buffer);
         }
 
         public override void OnSend(int numOfBytes)

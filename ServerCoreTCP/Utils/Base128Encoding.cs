@@ -2,7 +2,7 @@
 
 namespace ServerCoreTCP.Utils
 {
-    class Base128Encoding
+    public static class Base128Encoding
     {
         public static int WriteUInt32(uint value, Span<byte> buffer)
         {

@@ -11,7 +11,6 @@ namespace TestClient
 {
     public class ServerSession : PacketSession
     {
-        readonly Random random = new();
         public uint UserId => _userId;
         uint _userId;
 
@@ -22,12 +21,14 @@ namespace TestClient
                 Msg = msg,
                 UserId = UserId
             };
+            Program.Logger.Information("Send Chat: {chat}", chat);
             Send(chat);
         }
 
         public void LeaveRoom()
         {
             S_LeaveRoom leave = new();
+            Program.Logger.Information("Send LeaveRoom: {leave}", leave);
             Send(leave);
         }
 
@@ -39,7 +40,7 @@ namespace TestClient
 
         public override void OnConnected(EndPoint endPoint)
         {
-            Console.WriteLine("OnConnected: {0}", endPoint);
+            Program.Logger.Information("OnConnected: {endPoint}", endPoint);
 
             S_ReqEnterRoom req = new()
             {
@@ -47,12 +48,13 @@ namespace TestClient
                 RoomNo = Program.ReqRoomNo,
             };
 
+            Program.Logger.Information("Send ReqEnterRoom: {req}", req);
             Send(req);
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
         {
-            Console.WriteLine("OnDisconnected: {0}", endPoint);
+            Program.Logger.Information("OnDisconnected: {endpoint}", endPoint);
         }
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
@@ -62,7 +64,7 @@ namespace TestClient
 
         public override void OnSend(int numOfBytes)
         {
-            Console.WriteLine("Sent: {0} bytes", numOfBytes);
+            Program.Logger.Information("Sent: {numOfBytes} bytes to {ConnectedEndPoint}", numOfBytes, ConnectedEndPoint);
         }
     }
 }

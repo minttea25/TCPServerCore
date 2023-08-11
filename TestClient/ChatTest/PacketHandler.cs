@@ -13,7 +13,7 @@ namespace TestClient.ChatTest
             C_ResEnterRoom res = message as C_ResEnterRoom;
             ServerSession s = session as ServerSession;
 
-            Console.WriteLine(res);
+            Program.Logger.Information("ResEnterRoomPacket: {res}", res);
 
             if (res.Success == false)
             {
@@ -29,7 +29,7 @@ namespace TestClient.ChatTest
         {
             C_EnterRoom enter = message as C_EnterRoom;
 
-            Console.WriteLine(enter);
+            Program.Logger.Information("EnterRoomPacket: {enter}", enter);
 
             Console.WriteLine($"{enter.UserName} entered.");
         }
@@ -39,7 +39,7 @@ namespace TestClient.ChatTest
             C_LeaveRoom leave = message as C_LeaveRoom;
             ServerSession s = session as ServerSession;
 
-            Console.WriteLine(leave);
+            Program.Logger.Information("LeaveRoomPacket: ", leave);
 
             if (leave.UserName == Program.UserName)
             {
@@ -54,7 +54,7 @@ namespace TestClient.ChatTest
             C_Chat chat = message as C_Chat;
             ServerSession s = session as ServerSession;
 
-            Console.WriteLine(chat);
+            Program.Logger.Information("ChatPacket: {chat}", chat);
 
             if (chat.UserId == s.UserId) return;
             else Console.WriteLine($"{chat.UserName}: {chat.Msg}");

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ServerCoreTCP
 {
@@ -92,7 +88,11 @@ namespace ServerCoreTCP
         {
             if (e.SocketError == SocketError.Success)
             {
-                //Logger.Instance.LogInfo($@"Accpeted: {e.RemoteEndPoint}");
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Information("Accepted Socket: {RemoteEndPoint}", e.AcceptSocket.RemoteEndPoint);
+                else
+                    Console.WriteLine("Accepted Socket: {0}", e.AcceptSocket.RemoteEndPoint);
+
                 // TODO with session
 
                 // You must create session here
@@ -106,7 +106,10 @@ namespace ServerCoreTCP
             else
             {
                 // error
-                //Logger.Instance.LogError($@"Listner: {e.SocketError}");
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error("Listener: {SocketError}", e.SocketError);
+                else
+                    Console.WriteLine("Listener: {0}", e.SocketError);
             }
 
             // After Accept, wait again for other Accepts.

@@ -16,13 +16,18 @@ namespace ServerCoreTCP
         /// <param name="count">[Debug] The count of socket to connect</param>
         public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory, int count = 1)
         {
+            if (CoreLogger.Logger != null)
+                CoreLogger.Logger.Information("Connector is trying to connect the server: {endPoint}, count={count}", endPoint, count);
+            else
+                Console.WriteLine("Connector is trying to connect the server: {0}, count={1}", endPoint, count);
+
             for (int i = 0; i < count; i++)
             {
                 Socket socket = new(
                     endPoint.AddressFamily,
                     SocketType.Stream,
                     ProtocolType.Tcp);
-                this._sessionFactory = sessionFactory;
+                _sessionFactory = sessionFactory;
 
                 SocketAsyncEventArgs e = new();
                 e.Completed += OnConnectCompleted;
@@ -40,7 +45,7 @@ namespace ServerCoreTCP
                     endPoint.AddressFamily,
                     SocketType.Stream,
                     ProtocolType.Tcp);
-            this._sessionFactory = sessionFactory;
+            _sessionFactory = sessionFactory;
 
             socket.Connect(endPoint);
             callback?.Invoke(socket);
@@ -73,7 +78,9 @@ namespace ServerCoreTCP
         {
             if (e.SocketError == SocketError.Success)
             {
-                //Logger.Instance.LogInfo($@"Connected");
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Information("Connected: {RemoteEndPoint}", e.ConnectSocket?.RemoteEndPoint);
+
                 // TODO with Session
                 Session session = _sessionFactory.Invoke();
                 session.Init(e.ConnectSocket);
@@ -82,7 +89,10 @@ namespace ServerCoreTCP
             else
             {
                 // error
-                //Logger.Instance.LogError($@"Connector: {e.SocketError}");
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error("Connector: {SocketError}", e.SocketError);
+                else
+                    Console.WriteLine("Connector: {0}", e.SocketError);
             }
         }
     }

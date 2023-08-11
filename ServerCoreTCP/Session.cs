@@ -98,10 +98,23 @@ namespace ServerCoreTCP
         {
             _socket = socket;
 
+            if (CoreLogger.Logger != null)
+                CoreLogger.Logger.Information("A new session is created. [EndPoint: {ConnectedEndPoint}]", ConnectedEndPoint);
+            else
+                Console.WriteLine("A new session is created. [EndPoint: {0}]", ConnectedEndPoint);
+
             _sendEvent.Completed += new(OnSendCompleted);
             _recvEvent.Completed += new(OnRecvCompleted);
 
             RegisterRecv();
+        }
+
+        ~Session()
+        {
+            if (CoreLogger.Logger != null)
+                CoreLogger.Logger.Information("Session [endpoint={ConnectedEndPoint}] is removed.", ConnectedEndPoint);
+            else
+                Console.WriteLine("Session [endpoint={0}] is removed.", ConnectedEndPoint);
         }
 
         /// <summary>
@@ -239,9 +252,12 @@ namespace ServerCoreTCP
                 bool pending = _socket.SendAsync(_sendEvent);
                 if (pending == false) OnSendCompleted(null, _sendEvent);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine("Error: RegisterSend - {0}", e);
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error(ex, "RegisterSend - Exception");
+                else
+                    Console.WriteLine("Error: RegisterSend - {0}", ex);
             }
         }
 
@@ -268,7 +284,10 @@ namespace ServerCoreTCP
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: RegisterRecv - {0}", ex);
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error(ex, "RegisterRecv - Exception");
+                else
+                    Console.WriteLine("Error: RegisterRecv - {0}", ex);
             }
         }
 
@@ -298,16 +317,25 @@ namespace ServerCoreTCP
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Error: OnSendCompleted - {0}", ex);
+                        if (CoreLogger.Logger != null)
+                            CoreLogger.Logger.Error(ex, "OnSendCompleted - Exception");
+                        else
+                            Console.WriteLine("Error: OnSendCompleted - {0}", ex);
                     }
                 }
                 else if (e.BytesTransferred == 0)
                 {
-                    Console.WriteLine($"The length of sent data was 0.");
+                    if (CoreLogger.Logger != null)
+                        CoreLogger.Logger.Error("OnSendCompleted - The length of sent data is 0.");
+                    else
+                        Console.WriteLine("OnSendCompleted - The length of sent data is 0.");
                 }
                 else if (e.SocketError != SocketError.Success)
                 {
-                    Console.WriteLine($"SocketError: {e.SocketError}");
+                    if (CoreLogger.Logger != null)
+                        CoreLogger.Logger.Error("OnSendCompleted - SocketError: {SocketError}", e.SocketError);
+                    else
+                        Console.WriteLine($"OnSendCompleted - SocketError: {e.SocketError}");
                 }
                 else
                 {
@@ -324,7 +352,10 @@ namespace ServerCoreTCP
         void OnRecvCompleted(object sender, SocketAsyncEventArgs e)
         {
 #if DEBUG
-            Console.WriteLine($"Received: {e.BytesTransferred} bytes");
+            if (CoreLogger.Logger != null)
+                CoreLogger.Logger.Information("Received: {BytesTransferred} bytes", e.BytesTransferred);
+            else
+                Console.WriteLine($"Received: {e.BytesTransferred} bytes");
 #endif
 
             // Check the length of bytes transferred and SocketError==Success
@@ -334,6 +365,11 @@ namespace ServerCoreTCP
                 {
                     if (_recvBuffer.OnWrite(e.BytesTransferred) == false)
                     {
+                        if (CoreLogger.Logger != null)
+                            CoreLogger.Logger.Error("OnRecvCompleted - RecvBuffer.OnWrite() was false");
+                        else
+                            Console.WriteLine($"OnRecvCompleted - RecvBuffer.OnWrite() was false");
+
                         Disconnect();
                         return;
                     }
@@ -344,18 +380,33 @@ namespace ServerCoreTCP
 #endif
                     if (processLength <= 0)
                     {
+                        if (CoreLogger.Logger != null)
+                            CoreLogger.Logger.Error("OnRecvCompleted - processLength <= 0");
+                        else
+                            Console.WriteLine($"OnRecvCompleted - processLength <= 0");
+
                         Disconnect();
                         return;
                     }
 
                     if (_recvBuffer.DataSize < processLength)
                     {
+                        if (CoreLogger.Logger != null)
+                            CoreLogger.Logger.Error("OnRecvCompleted - RecvBuffer.DataSize < processLength");
+                        else
+                            Console.WriteLine($"OnRecvCompleted - RecvBuffer.DataSize < processLength");
+
                         Disconnect();
                         return;
                     }
 
                     if (_recvBuffer.OnRead(processLength) == false)
                     {
+                        if (CoreLogger.Logger != null)
+                            CoreLogger.Logger.Error("OnRecvCompleted - RecvBuffer.OnRead() was false");
+                        else
+                            Console.WriteLine($"OnRecvCompleted - RecvBuffer.OnRead() was false");
+
                         Disconnect();
                         return;
                     }
@@ -365,21 +416,36 @@ namespace ServerCoreTCP
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error: OnRecvCompleted - {0}", ex);
+                    if (CoreLogger.Logger != null)
+                        CoreLogger.Logger.Error(ex, "OnRecvCompleted - Exception");
+                    else
+                        Console.WriteLine("Error: OnRecvCompleted - {0}", ex);
                 }
             }
             else if (e.SocketError != SocketError.Success)
             {
-                Console.WriteLine($"SocketError: {e.SocketError}");
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error("OnRecvCompleted - SocketError: {SocketError}", e.SocketError);
+                else
+                    Console.WriteLine($"OnRecvCompleted - SocketError: {e.SocketError}");
+
                 Disconnect();
             }
             else if (e.BytesTransferred == 0)
             {
-                Console.WriteLine($"The length of received data is 0.");
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error("OnRecvCompleted - The length of received data is 0.");
+                else
+                    Console.WriteLine("OnRecvCompleted - The length of received data is 0.");
+
                 Disconnect();
             }
             else
             {
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error("OnRecvCompleted - Unknown.");
+                else
+                    Console.WriteLine("OnRecvCompleted - Unknown.");
                 Disconnect();
             }
         }

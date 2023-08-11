@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using System.Threading;
 using ServerCoreTCP.Protobuf;
 
 namespace TCPServer
@@ -12,8 +11,6 @@ namespace TCPServer
         string _userName;
 
         public Room Room { get; set; }
-
-        static Random rand = new();
 
         public ClientSession(uint sessionId)
         {
@@ -27,14 +24,14 @@ namespace TCPServer
 
         public override void OnConnected(EndPoint endPoint)
         {
-            Console.WriteLine("OnConnected: {0}", endPoint);
+            Program.Logger.Information("OnConnected: {endPoint}", endPoint);
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
         {
             SessionManager.Instance.Remove(this);
 
-            Console.WriteLine("OnDisconnected: {0}", endPoint);
+            Program.Logger.Information("OnDisconnected: {endpoint}", endPoint);
         }
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
@@ -44,7 +41,7 @@ namespace TCPServer
 
         public override void OnSend(int numOfBytes)
         {
-            Console.WriteLine("Sent: {0} bytes", numOfBytes);
+            Program.Logger.Information("Sent: {numOfBytes} bytes to {ConnectedEndPoint}", numOfBytes, ConnectedEndPoint);
         }
     }
 }

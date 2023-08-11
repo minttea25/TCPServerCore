@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Net;
+using System.Text;
 using System.Threading;
-
+using Serilog.Core;
 using ServerCoreTCP;
 
 namespace TestClient
 {
     class Program
     {
+        public static Logger Logger = LoggerFactory.MakeLogger("TestClient", Encoding.Unicode, TimeSpan.FromSeconds(1));
+
         public static string UserName;
         public static uint ReqRoomNo;
         public static ServerSession session;
 
         static void Main(string[] args)
         {
+            CoreLogger.Logging = true;
+
             Console.Write("Enter the UserName: ");
             UserName = Console.ReadLine();
 
@@ -47,6 +52,8 @@ namespace TestClient
                     session.SendChat(chat);
                 }
             }
+
+            Logger.Dispose();
         }
     }
 }

@@ -17,7 +17,7 @@ namespace TCPServer.ChatTest
             S_ReqEnterRoom pkt = message as S_ReqEnterRoom;
             ClientSession s = session as ClientSession;
 
-            Console.WriteLine(pkt);
+            Program.Logger.Information("ReqEnterRoomPacket: {pkt}", pkt);
 
             uint reqRoomNo = pkt.RoomNo;
 
@@ -29,6 +29,7 @@ namespace TCPServer.ChatTest
                     Success = false,
                     ErrorType = AuthErrorType.InvalidRoom
                 };
+                Program.Logger.Information("Send ResEnterRoom: {r}", r);
                 s.Send(r);
                 s.Disconnect();
                 return;
@@ -47,8 +48,8 @@ namespace TCPServer.ChatTest
                 Success = true,
                 ErrorType = AuthErrorType.Success
             };
-            Console.WriteLine(res);
 
+            Program.Logger.Information("Send ResEnterRoom: {res}", res);
             s.Send(res);
 
             s.SetUserName(pkt.UserName);
@@ -60,7 +61,7 @@ namespace TCPServer.ChatTest
             S_LeaveRoom leave = message as S_LeaveRoom;
             ClientSession s = session as ClientSession;
 
-            Console.WriteLine(leave);
+            Program.Logger.Information("LeaveRoomPacket: {leave}", leave);
 
             s.Room.AddJob(() => s.Room.Leave(s));
         }
@@ -69,6 +70,8 @@ namespace TCPServer.ChatTest
         {
             S_Chat chat = message as S_Chat;
             ClientSession s = session as ClientSession;
+
+            Program.Logger.Information("ChatPacket: {chat}", chat);
 
             Console.WriteLine(chat);
 

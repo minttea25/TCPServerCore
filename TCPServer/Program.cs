@@ -6,7 +6,7 @@ using System.Threading;
 using Serilog;
 using Serilog.Core;
 using ServerCoreTCP;
-using ServerCoreTCP.Debug;
+using ServerCoreTCP.LoggerDebug;
 using ServerCoreTCP.Utils;
 
 namespace TCPServer

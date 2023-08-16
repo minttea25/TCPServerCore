@@ -1,4 +1,4 @@
-﻿using ServerCoreTCP.Debug;
+﻿using ServerCoreTCP.LoggerDebug;
 using System;
 using System.Collections.Generic;
 using System.Linq;

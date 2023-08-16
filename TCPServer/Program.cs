@@ -3,15 +3,21 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading;
+using Serilog;
 using Serilog.Core;
 using ServerCoreTCP;
+using ServerCoreTCP.Debug;
 using ServerCoreTCP.Utils;
 
 namespace TCPServer
 {
     class Program
     {
-        public readonly static Logger Logger = LoggerFactory.MakeLogger("ServerLogs", Encoding.Unicode, TimeSpan.FromSeconds(1));
+        public readonly static Logger Logger = new LoggerConfiguration().WriteTo.File(
+            path: LoggerHelper.GetFileName("ServerLogs"),
+            encoding: Encoding.Unicode,
+            flushToDiskInterval: TimeSpan.FromSeconds(1)
+            ).CreateLogger();
 
         static void FlushRoom()
         {
@@ -21,9 +27,9 @@ namespace TCPServer
             }
             JobTimer.Instance.Push(FlushRoom, 500);
         }
-        readonly static object _lock = new();
+        readonly static object _lock = new object();
         public static IReadOnlyDictionary<uint, Room> Rooms => _rooms;
-        readonly static Dictionary<uint, Room> _rooms = new();
+        readonly static Dictionary<uint, Room> _rooms = new Dictionary<uint, Room>();
 
         public static void AddRoom(uint roomNo, Room room)
         {
@@ -35,14 +41,22 @@ namespace TCPServer
 
         static void Main(string[] args)
         {
+#if DEBUG
             CoreLogger.Logging = true;
+#else
+            CoreLogger.Logger = new LoggerConfiguration().WriteTo.File(
+                path: LoggerHelper.GetFileName("CoreLogs"),
+                encoding: Encoding.Unicode,
+                flushToDiskInterval: TimeSpan.FromSeconds(1)
+            ).CreateLogger();
+#endif
 
             string host = Dns.GetHostName(); // local host name of my pc
             IPHostEntry ipHost = Dns.GetHostEntry(host);
             IPAddress ipAddr = ipHost.AddressList[0];
-            IPEndPoint endPoint = new(address: ipAddr, port: 8888);
+            IPEndPoint endPoint = new IPEndPoint(address: ipAddr, port: 8888);
 
-            Listener listener = new(endPoint, () => { return SessionManager.Instance.CreateNewSession(); });
+            Listener listener = new Listener(endPoint, () => { return SessionManager.Instance.CreateNewSession(); });
             listener.Listen(register: 10, backLog: 100);
 
             // exec right now
@@ -50,7 +64,7 @@ namespace TCPServer
 
             bool onGoing = true;
 
-            Thread t = new(() =>
+            Thread t = new Thread(() =>
             {
                 while (onGoing)
                 {

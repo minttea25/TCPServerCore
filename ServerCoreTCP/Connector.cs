@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServerCoreTCP.Debug;
+using System;
 using System.Net;
 using System.Net.Sockets;
 
@@ -23,13 +24,13 @@ namespace ServerCoreTCP
 
             for (int i = 0; i < count; i++)
             {
-                Socket socket = new(
+                Socket socket = new Socket(
                     endPoint.AddressFamily,
                     SocketType.Stream,
                     ProtocolType.Tcp);
                 _sessionFactory = sessionFactory;
 
-                SocketAsyncEventArgs e = new();
+                SocketAsyncEventArgs e = new SocketAsyncEventArgs();
                 e.Completed += OnConnectCompleted;
                 e.RemoteEndPoint = endPoint;
                 // Set socket as UserToken object
@@ -41,7 +42,7 @@ namespace ServerCoreTCP
 
         public void ConnectSync(IPEndPoint endPoint, Func<Session> sessionFactory, Action<Socket> callback = null)
         {
-            Socket socket = new(
+            Socket socket = new Socket(
                     endPoint.AddressFamily,
                     SocketType.Stream,
                     ProtocolType.Tcp);
@@ -58,7 +59,7 @@ namespace ServerCoreTCP
         void RegisterConnect(SocketAsyncEventArgs e)
         {
             // Check the user token of event is socket & Cast UserToken to Socket
-            if (e.UserToken is not Socket socket) return;
+            if (!(e.UserToken is Socket socket)) return;
 
             bool pending = socket.ConnectAsync(e);
 

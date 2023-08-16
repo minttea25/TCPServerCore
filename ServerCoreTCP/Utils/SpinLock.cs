@@ -8,7 +8,7 @@ namespace ServerCoreTCP.Utils
 
         public void Lock()
         {
-            SpinWait spinWait = new();
+            SpinWait spinWait = new SpinWait();
             while (Interlocked.CompareExchange(ref _lockFlag, 1, 0) != 0)
             {
                 spinWait.SpinOnce();
@@ -18,7 +18,7 @@ namespace ServerCoreTCP.Utils
         public void Lock(ushort maxRetriesBeforeYield = 10000)
         {
             ushort retries = 0;
-            SpinWait spinWait = new();
+            SpinWait spinWait = new SpinWait();
 
             while (true)
             {

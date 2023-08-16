@@ -5,9 +5,9 @@ namespace ServerCoreTCP.Utils
 {
     public class JobQueue
     {
-        readonly Queue<Action> _queue = new();
+        readonly Queue<Action> _queue = new Queue<Action>();
         bool _flush = false;
-        readonly object _lock = new();
+        readonly object _lock = new object();
 
         public void Add(Action job)
         {
@@ -51,9 +51,9 @@ namespace ServerCoreTCP.Utils
 
     public class JobQueue<T> where T : IJob
     {
-        readonly Queue<T> _queue = new();
+        readonly Queue<T> _queue = new Queue<T>();
         bool _flush = false;
-        readonly object _lock = new();
+        readonly object _lock = new object();
 
         public void Add(T job)
         {

@@ -6,7 +6,7 @@ namespace ServerCoreTCP.ProtobufWrapper
 {
     public class PacketBase
     {
-        public readonly static Dictionary<Type, PacketType> PacketMap = new()
+        public readonly static Dictionary<Type, PacketType> PacketMap = new Dictionary<Type, PacketType>()
         {
             //{ typeof(Vector3), PacketType.Pvector3 },
         };

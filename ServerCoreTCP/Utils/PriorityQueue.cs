@@ -9,7 +9,7 @@ namespace ServerCoreTCP.Utils
     /// <typeparam name="T">System.IComparable: the comparable object</typeparam>
     public class PriorityQueue<T> where T : IComparable<T>
     {
-        readonly List<T> _heap = new();
+        readonly List<T> _heap = new List<T>();
         public int Count => _heap.Count;
         public bool Empty => _heap.Count == 0;
 
@@ -110,7 +110,7 @@ namespace ServerCoreTCP.Utils
     /// <typeparam name="T">Any object</typeparam>
     public class PriorityQueueCompare<T>
     {
-        readonly List<T> _heap = new();
+        readonly List<T> _heap = new List<T>();
         readonly Comparison<T> _compare;
         public int Count => _heap.Count;
         public bool Empty => _heap.Count == 0;
@@ -221,8 +221,8 @@ namespace ServerCoreTCP.Utils
     /// <typeparam name="T">System.IComparable: the comparable object</typeparam>
     public class ConcurrentPriorityQueue<T> where T : IComparable<T>
     {
-        readonly List<T> _heap = new();
-        readonly object _lock = new();
+        readonly List<T> _heap = new List<T>();
+        readonly object _lock = new object();
         public int Count
         {
             get
@@ -368,8 +368,8 @@ namespace ServerCoreTCP.Utils
     /// <typeparam name="T">Any object</typeparam>
     public class ConcurrentPriorityQueueCompare<T>
     {
-        readonly List<T> _heap = new();
-        readonly object _lock = new();
+        readonly List<T> _heap = new List<T>();
+        readonly object _lock = new object();
         readonly Comparison<T> _compare;
         public int Count {
             get

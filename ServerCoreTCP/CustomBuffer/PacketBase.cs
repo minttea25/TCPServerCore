@@ -3,12 +3,11 @@ using System.Collections;
 using System.Reflection;
 using System.Text;
 
-namespace ServerCoreTCP.CustomBuffer
+namespace TestNamespace
 {
     public enum Packets : ushort
     {
         TestPacket = 1,
-        TestPacket2 = 2,
         
     }
 
@@ -23,7 +22,7 @@ namespace ServerCoreTCP.CustomBuffer
 
         public static string ToString<T>(T pkt) where T : IPacket
         {
-            StringBuilder sb = new();
+            StringBuilder sb = new StringBuilder();
             sb.AppendLine($"Packet: {(Packets) pkt.PacketType}");
             foreach (FieldInfo field in typeof(T).GetFields())
             {
@@ -74,7 +73,7 @@ namespace ServerCoreTCP.CustomBuffer
 
         public override string ToString()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.Append($"{GetType().Name}[");
             foreach (var field in GetType().GetFields())
             {

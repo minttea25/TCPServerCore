@@ -23,7 +23,7 @@ namespace TCPServer.ChatTest
 
             if (reqRoomNo == 0)
             {
-                C_ResEnterRoom r = new()
+                C_ResEnterRoom r = new C_ResEnterRoom()
                 {
                     UserId = s.SessionId,
                     Success = false,
@@ -38,11 +38,11 @@ namespace TCPServer.ChatTest
             // check the room with the id exists
             if (Program.Rooms.TryGetValue(reqRoomNo, out var _) == false)
             {
-                Room room = new(id: reqRoomNo);
+                Room room = new Room(id: reqRoomNo);
                 Program.AddRoom(reqRoomNo, room);
             }
 
-            C_ResEnterRoom res = new()
+            C_ResEnterRoom res = new C_ResEnterRoom()
             {
                 UserId = s.SessionId,
                 Success = true,

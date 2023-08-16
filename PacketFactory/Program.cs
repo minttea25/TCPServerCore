@@ -62,13 +62,13 @@ namespace PacketFactory
     {
         public string Name { get; set; }
         public int ReserveBufferSize { get; set; }
-        public List<Member> Members { get; set; } = new();
+        public List<Member> Members { get; set; } = new List<Member>();
     }
 
     public class PacketItem
     {
         public string Name { get; set; }
-        public List<Member> Members { get; set; } = new();
+        public List<Member> Members { get; set; } = new List<Member>();
     }
 
     public struct Member
@@ -82,8 +82,8 @@ namespace PacketFactory
     public class Format
     {
         public string Namespace { get; set; }
-        public List<Packet> Packets { get; set; } = new();
-        public List<PacketItem> Items { get; set; } = new();
+        public List<Packet> Packets { get; set; } = new List<Packet>();
+        public List<PacketItem> Items { get; set; } = new List<PacketItem>();
     }
 
     class Program
@@ -104,7 +104,7 @@ namespace PacketFactory
             string baseText = File.ReadAllText(target);
             Format format = JsonSerializer.Deserialize<Format>(baseText);
 
-            List<string> createdFiles = new();
+            List<string> createdFiles = new List<string>();
 
             // check files
             if (!(CheckFiles<BufferFormat>() && CheckFiles<MemoryFormat>() && CheckFiles<ArraySegmentFormat>()) == true) return;
@@ -123,7 +123,7 @@ namespace PacketFactory
                 arraySegmentFormat[ArraySegmentFormat.MemberDeserializeAdd], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeAddString], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeAddClass]);
 
             WritePacketBaseFile(format, createdFiles,
-                baseFormat[BufferFormat.PacketName], baseFormat[BufferFormat.PacketBase]);
+                baseFormat[BufferFormat.PacketName], baseFormat[BufferFormat.PacketBase], format.Namespace);
 
             WritePacketItemFile(format, createdFiles,
                 baseFormat[BufferFormat.PacketItem], baseFormat[BufferFormat.PacketItemClass], baseFormat[BufferFormat.PacketMember], baseFormat[BufferFormat.PacketMemberList],
@@ -237,9 +237,9 @@ namespace PacketFactory
         }
 
         public static void WritePacketBaseFile(Format format, List<string> createdFiles,
-            string packetNameFormat, string basePacketFormat)
+            string packetNameFormat, string basePacketFormat, string namespaceName)
         {
-            List<string> packetTypes = new();
+            List<string> packetTypes = new List<string>();
             foreach (var pkt in format.Packets)
             {
                 packetTypes.Add(pkt.Name);
@@ -254,6 +254,7 @@ namespace PacketFactory
             types = types.Replace("\t", "    ");
             File.WriteAllText(packetBaseFile, string.Format(
                     basePacketFormat,
+                    namespaceName,
                     types));
             createdFiles.Add(packetBaseFile);
         }
@@ -419,7 +420,7 @@ namespace PacketFactory
                 {
                     "char" or "bool" or "short" or "ushort" or "int" or "uint" or "long" or "ulong" or "float" or "double" or "decimal" => string.Format(memberDeserializeFormat, member.Name, BitConverterTo(member.Type), member.Type),
                     "string" => string.Format(memberDeserializeStringFormat, member.Name, member.StringFormat),
-                    _ => string.Format(memberDeserializeClassFormat, member.Name),
+                    _ => string.Format(memberDeserializeClassFormat, member.Name, member.Type),
                 };
             }
             else

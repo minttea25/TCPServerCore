@@ -11,12 +11,12 @@ namespace ServerCoreTCP.Protobuf
         public const int PacketTypeTag = 1;
 
         #region Singleton
-        readonly static PacketManager _instance = new();
+        readonly static PacketManager _instance = new PacketManager();
         public static PacketManager Instance => _instance;
         #endregion
 
-        readonly Dictionary<ushort, MessageParser> _messageTypes = new();
-        readonly Dictionary<ushort, Action<IMessage, Session>> _handlers = new();
+        readonly Dictionary<ushort, MessageParser> _messageTypes = new Dictionary<ushort, MessageParser>();
+        readonly Dictionary<ushort, Action<IMessage, Session>> _handlers = new Dictionary<ushort, Action<IMessage, Session>>();
 
         PacketManager()
         {

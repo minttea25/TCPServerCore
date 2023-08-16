@@ -4,13 +4,13 @@ using System.Text;
 
 using ServerCoreTCP;
 
-namespace ServerCoreTCP.CustomBuffer
+namespace TestNamespace
 {
     public class TestPacket : IPacket
     {
         public ushort PacketType { get; private set; } = (ushort)Packets.TestPacket; // 1st
         public ushort itemId;
-        public List<string> titles = new();
+        public List<string> titles = new List<string>();
         public Item items;
         
         public Memory<byte> MSerialize()
@@ -69,7 +69,7 @@ namespace ServerCoreTCP.CustomBuffer
                 offset += _len;
             }
             
-            items = new();
+            items = new Item();
             items.MDeserialize(buffer, ref offset);
             
             
@@ -81,7 +81,7 @@ namespace ServerCoreTCP.CustomBuffer
             bool suc = true;
             int offset = 0;
 
-            Span<byte> span = new(buffer.Array, buffer.Offset, buffer.Count);
+            Span<byte> span = new Span<byte>(buffer.Array, buffer.Offset, buffer.Count);
 
             offset += sizeof(ushort);
 
@@ -131,7 +131,7 @@ namespace ServerCoreTCP.CustomBuffer
                 offset += _len;
             }
             
-            items = new();
+            items = new Item();
             items.Deserialize(span, ref offset);
             
             

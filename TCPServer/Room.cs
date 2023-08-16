@@ -13,13 +13,13 @@ namespace TCPServer
 {
     public class Room
     {
-        public readonly Dictionary<uint, string> Users = new();
+        public readonly Dictionary<uint, string> Users = new Dictionary<uint, string>();
         public uint RoomNo => _roomNo;
         readonly uint _roomNo;
 
-        readonly List<ClientSession> _sessions = new();
-        readonly JobQueue _jobs = new();
-        readonly List<Memory<byte>> _pendingMessages = new();
+        readonly List<ClientSession> _sessions = new List<ClientSession>();
+        readonly JobQueue _jobs = new JobQueue();
+        readonly List<ArraySegment<byte>> _pendingMessages = new List<ArraySegment<byte>>();
 
         public Room(uint id)
         {
@@ -47,7 +47,7 @@ namespace TCPServer
             session.Room = this;
             Users.Add(session.SessionId, session.UserName);
 
-            C_EnterRoom pkt = new()
+            C_EnterRoom pkt = new C_EnterRoom()
             {
                 UserId = session.SessionId,
                 UserName = session.UserName,
@@ -58,7 +58,7 @@ namespace TCPServer
 
         public void Leave(ClientSession session)
         {
-            C_LeaveRoom send = new()
+            C_LeaveRoom send = new C_LeaveRoom()
             {
                 UserName = session.UserName
             };
@@ -73,7 +73,7 @@ namespace TCPServer
 
         public void SendChat(ClientSession session, string msg)
         {
-            C_Chat msgPkt = new()
+            C_Chat msgPkt = new C_Chat()
             {
                 UserId = session.SessionId,
                 Msg = msg,
@@ -85,14 +85,14 @@ namespace TCPServer
             BroadCast(msgPkt);
         }
 
-        public void BroadCast(Memory<byte> buffer)
+        public void BroadCast(ArraySegment<byte> buffer)
         {
             _pendingMessages.Add(buffer);
         }
 
         public void BroadCast<T>(T message) where T : IMessage
         {
-            _pendingMessages.Add(message.MSerializeProtobuf());
+            _pendingMessages.Add(message.SerializeProtobuf());
         }
     }
 }

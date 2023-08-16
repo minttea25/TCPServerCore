@@ -33,7 +33,7 @@ namespace ServerCoreTCP
 
         public RecvBuffer(int bufferSize)
         {
-            buffer = new(new byte[bufferSize], 0, bufferSize);
+            buffer = new ArraySegment<byte>(new byte[bufferSize], 0, bufferSize);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace ServerCoreTCP
         /// </summary>
         public ArraySegment<byte> DataSegment
         {
-            get { return new(buffer.Array, buffer.Offset + readPtr, DataSize); }
+            get { return new ArraySegment<byte>(buffer.Array, buffer.Offset + readPtr, DataSize); }
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace ServerCoreTCP
         /// </summary>
         public ArraySegment<byte> WriteSegment
         {
-            get { return new(buffer.Array, buffer.Offset + writePtr, FreeSize); }
+            get { return new ArraySegment<byte>(buffer.Array, buffer.Offset + writePtr, FreeSize); }
         }
 
         /// <summary>

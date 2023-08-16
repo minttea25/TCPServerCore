@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServerCoreTCP.Debug;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,24 +16,22 @@ namespace ServerCoreTCP
         public static int BufferSize { get; private set; } = 65535;
 
         public readonly static ThreadLocal<SendBuffer> TLS_CurrentBuffer 
-            = new(() => new(BufferSize), false);
+            = new ThreadLocal<SendBuffer>(() => new SendBuffer(BufferSize), false);
 
 
         /// <summary>
         /// Helper method of SendBuffer.Reserve
         /// </summary>
         /// <param name="reserveSize">The size to reserve.</param>
-        /// <param name="extend">If true, when reserve size > usable size, reset the buffer through pointer = 0. </param>
         /// <returns>The segment of Memory reserved</returns>
         public static ArraySegment<byte> Reserve(int reserveSize)
         {
-#if DEBUG
             if (reserveSize > BufferSize)
             {
-                Console.WriteLine($"The reserveSize[{reserveSize}] is bigger than the bufferSize[{BufferSize}] => return null");
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error("The reserveSize[{reserveSize}] is bigger than the bufferSize[{BufferSize}] => return null", reserveSize, BufferSize);
                 return null;
             }
-#endif
 
             return TLS_CurrentBuffer.Value.Reserve(reserveSize);
         }
@@ -81,7 +80,7 @@ namespace ServerCoreTCP
             }
 
             // return buffer segment from usedSize to usedSize + reserveSize
-            return new(buffer, usedSize, reserveSize);
+            return new ArraySegment<byte>(buffer, usedSize, reserveSize);
         }
 
         /// <summary>
@@ -91,7 +90,7 @@ namespace ServerCoreTCP
         /// <returns>The segment of the actually used buffer.</returns>
         public ArraySegment<byte> Return(int usedSize)
         {
-            ArraySegment<byte> segment = new(buffer, this.usedSize, usedSize);
+            ArraySegment<byte> segment = new ArraySegment<byte>(buffer, this.usedSize, usedSize);
             this.usedSize += usedSize;
             return segment;
         }
@@ -99,7 +98,7 @@ namespace ServerCoreTCP
         public ArraySegment<byte> Use(int size)
         {
             if (size > FreeSize) usedSize = 0;
-            ArraySegment<byte> segment = new(buffer, usedSize, size);
+            ArraySegment<byte> segment = new ArraySegment<byte>(buffer, usedSize, size);
             usedSize += size;
             return segment;
         }

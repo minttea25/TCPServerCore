@@ -1,16 +1,14 @@
-#define MEMORY_BUFFER
-
 using System;
 using System.Collections.Generic;
 
 using ServerCoreTCP;
 
-namespace ServerCoreTCP.CustomBuffer
+namespace TestNamespace
 {
     public class PacketManager
     {
         #region Singleton
-        static PacketManager _instance = new();
+        static PacketManager _instance = new PacketManager();
         public static PacketManager Instance { get { return _instance; } }
         #endregion
 
@@ -18,25 +16,22 @@ namespace ServerCoreTCP.CustomBuffer
         /// <summary>
         /// Key is Packets(ushort); Value: the func returns a created packet with the received buffer.
         /// </summary>
-        Dictionary<ushort, Func<Session, Memory<byte>, IPacket>> _packetFactory = new();
+        Dictionary<ushort, Func<Session, Memory<byte>, IPacket>> _packetFactory = new Dictionary<ushort, Func<Session, Memory<byte>, IPacket>>();
 #else
         /// <summary>
         /// Key is Packets(ushort); Value: the func returns a created packet with the received buffer.
         /// </summary>
-        Dictionary<ushort, Func<Session, ArraySegment<byte>, IPacket>> _packetFactory = new();
+        Dictionary<ushort, Func<Session, ArraySegment<byte>, IPacket>> _packetFactory = new Dictionary<ushort, Func<Session, ArraySegment<byte>, IPacket>>();
 #endif
         /// <summary>
         /// Value: action which handles the packet(ushort, Packets).
         /// </summary>
-        Dictionary<ushort, Action<IPacket, Session>> _handlers = new();
+        Dictionary<ushort, Action<IPacket, Session>> _handlers = new Dictionary<ushort, Action<IPacket, Session>>();
 
         public PacketManager()
         {
             _packetFactory.Add((ushort)Packets.TestPacket, MakePacket<TestPacket>);
             _handlers.Add((ushort)Packets.TestPacket, PacketHandler.TestPacketHandler);
-            
-            _packetFactory.Add((ushort)Packets.TestPacket2, MakePacket<TestPacket2>);
-            _handlers.Add((ushort)Packets.TestPacket2, PacketHandler.TestPacket2Handler);
             
             
         }
@@ -65,7 +60,7 @@ namespace ServerCoreTCP.CustomBuffer
 
         static T MakePacket<T>(Session session, Memory<byte> buffer) where T : IPacket, new()
         {
-            T packet = new();
+            T packet = new T();
             packet.MDeserialize(buffer);
             return packet;
         }
@@ -94,7 +89,7 @@ namespace ServerCoreTCP.CustomBuffer
 
         static T MakePacket<T>(Session session, ArraySegment<byte> buffer) where T : IPacket, new()
         {
-            T packet = new();
+            T packet = new T();
             packet.Deserialize(buffer);
             return packet;
         }

@@ -51,3 +51,31 @@ In the program.cs file, the format string is written as UTF-16.
 In text files, it is written as UTF-8.
 Note that [""] in UTF-8 format becomes ["] in UTF-16 format.
 --------------------------------------------------------------------------------------------------------------------------------------------------------
+String Format Parameter of txt files
+
+The following list represents the string format for each file.
+In order, [{0}, {1}, ...] will be inserted. Please pay attention to the order.
+
+Packet: [NamespaceName, PacketType, MembersFormat, ReserveBufferSize, M_MemberSerializeFormat, M_MemberDeserializeFormat, MemberSerializeFormat, MemberDeserializeFormat]
+PacketBase: [NamespaceName, PacketNameFormat]
+PacketHandler: [NamespaceName, PacketHandlerItemFormat]
+PacketHandlerItem: [PacketType]
+PacketItem: [NamespaceName, PacketItemClassFormat]
+PacketItemClass: [ClassName, MembersFormat, M_MemberSerializeFormat, M_MemberDeserializeFormat, MemberSerializeFormat, MemberDeserializeFormat]
+PacketManager: [NamespaceName, PacketManagerMappingFormat]
+PacketManagerMapping: [PacketType]
+PacketMember: [PacketType, PacketName]
+PacketMemberList: [PacketType, PacketListName]
+PacketName: [PacketName, EnumValue(ushort)]
+
+MemberDeserialize: [MemberName, BitConverterFuncName, MemberPrimitiveType]
+MemberDeserializeAdd: [MemberName, BitConverterFuncName, MemberPrimitiveType]
+MemberDeserializeAddClass: [MemberType, MemberName]
+MemberDeserializeAddString: [MemberName, EncodingType]
+MemberDeserializeClass: [MemberName, MemberType]
+MemberDeserializeList: [MemberListName, MemberDeserializeAddFormat]
+MemberDeserializeString: [MemberName, EncodingType]
+MemberSerialize: [MemberPritimiveType, MemberName]
+MemberSerializeClass: [MemberName]
+MemberSerializeList: [MemberListName, MemberType, MemberSerializeAddFormat]
+MemberSerializeString: [MemberName, EncodingType]

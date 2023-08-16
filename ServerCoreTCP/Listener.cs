@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServerCoreTCP.Debug;
+using System;
 using System.Net;
 using System.Net.Sockets;
 
@@ -16,7 +17,7 @@ namespace ServerCoreTCP
         /// <param name="session">The session of the socket</param>
         public Listener(IPEndPoint endPoint, Func<Session> sessionFactory)
         {
-            _listenSocket = new(
+            _listenSocket = new Socket(
                 endPoint.AddressFamily,
                 SocketType.Stream,
                 ProtocolType.Tcp);
@@ -33,8 +34,8 @@ namespace ServerCoreTCP
         /// <param name="port">The port number of endpoint</param>
         public Listener(IPAddress ipAddress, int port)
         {
-            IPEndPoint endPoint = new(ipAddress, port);
-            _listenSocket = new(
+            IPEndPoint endPoint = new IPEndPoint(ipAddress, port);
+            _listenSocket = new Socket(
                 endPoint.AddressFamily,
                 SocketType.Stream,
                 ProtocolType.Tcp);
@@ -53,12 +54,13 @@ namespace ServerCoreTCP
 
             for (int i=0; i<register; ++i)
             {
-                SocketAsyncEventArgs e = new();
-                e.Completed += new(OnAcceptCompleted);
+                SocketAsyncEventArgs e = new SocketAsyncEventArgs();
+                e.Completed += new EventHandler<SocketAsyncEventArgs>(OnAcceptCompleted);
                 RegisterAccept(e);
             }
 
-            Console.WriteLine("Socket is listening...");
+            if (CoreLogger.Logger != null)
+                CoreLogger.Logger.Information("Socket is listening now...");
         }
 
         /// <summary>
@@ -90,8 +92,6 @@ namespace ServerCoreTCP
             {
                 if (CoreLogger.Logger != null)
                     CoreLogger.Logger.Information("Accepted Socket: {RemoteEndPoint}", e.AcceptSocket.RemoteEndPoint);
-                else
-                    Console.WriteLine("Accepted Socket: {0}", e.AcceptSocket.RemoteEndPoint);
 
                 // TODO with session
 
@@ -108,8 +108,6 @@ namespace ServerCoreTCP
                 // error
                 if (CoreLogger.Logger != null)
                     CoreLogger.Logger.Error("Listener: {SocketError}", e.SocketError);
-                else
-                    Console.WriteLine("Listener: {0}", e.SocketError);
             }
 
             // After Accept, wait again for other Accepts.

@@ -1,1 +1,1 @@
-public List<{0}> {1} = new();
+public List<{0}> {1} = new List<{0}>();

@@ -1,6 +1,4 @@
-﻿#define MEMORY_BUFFER
-
-using System;
+﻿using System;
 using Google.Protobuf;
 
 namespace ServerCoreTCP.ProtobufWrapper
@@ -24,6 +22,7 @@ namespace ServerCoreTCP.ProtobufWrapper
 #endif
         }
 
+#if MEMORY_BUFFER
         protected sealed override int OnRecvProcess(Memory<byte> buffer)
         {
             if (buffer.Length < MinimumPacketLength) return 0;
@@ -48,6 +47,7 @@ namespace ServerCoreTCP.ProtobufWrapper
 
             return processed;
         }
+#else
 
         protected sealed override int OnRecvProcess(ArraySegment<byte> buffer)
         {
@@ -72,5 +72,6 @@ namespace ServerCoreTCP.ProtobufWrapper
 
             return processed;
         }
+#endif
     }
 }

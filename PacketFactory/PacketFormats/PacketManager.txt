@@ -1,5 +1,3 @@
-#define MEMORY_BUFFER
-
 using System;
 using System.Collections.Generic;
 
@@ -10,7 +8,7 @@ namespace {0}
     public class PacketManager
     {{
         #region Singleton
-        static PacketManager _instance = new();
+        static PacketManager _instance = new PacketManager();
         public static PacketManager Instance {{ get {{ return _instance; }} }}
         #endregion
 
@@ -18,17 +16,17 @@ namespace {0}
         /// <summary>
         /// Key is Packets(ushort); Value: the func returns a created packet with the received buffer.
         /// </summary>
-        Dictionary<ushort, Func<Session, Memory<byte>, IPacket>> _packetFactory = new();
+        Dictionary<ushort, Func<Session, Memory<byte>, IPacket>> _packetFactory = new Dictionary<ushort, Func<Session, Memory<byte>, IPacket>>();
 #else
         /// <summary>
         /// Key is Packets(ushort); Value: the func returns a created packet with the received buffer.
         /// </summary>
-        Dictionary<ushort, Func<Session, ArraySegment<byte>, IPacket>> _packetFactory = new();
+        Dictionary<ushort, Func<Session, ArraySegment<byte>, IPacket>> _packetFactory = new Dictionary<ushort, Func<Session, ArraySegment<byte>, IPacket>>();
 #endif
         /// <summary>
         /// Value: action which handles the packet(ushort, Packets).
         /// </summary>
-        Dictionary<ushort, Action<IPacket, Session>> _handlers = new();
+        Dictionary<ushort, Action<IPacket, Session>> _handlers = new Dictionary<ushort, Action<IPacket, Session>>();
 
         public PacketManager()
         {{
@@ -59,7 +57,7 @@ namespace {0}
 
         static T MakePacket<T>(Session session, Memory<byte> buffer) where T : IPacket, new()
         {{
-            T packet = new();
+            T packet = new T();
             packet.MDeserialize(buffer);
             return packet;
         }}
@@ -88,7 +86,7 @@ namespace {0}
 
         static T MakePacket<T>(Session session, ArraySegment<byte> buffer) where T : IPacket, new()
         {{
-            T packet = new();
+            T packet = new T();
             packet.Deserialize(buffer);
             return packet;
         }}

@@ -2,14 +2,20 @@
 using System.Net;
 using System.Text;
 using System.Threading;
+using Serilog;
 using Serilog.Core;
 using ServerCoreTCP;
+using ServerCoreTCP.Debug;
 
 namespace TestClient
 {
     class Program
     {
-        public static Logger Logger = LoggerFactory.MakeLogger("TestClient", Encoding.Unicode, TimeSpan.FromSeconds(1));
+        public readonly static Logger Logger = new LoggerConfiguration().WriteTo.File(
+                    path: LoggerHelper.GetFileName("ClientLogs"),
+                    encoding: Encoding.Unicode,
+                    flushToDiskInterval: TimeSpan.FromSeconds(1)
+                    ).CreateLogger();
 
         public static string UserName;
         public static uint ReqRoomNo;
@@ -17,7 +23,15 @@ namespace TestClient
 
         static void Main(string[] args)
         {
+#if DEBUG
             CoreLogger.Logging = true;
+#else
+            CoreLogger.Logger = new LoggerConfiguration().WriteTo.File(
+                    path: LoggerHelper.GetFileName("CoreLogs"),
+                    encoding: Encoding.Unicode,
+                    flushToDiskInterval: TimeSpan.FromSeconds(1)
+                    ).CreateLogger();
+#endif
 
             Console.Write("Enter the UserName: ");
             UserName = Console.ReadLine();
@@ -30,9 +44,9 @@ namespace TestClient
             string host = Dns.GetHostName(); // local host name of my pc
             IPHostEntry ipHost = Dns.GetHostEntry(host);
             IPAddress ipAddr = ipHost.AddressList[0];
-            IPEndPoint endPoint = new(address: ipAddr, port: 8888);
+            IPEndPoint endPoint = new IPEndPoint(address: ipAddr, port: 8888);
 
-            Connector connector = new();
+            Connector connector = new Connector();
             //connector.Connect(endPoint, () => { return SessionManager.Instance.CreateNewSession(); }, 1);
             connector.Connect(endPoint, () => { session = SessionManager.Instance.CreateNewSession(); return session; }, 1);
 

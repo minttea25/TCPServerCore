@@ -6,7 +6,7 @@ namespace TCPServer
     public class SessionManager
     {
         #region Singleton
-        readonly static SessionManager _instance = new();
+        readonly static SessionManager _instance = new SessionManager();
         public static SessionManager Instance => _instance;
         #endregion
 
@@ -14,15 +14,15 @@ namespace TCPServer
         /// The identifier of sessions. It starts at 1. (0 is invalid id) 
         /// </summary>
         uint _sessionId = 0;
-        readonly Dictionary<uint, ClientSession> _sessions = new();
-        readonly object _lock = new();
+        readonly Dictionary<uint, ClientSession> _sessions = new Dictionary<uint, ClientSession>();
+        readonly object _lock = new object();
 
         public ClientSession CreateNewSession()
         {
             lock (_lock)
             {
                 uint id = _sessionId++;
-                ClientSession session = new(id);
+                ClientSession session = new ClientSession(id);
 
                 Console.WriteLine($"Connected as id={id}");
                 _sessions.Add(id, session);

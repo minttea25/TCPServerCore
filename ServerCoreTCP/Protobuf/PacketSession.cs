@@ -1,6 +1,4 @@
-﻿#define MEMORY_BUFFER
-
-using Google.Protobuf;
+﻿using Google.Protobuf;
 using ServerCoreTCP.Utils;
 using System;
 using System.Collections.Generic;
@@ -38,6 +36,7 @@ namespace ServerCoreTCP.Protobuf
             }
         }
 
+#if MEMORY_BUFFER
         /// <summary>
         /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
         /// </summary>
@@ -70,7 +69,7 @@ namespace ServerCoreTCP.Protobuf
 
             return processed;
         }
-
+#else
         /// <summary>
         /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
         /// </summary>
@@ -102,5 +101,6 @@ namespace ServerCoreTCP.Protobuf
 
             return processed;
         }
+#endif
     }
 }

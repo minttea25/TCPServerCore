@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServerCoreTCP.Debug;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,7 @@ namespace ServerCoreTCP
         public static int BufferSize { get; private set; } = 65535;
 
         public readonly static ThreadLocal<MSendBuffer> TLS_CurrentBuffer
-            = new(valueFactory: () => new(BufferSize));
+            = new ThreadLocal<MSendBuffer>(valueFactory: () => new MSendBuffer(BufferSize));
 
         /// <summary>
         /// Helper method of MSendBuffer.Reserve
@@ -28,7 +29,8 @@ namespace ServerCoreTCP
 #if DEBUG
             if (reserveSize > BufferSize)
             {
-                Console.WriteLine($"The reserveSize[{reserveSize}] is bigger than the bufferSize[{BufferSize}] => return null");
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error("The reserveSize[{reserveSize}] is bigger than the bufferSize[{BufferSize}] => return null", reserveSize, BufferSize);
                 return null;
             }
 #endif
@@ -82,7 +84,7 @@ namespace ServerCoreTCP
             }
 
             // return sliced memory from usedSize to usedSize + reserveSize
-            return new(buffer, start: usedSize, length: reserveSize);
+            return new Memory<byte>(buffer, start: usedSize, length: reserveSize);
         }
 
         /// <summary>
@@ -92,7 +94,7 @@ namespace ServerCoreTCP
         /// <returns>The Memory segment of the actually used buffer.</returns>
         public Memory<byte> Return(int usedSize)
         {
-            Memory<byte> m = new(buffer, start: this.usedSize, length: usedSize);
+            Memory<byte> m = new Memory<byte>(buffer, start: this.usedSize, length: usedSize);
             this.usedSize += usedSize;
             return m;
         }
@@ -101,7 +103,7 @@ namespace ServerCoreTCP
         {
             if (size > FreeSize) usedSize = 0;
 
-            Memory<byte> m = new(buffer, start: usedSize, length: size);
+            Memory<byte> m = new Memory<byte>(buffer, start: usedSize, length: size);
             usedSize += size;
             return m;
         }

@@ -15,8 +15,8 @@ namespace ServerCoreTCP.Utils
 
     public class JobTimer
     {
-        readonly PriorityQueue<JobTimerElement> _pq = new();
-        readonly object _lock = new();
+        readonly PriorityQueue<JobTimerElement> _pq = new PriorityQueue<JobTimerElement>();
+        readonly object _lock = new object();
 
         #region Singleton
         static JobTimer _instance = null;
@@ -24,7 +24,7 @@ namespace ServerCoreTCP.Utils
         {
             get
             {
-                if (_instance == null) _instance = new();
+                if (_instance == null) _instance = new JobTimer();
                 return _instance;
             }
         }
@@ -32,7 +32,7 @@ namespace ServerCoreTCP.Utils
 
         public void Push(Action action, int tickAfter = 0)
         {
-            JobTimerElement job = new()
+            JobTimerElement job = new JobTimerElement()
             {
                 targetTick = System.Environment.TickCount + tickAfter,
                 job = action,

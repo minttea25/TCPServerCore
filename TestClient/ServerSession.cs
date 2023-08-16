@@ -16,7 +16,7 @@ namespace TestClient
 
         public void SendChat(string msg)
         {
-            S_Chat chat = new()
+            S_Chat chat = new S_Chat()
             {
                 Msg = msg,
                 UserId = UserId
@@ -27,7 +27,7 @@ namespace TestClient
 
         public void LeaveRoom()
         {
-            S_LeaveRoom leave = new();
+            S_LeaveRoom leave = new S_LeaveRoom();
             Program.Logger.Information("Send LeaveRoom: {leave}", leave);
             Send(leave);
         }
@@ -42,7 +42,7 @@ namespace TestClient
         {
             Program.Logger.Information("OnConnected: {endPoint}", endPoint);
 
-            S_ReqEnterRoom req = new()
+            S_ReqEnterRoom req = new S_ReqEnterRoom()
             {
                 UserName = Program.UserName,
                 RoomNo = Program.ReqRoomNo,

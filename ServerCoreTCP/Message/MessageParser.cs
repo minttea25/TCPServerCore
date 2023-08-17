@@ -9,7 +9,7 @@ namespace ServerCoreTCP.Message
     public static class MessageParser
     {
         const int SendDefaultReserveSize = 1024;
-
+#if MEMORY_BUFFER
         /// <summary>
         /// Serialize the message: [size][message] [Memory]
         /// </summary>
@@ -26,6 +26,17 @@ namespace ServerCoreTCP.Message
         }
 
         /// <summary>
+        /// Extended function of Protobuf.MSerialize().
+        /// </summary>
+        /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
+        /// <param name="message">The message to serialize.</param>
+        /// <returns>The serialized buffer of Memory.</returns>
+        public static Memory<byte> MSerializeProtobuf<T>(this T message) where T : IMessage
+        {
+            return MSerialize(message);
+        }
+#else
+        /// <summary>
         /// Serialize the message: [size][message] [ArraySegment]
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
@@ -41,17 +52,6 @@ namespace ServerCoreTCP.Message
         }
 
         /// <summary>
-        /// Extended function of Protobuf.MSerialize().
-        /// </summary>
-        /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
-        /// <param name="message">The message to serialize.</param>
-        /// <returns>The serialized buffer of Memory.</returns>
-        public static Memory<byte> MSerializeProtobuf<T>(this T message) where T : IMessage
-        {
-            return MSerialize(message);
-        }
-
-        /// <summary>
         /// Extended function of Protobuf.Serialize().
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
@@ -61,6 +61,7 @@ namespace ServerCoreTCP.Message
         {
             return Serialize(message);
         }
+#endif
     }
 }
 #endif

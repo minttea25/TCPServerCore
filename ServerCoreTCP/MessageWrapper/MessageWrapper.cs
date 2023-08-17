@@ -16,6 +16,7 @@ namespace ServerCoreTCP.MessageWrapper
         public const int HeaderMessageLengthSize = sizeof(ushort);
         public const int HeaderPacketTypeSize = sizeof(ushort);
 
+#if MEMORY_BUFFER
         /// <summary>
         /// Serialize the message with PacketWrapper [Memory]
         /// </summary>
@@ -45,6 +46,17 @@ namespace ServerCoreTCP.MessageWrapper
         }
 
         /// <summary>
+        /// Extended function of PacketWrapper.MSerialize().
+        /// </summary>
+        /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
+        /// <param name="message">The message to serialize.</param>
+        /// <returns>The serialized buffer with PacketWrapper.</returns>
+        public static Memory<byte> MSerializeWrapper<T>(this T message) where T : IMessage
+        {
+            return MSerialize(message);
+        }
+#else
+        /// <summary>
         /// Serialize the message with PacketWrapper [ArraySegment]
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
@@ -73,17 +85,6 @@ namespace ServerCoreTCP.MessageWrapper
         }
 
         /// <summary>
-        /// Extended function of PacketWrapper.MSerialize().
-        /// </summary>
-        /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
-        /// <param name="message">The message to serialize.</param>
-        /// <returns>The serialized buffer with PacketWrapper.</returns>
-        public static Memory<byte> MSerializeWrapper<T>(this T message) where T : IMessage
-        {
-            return MSerialize(message);
-        }
-
-        /// <summary>
         /// Extended function of PacketWrapper.Serialize().
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
@@ -93,6 +94,7 @@ namespace ServerCoreTCP.MessageWrapper
         {
             return Serialize(message);
         }
+#endif
     }
 }
 #endif

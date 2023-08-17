@@ -1,4 +1,5 @@
-﻿using Google.Protobuf;
+﻿#if MESSAGE_PACKET
+using Google.Protobuf;
 using ServerCoreTCP.Utils;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace ServerCoreTCP.Protobuf
+namespace ServerCoreTCP.Message
 {
     public abstract class PacketSession : Session
     {
@@ -23,9 +24,9 @@ namespace ServerCoreTCP.Protobuf
         {
             int size = message.CalculateSize();
 #if MEMORY_BUFFER
-            var sendBuffer = Protobuf.MSerialize(message);
+            var sendBuffer = MessageParser.MSerialize(message);
 #else
-            var sendBuffer = Protobuf.Serialize(message);
+            var sendBuffer = MessageParser.Serialize(message);
 #endif
 
             lock (_lock)
@@ -104,3 +105,4 @@ namespace ServerCoreTCP.Protobuf
 #endif
     }
 }
+#endif

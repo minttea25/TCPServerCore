@@ -2,7 +2,7 @@
 
 using Google.Protobuf;
 
-namespace ServerCoreTCP.ProtobufWrapper
+namespace ServerCoreTCP.MessageWrapper
 {
     public class PacketHandler
     {

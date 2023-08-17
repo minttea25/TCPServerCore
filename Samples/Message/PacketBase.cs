@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace ServerCoreTCP.Protobuf
+namespace ServerCoreTCP.Message
 {
 
     /// <summary>Holder for reflection information generated from proto/PacketBase.proto</summary>
@@ -33,7 +33,7 @@ namespace ServerCoreTCP.Protobuf
                   "QhmqAhZTZXJ2ZXJDb3JlVENQLlByb3RvYnVmYgZwcm90bzM="));
             descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
                 new pbr::FileDescriptor[] { },
-                new pbr::GeneratedClrTypeInfo(new[] { typeof(global::ServerCoreTCP.Protobuf.PacketType), }, null, null));
+                new pbr::GeneratedClrTypeInfo(new[] { typeof(global::ServerCoreTCP.Message.PacketType), }, null, null));
         }
         #endregion
 

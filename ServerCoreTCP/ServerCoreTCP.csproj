@@ -8,12 +8,15 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;CUSTOM_PACKET;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;MESSAGE_PACKET;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="CustomBuffer\PacketSession.cs" />
-    <Compile Remove="CustomBuffer\TestPacket2.cs" />
+    <Compile Remove="CustomPacket\TestPacket2.cs" />
     <Compile Remove="Utils\ReaderWriterLock.cs" />
   </ItemGroup>
 

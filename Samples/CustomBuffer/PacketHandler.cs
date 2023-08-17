@@ -2,7 +2,7 @@ using System;
 
 using ServerCoreTCP;
 
-namespace TestNamespace
+namespace ServerCoreTCP.CustomBuffer
 {
     public class PacketHandler
     {

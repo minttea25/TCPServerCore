@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Net;
-using ServerCoreTCP.Protobuf;
+using ServerCoreTCP.Message;
 
 namespace TCPServer
 {

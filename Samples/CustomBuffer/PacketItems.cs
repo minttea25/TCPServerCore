@@ -4,13 +4,13 @@ using System.Text;
 
 using ServerCoreTCP;
 
-namespace TestNamespace 
+namespace ServerCoreTCP.CustomBuffer
 {
     public class Item : PacketItem
     {
         public long playerId;
         public string playerName;
-        
+#if MEMORY_BUFFER
         public override bool MSerialize(Memory<byte> buffer, ref int offset)
         {
             bool suc = true;
@@ -39,7 +39,7 @@ namespace TestNamespace
             
             
         }
-    
+#else   
         public override bool Serialize(Span<byte> span, ref int offset)
         {
             bool suc = true;
@@ -67,5 +67,6 @@ namespace TestNamespace
             
             
         }
+#endif
     }
 }

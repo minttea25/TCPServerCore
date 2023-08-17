@@ -3,7 +3,7 @@ using System.Net;
 using System.Threading;
 using ServerCoreTCP;
 
-using ServerCoreTCP.Protobuf;
+using ServerCoreTCP.Message;
 using ChatTest;
 
 

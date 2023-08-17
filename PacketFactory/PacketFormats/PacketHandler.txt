@@ -1,6 +1,7 @@
 using System;
 
 using ServerCoreTCP;
+using ServerCoreTCP.CustomPacket;
 
 namespace {0}
 {{

@@ -4,7 +4,7 @@ using System.Threading;
 using Google.Protobuf;
 using ServerCoreTCP.Utils;
 
-namespace ServerCoreTCP.Protobuf
+namespace ServerCoreTCP.Message
 {
     public class PacketManager
     {
@@ -15,7 +15,7 @@ namespace ServerCoreTCP.Protobuf
         public static PacketManager Instance => _instance;
         #endregion
 
-        readonly Dictionary<ushort, MessageParser> _messageTypes = new Dictionary<ushort, MessageParser>();
+        readonly Dictionary<ushort, Google.Protobuf.MessageParser> _messageTypes = new Dictionary<ushort, Google.Protobuf.MessageParser>();
         readonly Dictionary<ushort, Action<IMessage, Session>> _handlers = new Dictionary<ushort, Action<IMessage, Session>>();
 
         PacketManager()

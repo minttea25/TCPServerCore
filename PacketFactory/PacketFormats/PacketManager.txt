@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ServerCoreTCP;
+using ServerCoreTCP.CustomPacket;
 
 namespace {0}
 {{

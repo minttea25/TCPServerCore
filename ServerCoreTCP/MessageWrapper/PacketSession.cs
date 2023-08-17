@@ -1,11 +1,13 @@
-﻿using System;
+﻿#if MESSAGE_WRAPPER_PACKET
+
+using System;
 using Google.Protobuf;
 
-namespace ServerCoreTCP.ProtobufWrapper
+namespace ServerCoreTCP.MessageWrapper
 {
     public abstract class PacketSession : Session
     {
-        const int MinimumPacketLength = PacketWrapper.HeaderMessageLengthSize + PacketWrapper.HeaderPacketTypeSize;
+        const int MinimumPacketLength = MessageWrapper.HeaderMessageLengthSize + MessageWrapper.HeaderPacketTypeSize;
         const int SendDefaultReserveSize = 1024;
 
         /// <summary>
@@ -32,8 +34,8 @@ namespace ServerCoreTCP.ProtobufWrapper
             while (processed < buffer.Length)
             {
                 // size contains the length of the packet type and message.
-                ushort size = BitConverter.ToUInt16(buffer.Span.Slice(processed, PacketWrapper.HeaderMessageLengthSize));
-                processed += PacketWrapper.HeaderMessageLengthSize;
+                ushort size = BitConverter.ToUInt16(buffer.Span.Slice(processed, MessageWrapper.HeaderMessageLengthSize));
+                processed += MessageWrapper.HeaderMessageLengthSize;
 
                 if (size + processed > buffer.Length) break;
 
@@ -58,8 +60,8 @@ namespace ServerCoreTCP.ProtobufWrapper
             while (processed < buffer.Count)
             {
                 // size contains the length of the packet type and message.
-                ushort size = BitConverter.ToUInt16(buffer.Slice(processed, PacketWrapper.HeaderMessageLengthSize));
-                processed += PacketWrapper.HeaderMessageLengthSize;
+                ushort size = BitConverter.ToUInt16(buffer.Slice(processed, MessageWrapper.HeaderMessageLengthSize));
+                processed += MessageWrapper.HeaderMessageLengthSize;
 
                 if (size + processed  > buffer.Count) break;
 
@@ -75,3 +77,4 @@ namespace ServerCoreTCP.ProtobufWrapper
 #endif
     }
 }
+#endif

@@ -1,4 +1,4 @@
-﻿namespace ServerCoreTCP.Protobuf
+﻿namespace ServerCoreTCP.Message
 {
     /*
      * The first tag of the message must be PacketType(enum) type

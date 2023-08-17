@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 
 using ChatTest;
-using ServerCoreTCP.Protobuf;
+using ServerCoreTCP.Message;
 using System.Collections.Concurrent;
 
 namespace TCPServer

@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using ServerCoreTCP;
 
-namespace TestNamespace
+namespace ServerCoreTCP.CustomBuffer
 {
     public class TestPacket : IPacket
     {
@@ -12,7 +11,7 @@ namespace TestNamespace
         public ushort itemId;
         public List<string> titles = new List<string>();
         public Item items;
-        
+#if MEMORY_BUFFER
         public Memory<byte> MSerialize()
         {
             Memory<byte> buffer = MSendBufferTLS.Reserve(2048);
@@ -74,7 +73,7 @@ namespace TestNamespace
             
             
         }
-
+#else
         public ArraySegment<byte> Serialize()
         {
             ArraySegment<byte> buffer = SendBufferTLS.Reserve(2048);
@@ -136,5 +135,6 @@ namespace TestNamespace
             
             
         }
+#endif
     }
 }

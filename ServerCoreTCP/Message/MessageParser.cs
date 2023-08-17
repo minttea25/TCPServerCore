@@ -1,10 +1,12 @@
-﻿using ServerCoreTCP.Utils;
+﻿#if MESSAGE_PACKET
+
+using ServerCoreTCP.Utils;
 using System;
 using Google.Protobuf;
 
-namespace ServerCoreTCP.Protobuf
+namespace ServerCoreTCP.Message
 {
-    public static class Protobuf
+    public static class MessageParser
     {
         const int SendDefaultReserveSize = 1024;
 
@@ -61,3 +63,4 @@ namespace ServerCoreTCP.Protobuf
         }
     }
 }
+#endif

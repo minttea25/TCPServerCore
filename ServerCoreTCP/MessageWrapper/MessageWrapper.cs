@@ -1,12 +1,18 @@
-﻿using System;
+﻿#if MESSAGE_WRAPPER_PACKET
+using System;
 using System.Collections.Generic;
 
 using Google.Protobuf;
 
-namespace ServerCoreTCP.ProtobufWrapper
+namespace ServerCoreTCP.MessageWrapper
 {
-    public static class PacketWrapper
+    public static class MessageWrapper
     {
+        public readonly static Dictionary<Type, ushort> PacketMap = new Dictionary<Type, ushort>()
+        {
+            //{ typeof(Vector3), (ushort)PacketType.Pvector3 },
+        };
+
         public const int HeaderMessageLengthSize = sizeof(ushort);
         public const int HeaderPacketTypeSize = sizeof(ushort);
 
@@ -19,7 +25,7 @@ namespace ServerCoreTCP.ProtobufWrapper
         public static Memory<byte> MSerialize<T>(T message) where T : IMessage
         {
             ushort size = (ushort)(message.CalculateSize() + HeaderPacketTypeSize);
-            ushort messageType = (ushort)PacketBase.PacketMap[typeof(T)];
+            ushort messageType = PacketMap[typeof(T)];
 
             int offset = 0;
             Memory<byte> buffer = MSendBufferTLS.Reserve(HeaderMessageLengthSize + size);
@@ -47,7 +53,7 @@ namespace ServerCoreTCP.ProtobufWrapper
         public static ArraySegment<byte> Serialize<T>(T message) where T : IMessage
         {
             ushort size = (ushort)(message.CalculateSize() + HeaderPacketTypeSize);
-            ushort messageType = (ushort)PacketBase.PacketMap[typeof(T)];
+            ushort messageType = PacketMap[typeof(T)];
 
             int offset = 0;
             ArraySegment<byte> buffer = SendBufferTLS.Reserve(HeaderMessageLengthSize + size);
@@ -89,3 +95,4 @@ namespace ServerCoreTCP.ProtobufWrapper
         }
     }
 }
+#endif

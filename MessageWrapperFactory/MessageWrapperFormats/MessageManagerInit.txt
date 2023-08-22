@@ -1,0 +1,2 @@
+_messageTypes.Add(MessageWrapper.PacketMap[typeof({0})], {0}.Parser);
+_handlers.Add(MessageWrapper.PacketMap[typeof({0})], MessageHandler.{0}MessageHandler);

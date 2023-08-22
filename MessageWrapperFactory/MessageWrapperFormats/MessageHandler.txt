@@ -1,0 +1,12 @@
+using System;
+
+using ServerCoreTCP;
+using Google.Protobuf;
+
+namespace {0}
+{{
+    public class MessageHandler
+    {{
+        {1}
+    }}
+}}

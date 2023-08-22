@@ -1,0 +1,73 @@
+using Google.Protobuf;
+using System;
+using System.Collections.Generic;
+using ServerCoreTCP;
+using ServerCoreTCP.MessageWrapper;
+
+namespace {0}
+{{
+    public enum PacketType : ushort
+    {{
+        P_INVALID = 0,
+        {1}
+    }}
+
+    public class MessageManager
+    {{
+        public const int MessageTypeLength = sizeof(ushort);
+
+        #region Singleton
+        static MessageManager _instance = null;
+        public static MessageManager Instance
+        {{
+            get
+            {{
+                if (_instance == null) _instance = new MessageManager();
+                return _instance;
+            }}
+        }}
+        #endregion
+
+        readonly Dictionary<ushort, MessageParser> _messageTypes = new Dictionary<ushort, MessageParser>();
+        readonly Dictionary<ushort, Action<IMessage, Session>> _handlers = new Dictionary<ushort, Action<IMessage, Session>>();
+
+        MessageManager()
+        {{
+            {2}
+
+            {3}
+        }}
+
+        /// <summary>
+        /// Assemble the data to message and handles the result according to the Paceket Type.
+        /// </summary>
+        /// <param name="session">The session that received the data.</param>
+        /// <param name="buffer">The buffer that contains the packet type and serialized message.</param>
+        /// <param name="callback">The another callback function, not PacketHandler.</param>
+        public void OnRecvPacket(Session session, ReadOnlySpan<byte> buffer, Action<Session, IMessage> callback = null)
+        {{
+            // Note: buffer contains the type and serialized message.
+            ushort packetType = ReadPacketType(buffer);
+
+            if (_messageTypes.TryGetValue(packetType, out var parser))
+            {{
+                var msg = parser.ParseFrom(buffer.Slice(MessageTypeLength));
+                callback?.Invoke(session, msg);
+                HandlePacket(packetType, msg, session);
+            }}
+        }}
+
+        static ushort ReadPacketType(ReadOnlySpan<byte> buffer)
+        {{
+            return BitConverter.ToUInt16(buffer.Slice(0, MessageTypeLength));
+        }}
+
+        void HandlePacket(ushort packetType, IMessage msg, Session session)
+        {{
+            if (_handlers.TryGetValue(packetType, out var handler))
+            {{
+                handler.Invoke(msg, session);
+            }}
+        }}
+    }}
+}}

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MessageWrapperFactory": {
+      "commandName": "Project",
+      "commandLineArgs": "-s C -c S Chat proto"
+    }
+  }
+}

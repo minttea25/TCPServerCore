@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MessageFactory": {
+      "commandName": "Project",
+      "commandLineArgs": "Chat.Test proto"
+    }
+  }
+}

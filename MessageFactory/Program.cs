@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
-namespace MessageWrapperFactory
+namespace MessageFactory
 {
     class Program
     {
@@ -20,6 +21,7 @@ namespace MessageWrapperFactory
         const string TargetClientDirectory = @"Client [exclude prefix={0}]";
         const string MessageManagerFile = "MessageManager.cs";
         const string MessageHandlerFile = "MessageHandler.cs";
+        const string PacketBaseProtoFile = "PacketBase.proto";
 
         const string NamespaceRegex = @"^[a-zA-Z_][a-zA-Z0-9_.]*$";
 
@@ -29,7 +31,7 @@ namespace MessageWrapperFactory
 
         static void Main(string[] args)
         {
-            if (MessageWrapperFormat.CheckFiles() == false)
+            if (MessageFormat.CheckFiles() == false)
             {
                 return;
             }
@@ -136,7 +138,7 @@ namespace MessageWrapperFactory
                             if (endIndex != -1) // if endIndex == -1 => error syntax file
                             {
                                 string messageBlock = text.Substring(startIndex, endIndex - startIndex + 1).Trim();
-
+                                
                                 if (messageBlock.StartsWith(MessageToken))
                                 {
                                     int idx = messageBlock.IndexOf(Braces_Open, MessageToken.Length + 1);
@@ -213,56 +215,83 @@ namespace MessageWrapperFactory
                 option = ExcludeOption.Server;
                 Console.WriteLine($"Server Exclude Prefix Option: {excludeOptionPrefixServer}");
             }
-            
-            Dictionary<string, string> formats = MessageWrapperFormat.ReadAllFiles();
+
+            Dictionary<string, string> formats = MessageFormat.ReadAllFiles();
 
             if (option == ExcludeOption.Both || option == ExcludeOption.Server)
             {
                 string serverPathManager = $"{string.Format(TargetServerDirectory, excludeOptionPrefixServer)}{Path.DirectorySeparatorChar}{MessageManagerFile}";
                 WriteMessageManager(serverPathManager, namespaceName, messages,
-                    formats[MessageWrapperFormat.MessageManager],
-                    formats[MessageWrapperFormat.PacketTypeEnumItemFormat],
-                    formats[MessageWrapperFormat.MessageManagerMapping],
-                    formats[MessageWrapperFormat.MessageManagerInit],
+                    formats[MessageFormat.MessageManager],
+                    formats[MessageFormat.MessageManagerInit],
                     excludeOptionPrefixServer);
                 Console.WriteLine($"{serverPathManager} is created.");
 
                 string serverPathHandler = $"{string.Format(TargetServerDirectory, excludeOptionPrefixServer)}{Path.DirectorySeparatorChar}{MessageHandlerFile}";
                 WriteMessageHandler(serverPathHandler, namespaceName, messages,
-                    formats[MessageWrapperFormat.MessageHandler], formats[MessageWrapperFormat.MessageHandlerItem],
+                    formats[MessageFormat.MessageHandler], formats[MessageFormat.MessageHandlerItem],
                     excludeOptionPrefixServer);
                 Console.WriteLine($"{serverPathHandler} is created.");
             }
-            if (option == ExcludeOption.Both || option == ExcludeOption.Client) 
-            { 
+            if (option == ExcludeOption.Both || option == ExcludeOption.Client)
+            {
                 string clientPathManager = $"{string.Format(TargetClientDirectory, excludeOptionPrefixClient)}{Path.DirectorySeparatorChar}{MessageManagerFile}";
                 WriteMessageManager(clientPathManager, namespaceName, messages,
-                    formats[MessageWrapperFormat.MessageManager],
-                    formats[MessageWrapperFormat.PacketTypeEnumItemFormat],
-                    formats[MessageWrapperFormat.MessageManagerMapping],
-                    formats[MessageWrapperFormat.MessageManagerInit],
+                    formats[MessageFormat.MessageManager],
+                    formats[MessageFormat.MessageManagerInit],
                     excludeOptionPrefixClient);
                 Console.WriteLine($"{clientPathManager} is created.");
 
                 string clientPathHandler = $"{string.Format(TargetClientDirectory, excludeOptionPrefixClient)}{Path.DirectorySeparatorChar}{MessageHandlerFile}";
                 WriteMessageHandler(clientPathHandler, namespaceName, messages,
-                    formats[MessageWrapperFormat.MessageHandler], formats[MessageWrapperFormat.MessageHandlerItem],
+                    formats[MessageFormat.MessageHandler], formats[MessageFormat.MessageHandlerItem],
                     excludeOptionPrefixClient);
                 Console.WriteLine($"{clientPathHandler} is created.");
             }
             if (option == ExcludeOption.None)
             {
                 WriteMessageManager(MessageManagerFile, namespaceName, messages,
-                    formats[MessageWrapperFormat.MessageManager],
-                    formats[MessageWrapperFormat.PacketTypeEnumItemFormat],
-                    formats[MessageWrapperFormat.MessageManagerMapping],
-                    formats[MessageWrapperFormat.MessageManagerInit]);
+                    formats[MessageFormat.MessageManager],
+                    formats[MessageFormat.MessageManagerInit]);
                 Console.WriteLine($"{MessageManagerFile} is created.");
 
                 WriteMessageHandler(MessageHandlerFile, namespaceName, messages,
-                    formats[MessageWrapperFormat.MessageHandler], formats[MessageWrapperFormat.MessageHandlerItem]);
+                    formats[MessageFormat.MessageHandler], formats[MessageFormat.MessageHandlerItem]);
                 Console.WriteLine($"{MessageHandlerFile} is created.");
             }
+
+            WritePacketBaseProto(PacketBaseProtoFile, messages,
+                formats[MessageFormat.PacketBaseProto], formats[MessageFormat.PacketBaseEnumItem]);
+            Console.WriteLine($"{PacketBaseProtoFile} is created.");
+        }
+
+        static string FormatName(string name)
+        {
+            StringBuilder formattedName = new StringBuilder();
+            int consecutiveUpperCount = 0;
+
+            for (int i = 0; i < name.Length; i++)
+            {
+                char c = name[i];
+
+                if (char.IsUpper(c))
+                {
+                    if (i != 0 && consecutiveUpperCount > 0)
+                    {
+                        formattedName.Append('_');
+                    }
+
+                    formattedName.Append(c);
+                    consecutiveUpperCount++;
+                }
+                else
+                {
+                    consecutiveUpperCount = 0;
+                    formattedName.Append(c);
+                }
+            }
+
+            return formattedName.ToString();
         }
 
         static bool CheckName(string name, string prefix)
@@ -276,38 +305,24 @@ namespace MessageWrapperFactory
             return false;
         }
 
-        static void WriteMessageManager(string filepath, string namespaceName, List<string> messages, 
-            string messageManagerFormat, string packetTypeEnumFormat, string messageManagerMappingFormat, string messageManagerInitFormat,
+        static void WriteMessageManager(string filepath, string namespaceName, List<string> messages,
+            string messageManagerFormat, string messageManagerInitFormat,
             string excludePrefix = null)
         {
-            string packetEnums = "";
-            string packetMapping = "";
             string packetInit = "";
-            for (int i=0; i<messages.Count; i++)
+            foreach (string name in messages)
             {
-                if (CheckName(messages[i], excludePrefix) == true) continue;
-
-                packetEnums += string.Format(
-                    packetTypeEnumFormat,
-                    messages[i], i + 1);
-                packetEnums += Environment.NewLine;
-
-                packetMapping += string.Format(
-                    messageManagerMappingFormat,
-                    messages[i]);
-                packetMapping += Environment.NewLine;
+                if (CheckName(name, excludePrefix) == true) continue;
 
                 packetInit += string.Format(
                     messageManagerInitFormat,
-                    messages[i]);
+                    name);
                 packetInit += Environment.NewLine;
             }
 
             File.WriteAllText(filepath, string.Format(
                 messageManagerFormat,
                 namespaceName,
-                packetEnums.Replace(Environment.NewLine, $"{Environment.NewLine}        "),
-                packetMapping.Replace(Environment.NewLine, $"{Environment.NewLine}            "),
                 packetInit.Replace(Environment.NewLine, $"{Environment.NewLine}            ")));
         }
 
@@ -316,7 +331,7 @@ namespace MessageWrapperFactory
             string excludePrefix = null)
         {
             string packetHandlerItem = "";
-            foreach(string name in messages)
+            foreach (string name in messages)
             {
                 if (CheckName(name, excludePrefix) == true) continue;
 
@@ -329,6 +344,22 @@ namespace MessageWrapperFactory
                 messageHandlerFormat,
                 namespaceName,
                 packetHandlerItem.Replace(Environment.NewLine, $"{Environment.NewLine}        ")));
+        }
+
+        static void WritePacketBaseProto(string filepath, List<string> messages,
+            string packetBaseProtoFormat, string packetBaseEnumItomFormat)
+        {
+            string packetBaseEnum = "";
+            for (int i=0; i<messages.Count; i++)
+            {
+                packetBaseEnum += string.Format(
+                    packetBaseEnumItomFormat,
+                    FormatName(messages[i]), i + 1);
+                packetBaseEnum += Environment.NewLine;
+            }
+            File.WriteAllText(filepath, string.Format(
+                packetBaseProtoFormat,
+                packetBaseEnum.Replace(Environment.NewLine, $"{Environment.NewLine}    ")));
         }
     }
 }

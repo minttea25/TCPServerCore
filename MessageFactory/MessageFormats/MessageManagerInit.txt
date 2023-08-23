@@ -1,0 +1,2 @@
+_messageTypes.Add((ushort)PacketType.P{0}, {0}.Parser);
+_handlers.Add((ushort)PacketType.P{0}, MessageHandler.{0}MessageHandler);

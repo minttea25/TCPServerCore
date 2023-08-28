@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 
 using ChatTest;
-using ServerCoreTCP.Message;
+using ServerCoreTCP.MessageWrapper;
 using System.Collections.Concurrent;
 
 namespace TCPServer
@@ -92,7 +92,7 @@ namespace TCPServer
 
         public void BroadCast<T>(T message) where T : IMessage
         {
-            _pendingMessages.Add(message.SerializeProtobuf());
+            _pendingMessages.Add(message.SerializeWrapper());
         }
     }
 }

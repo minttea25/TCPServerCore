@@ -3,7 +3,7 @@ using System.Net;
 using System.Threading;
 using ServerCoreTCP;
 
-using ServerCoreTCP.Message;
+using ServerCoreTCP.MessageWrapper;
 using ChatTest;
 
 
@@ -41,7 +41,7 @@ namespace TestClient
         public override void OnConnected(EndPoint endPoint)
         {
             Program.Logger.Information("OnConnected: {endPoint}", endPoint);
-
+            return;
             S_ReqEnterRoom req = new S_ReqEnterRoom()
             {
                 UserName = Program.UserName,

@@ -287,6 +287,14 @@ namespace MessageWrapperFactory
             {
                 if (CheckName(messages[i], excludePrefix) == true) continue;
 
+                packetInit += string.Format(
+                    messageManagerInitFormat,
+                    messages[i]);
+                packetInit += Environment.NewLine;
+            }
+
+            for (int i=0; i<messages.Count; i++)
+            {
                 packetEnums += string.Format(
                     packetTypeEnumFormat,
                     messages[i], i + 1);
@@ -296,11 +304,6 @@ namespace MessageWrapperFactory
                     messageManagerMappingFormat,
                     messages[i]);
                 packetMapping += Environment.NewLine;
-
-                packetInit += string.Format(
-                    messageManagerInitFormat,
-                    messages[i]);
-                packetInit += Environment.NewLine;
             }
 
             File.WriteAllText(filepath, string.Format(

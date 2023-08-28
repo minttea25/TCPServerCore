@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Net;
-using ServerCoreTCP.Message;
+using ServerCoreTCP.MessageWrapper;
 
 namespace TCPServer
 {
@@ -25,6 +25,7 @@ namespace TCPServer
         public override void OnConnected(EndPoint endPoint)
         {
             Program.Logger.Information("OnConnected: {endPoint}", endPoint);
+            System.Threading.Thread.Sleep(5000);
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)

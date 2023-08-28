@@ -47,9 +47,13 @@ namespace TestClient
             IPEndPoint endPoint = new IPEndPoint(address: ipAddr, port: 8888);
 
             Connector connector = new Connector();
-            //connector.Connect(endPoint, () => { return SessionManager.Instance.CreateNewSession(); }, 1);
-            connector.Connect(endPoint, () => { session = SessionManager.Instance.CreateNewSession(); return session; }, 1);
-
+            connector.OnConnectCompleted += OnConnectCompleted;
+#if RELEASE
+            connector.Connect(endPoint, () => { session = SessionManager.Instance.CreateNewSession(); return session; }, timeoutMilliSeconds: 5000);
+#else
+            //connector.Connect(endPoint, () => { session = SessionManager.Instance.CreateNewSession(); return session; }, timeoutMilliSeconds: 5000, count: 1);
+#endif
+            Console.WriteLine("Connect after");
             while (true)
             {
                 string chat = Console.ReadLine();
@@ -69,5 +73,19 @@ namespace TestClient
 
             Logger.Dispose();
         }
+
+        static void OnConnectCompleted(object sender, Connector.ConnectError error)
+        {
+            if (error == Connector.ConnectError.Success)
+            {
+                //
+            }
+            else
+            {
+                Console.WriteLine($"error: {error}");
+            }
+        }
     }
+
+    
 }

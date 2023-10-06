@@ -44,7 +44,7 @@ namespace {0}
         /// <param name="session">The session that received the data.</param>
         /// <param name="buffer">The buffer that contains the packet type and serialized message.</param>
         /// <param name="callback">The another callback function, not PacketHandler.</param>
-        public void OnRecvPacket(Session session, ReadOnlySpan<byte> buffer, Action<Session, IMessage> callback = null)
+        public void OnRecvPacket(Session session, ReadOnlySpan<byte> buffer, Action<ushort, Session, IMessage> callback = null)
         {{
             // Note: buffer contains the type and serialized message.
             ushort packetType = ReadPacketType(buffer);
@@ -52,8 +52,8 @@ namespace {0}
             if (_messageTypes.TryGetValue(packetType, out var parser))
             {{
                 var msg = parser.ParseFrom(buffer.Slice(MessageTypeLength));
-                callback?.Invoke(session, msg);
-                HandlePacket(packetType, msg, session);
+                if (callback != null) callback?.Invoke(packetType, session, msg);
+                else HandlePacket(packetType, msg, session);
             }}
         }}
 

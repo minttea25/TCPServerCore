@@ -65,23 +65,42 @@ namespace ServerCoreTCP.MessageWrapper
         public static ArraySegment<byte> Serialize<T>(T message) where T : IMessage
         {
             ushort size = (ushort)(message.CalculateSize() + HeaderPacketTypeSize);
-            ushort messageType = PacketMap[typeof(T)];
-
-            int offset = 0;
-            ArraySegment<byte> buffer = SendBufferTLS.Reserve(HeaderMessageLengthSize + size);
-            if (BitConverter.TryWriteBytes(buffer.Slice(offset, sizeof(ushort)), size) == false)
+            try
             {
+                ushort messageType = PacketMap[typeof(T)];
+                int offset = 0;
+                ArraySegment<byte> buffer = SendBufferTLS.Reserve(HeaderMessageLengthSize + size);
+                if (BitConverter.TryWriteBytes(buffer.Slice(offset, sizeof(ushort)), size) == false)
+                {
+                    return null;
+                }
+                offset += sizeof(ushort);
+                if (BitConverter.TryWriteBytes(buffer.Slice(offset, sizeof(ushort)), messageType) == false)
+                {
+                    return null;
+                }
+                offset += sizeof(ushort);
+                message.WriteTo(buffer.Slice(offset));
+
+                return SendBufferTLS.Return(HeaderMessageLengthSize + size);
+            }
+            catch(KeyNotFoundException knfe)
+            {
+                if (LoggerDebug.CoreLogger.Logger != null)
+                    LoggerDebug.CoreLogger.Logger.Error(knfe, "Error");
+
                 return null;
             }
-            offset += sizeof(ushort);
-            if (BitConverter.TryWriteBytes(buffer.Slice(offset, sizeof(ushort)), messageType) == false)
+            catch(Exception e)
             {
+                if (LoggerDebug.CoreLogger.Logger != null)
+                    LoggerDebug.CoreLogger.Logger.Error(e, "Error");
+
                 return null;
             }
-            offset += sizeof(ushort);
-            message.WriteTo(buffer.Slice(offset));
+            
 
-            return SendBufferTLS.Return(HeaderMessageLengthSize + size);
+            
         }
 
         /// <summary>

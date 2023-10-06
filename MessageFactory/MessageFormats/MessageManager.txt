@@ -43,8 +43,8 @@ namespace {0}
             if (_messageTypes.TryGetValue(packetType, out var parser))
             {{
                 var msg = parser.ParseFrom(buffer);
-                callback?.Invoke(session, msg);
-                HandlePacket(packetType, msg, session);
+                if (callback != null) callback?.Invoke(session, msg);
+                else HandlePacket(packetType, msg, session);
             }}
         }}
 

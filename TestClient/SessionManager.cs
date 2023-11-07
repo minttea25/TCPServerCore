@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-
+using Chat;
 using Google.Protobuf;
 
 namespace TestClient
@@ -22,6 +22,26 @@ namespace TestClient
                 _sessions.Add(session);
             }
             return session;
+        }
+
+        public void ExitAll()
+        {
+            lock (_lock)
+            {
+                foreach (var s in _sessions)
+                {
+                    SLeaveRoom req = new()
+                    {
+                        UserInfo = s.userInfo,
+                        RoomId = s.enteredRoomNo
+                    };
+
+                    s.Send_(req);
+                    s.Disconnect();
+                }
+
+                _sessions.Clear();
+            }
         }
     }
 }

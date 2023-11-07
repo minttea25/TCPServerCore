@@ -1,48 +1,89 @@
-﻿using System;
-using System.Net;
+﻿using Chat;
+using ChatServer.Data;
 using ServerCoreTCP.MessageWrapper;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading;
 
-namespace TCPServer
+namespace ChatServer
 {
     public class ClientSession : PacketSession
     {
-        public readonly uint SessionId; // = UserId
-        public string UserName => _userName;
-        string _userName;
+        public readonly uint ConnectedId;
+        public User User => _user;
 
-        public Room Room { get; set; }
+        User _user;
+        Dictionary<uint, Room> _rooms = new();
 
-        public ClientSession(uint sessionId)
+        static ReaderWriterLockSlim rwLock = new();
+
+        public ClientSession(uint connectedId)
         {
-            SessionId = sessionId;
+            ConnectedId = connectedId;
         }
 
-        public void SetUserName(string userName)
+        ~ClientSession()
         {
-            _userName = userName;
+            _user = null;
+            _rooms = null;
+        }
+
+        public void SetUser(User user)
+        {
+            _user = user;
+        }
+
+        public void EnterRoom(Room room)
+        {
+            rwLock.EnterWriteLock();
+            _rooms.Add(room.RoomNo, room);
+            rwLock.ExitWriteLock();
+        }
+
+        public void LeaveRoom(uint roomId)
+        {
+            rwLock.EnterWriteLock();
+            _ = _rooms.Remove(roomId);
+            rwLock.ExitWriteLock();
+        }
+
+        public void LeaveAllRooms()
+        {
+            rwLock.EnterWriteLock();
+            foreach (var r in _rooms.Values)
+            {
+                r.Leave(this);
+            }
+            _rooms.Clear();
+            rwLock.ExitWriteLock();
         }
 
         public override void OnConnected(EndPoint endPoint)
         {
-            Program.Logger.Information("OnConnected: {endPoint}", endPoint);
-            System.Threading.Thread.Sleep(5000);
+            //Program.Logger.Information("[sid={SessionId}] OnConnected: {endPoint}", SessionId, endPoint);
+            Program.ConsoleLogger.Information("[sid={SessionId}] OnConnected: {endPoint}", ConnectedId, endPoint);
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
         {
-            SessionManager.Instance.Remove(this);
+            _ = SessionManager.Instance.ClearSession(this);
 
-            Program.Logger.Information("OnDisconnected: {endpoint}", endPoint);
+            //Program.Logger.Information("[sid={SessionId}] OnDisconnected: {endpoint}", SessionId, endPoint);
+            Program.ConsoleLogger.Information("[sid={SessionId}] OnDisconnected: {endpoint}", ConnectedId, endPoint);
         }
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
         {
-            ChatTest.PacketManager.Instance.OnRecvPacket(this, buffer);
+            MessageManager.Instance.OnRecvPacket(this, buffer);
         }
 
         public override void OnSend(int numOfBytes)
         {
-            Program.Logger.Information("Sent: {numOfBytes} bytes to {ConnectedEndPoint}", numOfBytes, ConnectedEndPoint);
+        }
+
+        public override void InitSession()
+        {
         }
     }
 }

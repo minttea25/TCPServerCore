@@ -4,33 +4,26 @@ using System.Threading;
 using ServerCoreTCP;
 
 using ServerCoreTCP.MessageWrapper;
-using ChatTest;
-
+using Google.Protobuf;
+using Chat;
+using Google.Protobuf.WellKnownTypes;
 
 namespace TestClient
 {
     public class ServerSession : PacketSession
     {
-        public uint UserId => _userId;
+        public UserInfo userInfo;
         uint _userId;
 
-        public void SendChat(string msg)
+        public uint enteredRoomNo;
+
+        public void Send_<T>(T message) where T : IMessage
         {
-            S_Chat chat = new S_Chat()
-            {
-                Msg = msg,
-                UserId = UserId
-            };
-            Program.Logger.Information("Send Chat: {chat}", chat);
-            Send(chat);
+            //Program.Logger.Information("Send Message: {message}", message);
+
+            Send(message);
         }
 
-        public void LeaveRoom()
-        {
-            S_LeaveRoom leave = new S_LeaveRoom();
-            Program.Logger.Information("Send LeaveRoom: {leave}", leave);
-            Send(leave);
-        }
 
         public void EnterCompleted(uint id, uint roomNo)
         {
@@ -38,18 +31,40 @@ namespace TestClient
             Console.WriteLine($"Entered the room: {roomNo}");
         }
 
+        public void TrafficTestAuto()
+        {
+            while (true)
+            {
+                SChatText chat = new SChatText()
+                {
+                    RoomId = enteredRoomNo,
+                    ChatMsgId = 0,
+                    SenderInfo = userInfo,
+                    ChatBase = new() { ChatType = ChatType.Text, Timestamp = Timestamp.FromDateTime(DateTime.UtcNow.AddHours(9)) },
+                    Msg = $"Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World!  {enteredRoomNo} - {Program.UserName}",
+                };
+
+                for (int i = 0; i < 10; ++i)
+                {
+                    Send_(chat);
+                }
+
+                int delay = Program.rand.Next(1000, 3000);
+                Thread.Sleep(delay);
+            }
+        }
+
         public override void OnConnected(EndPoint endPoint)
         {
             Program.Logger.Information("OnConnected: {endPoint}", endPoint);
-            return;
-            S_ReqEnterRoom req = new S_ReqEnterRoom()
-            {
-                UserName = Program.UserName,
-                RoomNo = Program.ReqRoomNo,
-            };
 
-            Program.Logger.Information("Send ReqEnterRoom: {req}", req);
-            Send(req);
+            enteredRoomNo = (uint)(Program.rand.Next(1, 6));
+
+            SUserAuthReq req = new()
+            {
+                UserName = "Test" + Program.rand.Next(1, 10000),
+            };
+            Send_(req);
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
@@ -59,12 +74,17 @@ namespace TestClient
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
         {
-            ChatTest.PacketManager.Instance.OnRecvPacket(this, buffer);
+            MessageManager.Instance.OnRecvPacket(this, buffer);
         }
 
         public override void OnSend(int numOfBytes)
         {
             Program.Logger.Information("Sent: {numOfBytes} bytes to {ConnectedEndPoint}", numOfBytes, ConnectedEndPoint);
+        }
+
+        public override void InitSession()
+        {
+            ;
         }
     }
 }

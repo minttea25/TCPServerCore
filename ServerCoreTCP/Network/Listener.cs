@@ -1,4 +1,4 @@
-﻿using ServerCoreTCP.LoggerDebug;
+﻿using ServerCoreTCP.CLogger;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -9,11 +9,13 @@ namespace ServerCoreTCP
     {
         public const int BackLog = 100;
         public int MaxAcceptClients = 100;
+        public int Port => m_port;
 
         internal ServerService m_serverService;
 
         readonly Socket m_listenSocket;
         readonly Func<Session> m_sessionFactory;
+        readonly int m_port;
 
         /// <summary>
         /// Create a socket and bind the endpoint.
@@ -28,6 +30,7 @@ namespace ServerCoreTCP
             m_serverService = service;
             m_sessionFactory = sessionFactory;
             m_listenSocket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+            m_port = endPoint.Port;
 
             m_listenSocket.Bind(endPoint);
         }
@@ -39,8 +42,7 @@ namespace ServerCoreTCP
         {
             m_listenSocket.Listen(BackLog);
 
-            if (CoreLogger.Logger != null)
-                CoreLogger.Logger.Information("Socket is listening now...");
+            CoreLogger.LogInfo("Listener.StartListen", "Socket is listening on port={0}... [MaxAcceptClients={1}]", m_port, MaxAcceptClients);
 
             for (int i = 0; i < MaxAcceptClients; ++i)
             {
@@ -51,9 +53,9 @@ namespace ServerCoreTCP
             }
         }
 
-        internal override void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
+        internal sealed override void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
         {
-            if (!(eventArgs.UserToken is AcceptEventToken _)) throw new InvalidCastException();
+            if (!(eventArgs.UserToken is AcceptEventToken _)) throw new InvalidCastException("[Listener.Dispatch] The UserToken was not AcceptEventToken");
 
             OnAcceptCompleted(eventArgs);
         }
@@ -75,8 +77,7 @@ namespace ServerCoreTCP
             }
             catch(Exception ex)
             {
-                if (CoreLogger.Logger != null)
-                    CoreLogger.Logger.Error(ex, "RegisterAccept - Exception");
+                CoreLogger.LogError("Listener.RegisterAccept", ex, "Exception");
             }
             // If pending is true
             // => when the accept is completed, the registered delegate (OnAcceptCompelted) would be invoked.
@@ -90,8 +91,7 @@ namespace ServerCoreTCP
         {
             if (eventArgs.SocketError == SocketError.Success)
             {
-                if (CoreLogger.Logger != null)
-                    CoreLogger.Logger.Information("Accepted Socket: {RemoteEndPoint}", eventArgs.AcceptSocket.RemoteEndPoint);
+                CoreLogger.LogInfo("Listener.OnAcceptCompleted", "Accepted Socket. EndPoint: {0}", eventArgs.AcceptSocket.RemoteEndPoint);
 
                 // initialize session
                 Session session = m_serverService.m_sessionPool.Pop();
@@ -101,8 +101,7 @@ namespace ServerCoreTCP
             else
             {
                 // error
-                if (CoreLogger.Logger != null)
-                    CoreLogger.Logger.Error("Listener: {SocketError}", eventArgs.SocketError);
+                CoreLogger.LogError("Listener.OnAcceptCompleted", "SocketError was {0}.", eventArgs.SocketError);
             }
 
             // After Accept, wait again for other Accepts.

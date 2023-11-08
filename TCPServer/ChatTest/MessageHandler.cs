@@ -1,19 +1,18 @@
 ﻿using System;
-
 using ServerCoreTCP;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ChatServer;
 using ChatServer.Data;
+using ServerCoreTCP.CLogger;
 
 namespace Chat
 {
     public class MessageHandler
     {
-        public static void Log<T>(T message) where T : IMessage
+        public static void RecvLog<T>(T message) where T : IMessage
         {
-            var t = typeof(T);
-            Program.ConsoleLogger.Information("[Recv] {t} {message}", t, message);
+            CoreLogger.LogRecv(message);
         }
 
         public static void SEnterRoomMessageHandler(IMessage message, Session session)
@@ -21,7 +20,8 @@ namespace Chat
             SEnterRoom msg = message as SEnterRoom;
             ClientSession s = session as ClientSession;
 
-            Log(msg);
+            RecvLog(msg);
+
             Room room;
             if (RoomManager.Instance.Exist(msg.RoomId, out room) == true)
             {
@@ -53,7 +53,7 @@ namespace Chat
             SChatText msg = message as SChatText;
             ClientSession s = session as ClientSession;
 
-            Log(msg);
+            RecvLog(msg);
 
             var roomId = msg.RoomId;
             if (RoomManager.Instance.Exist(roomId, out Room room))
@@ -69,7 +69,7 @@ namespace Chat
             }
             else
             {
-                Program.ConsoleLogger.Error("Can not find key={roomId} in RoomManager.Rooms", roomId);
+                CoreLogger.LogError("MessageHandler", "Can not find key={0} in RoomManager.Rooms", roomId);
                 CResSendChat res = new()
                 {
                     SenderId = s.User.Id,
@@ -114,7 +114,7 @@ namespace Chat
             SLeaveRoom msg = message as SLeaveRoom;
             ClientSession s = session as ClientSession;
 
-            Log(msg);
+            RecvLog(msg);
 
             s.LeaveRoom(msg.RoomId);
             SessionManager.Instance.ClearSession(s);
@@ -139,7 +139,7 @@ namespace Chat
             SUserAuthReq msg = message as SUserAuthReq;
             ClientSession s = session as ClientSession;
 
-            Log(msg);
+            RecvLog(msg);
 
             User user = DataManager.Instance.AddNewUser(msg.UserName);
             if (user != null)

@@ -3,6 +3,7 @@
 using ServerCoreTCP;
 using Google.Protobuf;
 using TestClient;
+using ServerCoreTCP.CLogger;
 
 namespace Chat
 {
@@ -28,8 +29,7 @@ namespace Chat
             CRecvChatText msg = message as CRecvChatText;
 
             // TODO
-            var text = msg.Msg;
-            Program.Logger.Information("Recv msg: {text}", text);
+            CoreLogger.LogRecv(msg);
         }
 
         public static void CRecvChatIconMessageHandler(IMessage message, Session session)
@@ -106,7 +106,7 @@ namespace Chat
             var res = msg.AuthRes;
             var info = msg.UserInfo;
             s.userInfo = info;
-            Program.Logger.Information("Authed. res =  {res}", res);
+            CoreLogger.LogRecv(msg);
 
             SEnterRoom req = new SEnterRoom()
             {

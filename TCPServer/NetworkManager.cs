@@ -1,4 +1,5 @@
 ﻿using ServerCoreTCP;
+using ServerCoreTCP.CLogger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,13 +12,14 @@ namespace ChatServer
     public class NetworkManager
     {
         readonly int Port = 8888;
-        public Func<ClientSession> SessionFactory => _sessionFactory;
+        public Func<ClientSession> SessionFactory => m_emptySessionFactory;
+        public ServerService serverService;
 
-        Func<ClientSession> _sessionFactory = null;
+        Func<ClientSession> m_emptySessionFactory = null;
 
         public NetworkManager(Func<ClientSession> sessionFactory, int port = 8888)
         {
-            _sessionFactory = sessionFactory;
+            m_emptySessionFactory = sessionFactory;
             Port = port;
         }
 
@@ -28,16 +30,16 @@ namespace ChatServer
             IPAddress ipAddr = ipHost.AddressList[0];
             IPEndPoint endPoint = new IPEndPoint(ipAddr, Port);
 
-            ServerService serverService = new ServerService(endPoint, _sessionFactory);
-            serverService.Start();
+            CoreLogger.LogInfo("NetworkManager", "Server started");
 
-            Program.ConsoleLogger.Information("Now listening on port: {Port}", Port);
+            serverService = new ServerService(endPoint, m_emptySessionFactory);
+            serverService.Start();
         }
 
         public void StopServer()
         {
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            Program.ConsoleLogger.Information("Server stopped at {time}", time);
+            CoreLogger.LogInfo("Server", "Server stopped at {0}", time);
         }
     }
 }

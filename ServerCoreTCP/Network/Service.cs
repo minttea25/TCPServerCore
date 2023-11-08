@@ -7,14 +7,24 @@ namespace ServerCoreTCP
 {
     public abstract class Service
     {
+        public enum ServiceTypes
+        {
+            Server = 1,
+            Client = 2
+        }
+
+        public ServiceTypes ServiceType => m_serviceType;
+        readonly internal ServiceTypes m_serviceType;
+
         internal readonly SocketAsyncEventArgsPool m_saeaPool;
 
         public abstract void Start();
         public abstract void Stop();
 
-        public Service()
+        public Service(ServiceTypes serviceType)
         {
-            m_saeaPool = new SocketAsyncEventArgsPool(500, Dispatch);
+            m_serviceType = serviceType;
+            m_saeaPool = new SocketAsyncEventArgsPool(1000, Dispatch);
         }
 
         void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
@@ -33,15 +43,24 @@ namespace ServerCoreTCP
 
     public class ServerService : Service
     {
-        const int MaxSessionCount = 100;
+        const int MaxSessionCount = 200;
+
+        public int PooledSessionCount
+        {
+            get
+            {
+                if (m_sessionPool == null) return -1;
+                else return m_sessionPool.PooledSessionCount;
+            }
+        }
 
         readonly Listener m_listener;
         internal SessionPool m_sessionPool;
-        Semaphore m_maxConnections;
+        // Semaphore m_maxConnections;
 
-        public ServerService(IPEndPoint endPoint, Func<Session> emptySessionFactory) : base()
+        public ServerService(IPEndPoint endPoint, Func<Session> emptySessionFactory) : base(ServiceTypes.Server)
         {
-            m_maxConnections = new Semaphore(0, MaxSessionCount);
+            //m_maxConnections = new Semaphore(0, MaxSessionCount);
             m_listener = new Listener(this, endPoint, emptySessionFactory, endPoint.AddressFamily);
             m_sessionPool = new SessionPool(this, MaxSessionCount, emptySessionFactory);
         }
@@ -57,11 +76,10 @@ namespace ServerCoreTCP
             Clear();
         }
 
-        // temp parameter
-        public void BroadCast(byte[] buffers)
-        {
-            // TODO
-        }
+        //public void BroadCast(byte[] buffers)
+        //{
+        //    // TODO
+        //}
     }
 
     public class ClientService : Service
@@ -69,9 +87,9 @@ namespace ServerCoreTCP
         const int SessionCount = 1;
 
         readonly Connector m_connector;
-        Session[] m_session;
+        readonly Session[] m_session;
 
-        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, int count = SessionCount) : base()
+        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, int count = SessionCount) : base(ServiceTypes.Client)
         {
             m_session = new Session[count];
             for (int i = 0; i < count; ++i)

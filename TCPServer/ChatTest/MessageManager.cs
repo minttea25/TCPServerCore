@@ -54,6 +54,10 @@ namespace Chat
 
         MessageManager()
         {
+        }
+
+        public void Init()
+        {
             MessageWrapper.PacketMap.Add(typeof(CResSendChat), (ushort)PacketType.P_CResSendChat);
             MessageWrapper.PacketMap.Add(typeof(ChatBase), (ushort)PacketType.P_ChatBase);
             MessageWrapper.PacketMap.Add(typeof(SChatText), (ushort)PacketType.P_SChatText);
@@ -109,8 +113,6 @@ namespace Chat
 
             _messageTypes.Add(MessageWrapper.PacketMap[typeof(SUserAuthReq)], SUserAuthReq.Parser);
             _handlers.Add(MessageWrapper.PacketMap[typeof(SUserAuthReq)], MessageHandler.SUserAuthReqMessageHandler);
-
-
         }
 
         /// <summary>

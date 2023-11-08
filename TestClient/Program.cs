@@ -6,35 +6,24 @@ using Chat;
 using Serilog;
 using Serilog.Core;
 using ServerCoreTCP;
-using ServerCoreTCP.LoggerDebug;
+using ServerCoreTCP.CLogger;
 
 namespace TestClient
 {
     class Program
     {
-        public readonly static Logger Logger = new LoggerConfiguration().WriteTo.File(
-                    path: LoggerHelper.GetFileName("ClientLogs"),
-                    encoding: Encoding.Unicode,
-                    flushToDiskInterval: TimeSpan.FromSeconds(1)
-                    ).WriteTo.Console().CreateLogger();
-
         public static string UserName;
 
         public static Random rand = new();
 
         static void Main(string[] args)
         {
-            MessageManager.Instance.Init();
+            CoreLogger.CreateLoggerWithFlag(
+                (uint)(CoreLogger.LoggerSinks.CONSOLE | CoreLogger.LoggerSinks.FILE),
+                LoggerConfig.GetDefault());
 
-#if DEBUG
-            CoreLogger.Logging = true;
-#else
-            CoreLogger.Logger = new LoggerConfiguration().WriteTo.File(
-                    path: LoggerHelper.GetFileName("CoreLogs"),
-                    encoding: Encoding.Unicode,
-                    flushToDiskInterval: TimeSpan.FromSeconds(1)
-                    ).CreateLogger();
-#endif
+
+            MessageManager.Instance.Init();
 
             string host = Dns.GetHostName(); // local host name of my pc
             IPHostEntry ipHost = Dns.GetHostEntry(host);
@@ -43,9 +32,12 @@ namespace TestClient
 
             Thread.Sleep(1000);
 
-            UserName = "test" + rand.Next(1, 1000);
+            UserName = "test" + rand.Next(1, 100000);
 
-            ClientService clientService = new ClientService(endPoint, () => { return SessionManager.Instance.CreateNewSession(); }, 100);
+            ClientService clientService 
+                = new ClientService(
+                    endPoint, () => { return SessionManager.Instance.CreateNewSession(); }, 
+                    50);
             clientService.Start();
 
             while (true)
@@ -54,7 +46,7 @@ namespace TestClient
                 if (s == "exit") break;
             }
             SessionManager.Instance.ExitAll();
-            Logger.Dispose();
+            CoreLogger.StopLogging();
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using Chat;
 using ChatServer.Data;
+using ServerCoreTCP.CLogger;
 using ServerCoreTCP.MessageWrapper;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace ChatServer
 {
     public class ClientSession : PacketSession
     {
-        public readonly uint ConnectedId;
+        public uint ConnectedId = 0;
         public User User => _user;
 
         User _user;
@@ -18,9 +19,9 @@ namespace ChatServer
 
         static ReaderWriterLockSlim rwLock = new();
 
-        public ClientSession(uint connectedId)
+        public ClientSession()
         {
-            ConnectedId = connectedId;
+            ;
         }
 
         ~ClientSession()
@@ -32,6 +33,11 @@ namespace ChatServer
         public void SetUser(User user)
         {
             _user = user;
+        }
+
+        public void SetConnectedId(uint id)
+        {
+            ConnectedId = id;
         }
 
         public void EnterRoom(Room room)
@@ -61,16 +67,14 @@ namespace ChatServer
 
         public override void OnConnected(EndPoint endPoint)
         {
-            //Program.Logger.Information("[sid={SessionId}] OnConnected: {endPoint}", SessionId, endPoint);
-            Program.ConsoleLogger.Information("[sid={SessionId}] OnConnected: {endPoint}", ConnectedId, endPoint);
+            CoreLogger.LogInfo("ClientSession", "[sid={0}] OnConnected: {1}", ConnectedId, endPoint);
         }
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
         {
             _ = SessionManager.Instance.ClearSession(this);
 
-            //Program.Logger.Information("[sid={SessionId}] OnDisconnected: {endpoint}", SessionId, endPoint);
-            Program.ConsoleLogger.Information("[sid={SessionId}] OnDisconnected: {endpoint}", ConnectedId, endPoint);
+            CoreLogger.LogInfo("ClientSession", "[sid={0}] OnDisconnected: {1}", ConnectedId, endPoint);
         }
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
@@ -83,6 +87,11 @@ namespace ChatServer
         }
 
         public override void InitSession()
+        {
+            SessionManager.Instance.AddNewSession(this);
+        }
+
+        public override void PreSessionCleanup()
         {
         }
     }

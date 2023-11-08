@@ -1,4 +1,4 @@
-﻿using ServerCoreTCP.LoggerDebug;
+﻿using ServerCoreTCP.CLogger;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -10,7 +10,7 @@ namespace ServerCoreTCP
 {
     public abstract class Session : SocketObject
     {
-        public const int RecvBufferSize = 65535;
+        public const int RecvBufferSize = 65535 * 10;
 
         public uint SessionId => m_sessionId;
         public EndPoint ConnectedEndPoint => m_socket?.RemoteEndPoint;
@@ -21,7 +21,7 @@ namespace ServerCoreTCP
 
 
         /// <summary>
-        /// The value to check the session connected. (Used with Interlocked)
+        /// The value to check the session connected; 0: disconnected, 1: connected (Used with Interlocked)
         /// </summary>
         int m_connected = 0;
         uint m_sessionId;
@@ -45,25 +45,26 @@ namespace ServerCoreTCP
 
         internal sealed override void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
         {
-            if (!(eventArgs.UserToken is SocketEventToken)) throw new InvalidCastException();
+            if (!(eventArgs.UserToken is SocketEventToken)) throw new InvalidCastException("The UserToken was not SocketEventToken"); ;
 
             switch (eventArgs.LastOperation)
             {
-                case SocketAsyncOperation.Connect:
-                    throw new InvalidOperationException();
                 case SocketAsyncOperation.Disconnect:
                     OnDisconnectedCompleted(eventArgs);
                     break;
-                case SocketAsyncOperation.Accept:
-                    throw new InvalidOperationException();
+                
                 case SocketAsyncOperation.Receive:
                     OnRecvCompleted(eventArgs);
                     break;
                 case SocketAsyncOperation.Send:
                     OnSendCompleted(eventArgs);
                     break;
+                case SocketAsyncOperation.Connect:
+                    throw new InvalidOperationException("The UserToken was ConnectEventToken at Session");
+                case SocketAsyncOperation.Accept:
+                    throw new InvalidOperationException("The UserToken was AcceptEventToken at Session");
                 default:
-                    break;
+                    throw new InvalidOperationException("The UserToken was unknown at Session");
             }
         }
 
@@ -84,6 +85,10 @@ namespace ServerCoreTCP
         /// Called when the socket is connected. Initialize values here.
         /// </summary>
         public abstract void InitSession();
+        /// <summary>
+        /// Called before the session is cleaned up.
+        /// </summary>
+        public abstract void PreSessionCleanup();
         /// <summary>
         /// Called when the socket is connected.
         /// </summary>
@@ -133,9 +138,6 @@ namespace ServerCoreTCP
         {
             m_socket = socket;
 
-            if (CoreLogger.Logger != null)
-                CoreLogger.Logger.Information("A new session is created. [EndPoint: {ConnectedEndPoint}]", ConnectedEndPoint);
-
             m_connected = 1;
 
             m_recvEventArgs = m_service.m_saeaPool.Pop();
@@ -145,7 +147,6 @@ namespace ServerCoreTCP
             m_sendEventArgs.UserToken = new SendEventToken(this);
 
             InitSession();
-
             RegisterRecv();
         }
 
@@ -274,8 +275,7 @@ namespace ServerCoreTCP
             }
             catch (Exception ex)
             {
-                if (CoreLogger.Logger != null)
-                    CoreLogger.Logger.Error(ex, "RegisterSend - Exception");
+                CoreLogger.LogError("Session.RegisterSend", ex, "Exception");
             }
         }
 
@@ -302,15 +302,13 @@ namespace ServerCoreTCP
             }
             catch (Exception ex)
             {
-                if (CoreLogger.Logger != null)
-                    CoreLogger.Logger.Error(ex, "RegisterRecv - Exception");
+                CoreLogger.LogError("Session.RegisterSend", ex, "Exception");
             }
         }
 
         /// <summary>
         /// Callback that is called when send-operation is completed.
         /// </summary>
-        /// <param name="sender">[Ignored] The source of the event</param>
         /// <param name="eventArgs">An object that contains the socket-async-send-event data</param>
         void OnSendCompleted(SocketAsyncEventArgs eventArgs)
         {
@@ -333,22 +331,20 @@ namespace ServerCoreTCP
                     }
                     catch (Exception ex)
                     {
-                        if (CoreLogger.Logger != null)
-                            CoreLogger.Logger.Error(ex, "OnSendCompleted - Exception");
+                        CoreLogger.LogError("Session.OnSendCompleted", ex, "Exception");
                     }
                 }
                 else if (eventArgs.BytesTransferred == 0)
                 {
-                    if (CoreLogger.Logger != null)
-                        CoreLogger.Logger.Error("OnSendCompleted - The length of sent data is 0.");
+                    CoreLogger.LogError("Session.OnSendCompleted", "BytesTransferred was 0 at id={0}", SessionId);
                 }
                 else if (eventArgs.SocketError != SocketError.Success)
                 {
-                    if (CoreLogger.Logger != null)
-                        CoreLogger.Logger.Error("OnSendCompleted - SocketError: {SocketError}", eventArgs.SocketError);
+                    CoreLogger.LogError("Session.OnSendCompleted", "SocketError was {0}", eventArgs.SocketError);
                 }
                 else
                 {
+                    CoreLogger.LogError("Session.OnSendCompleted", "Other error");
                     Disconnect();
                 }
             }
@@ -361,11 +357,6 @@ namespace ServerCoreTCP
         /// <param name="eventArgs">An object that contains the socket-async-recv-event data</param>
         void OnRecvCompleted(SocketAsyncEventArgs eventArgs)
         {
-#if DEBUG
-            if (CoreLogger.Logger != null)
-                CoreLogger.Logger.Information("Received: {BytesTransferred} bytes", e.BytesTransferred);
-#endif
-
             // Check the length of bytes transferred and SocketError==Success
             if (eventArgs.BytesTransferred > 0 && eventArgs.SocketError == SocketError.Success)
             {
@@ -373,8 +364,7 @@ namespace ServerCoreTCP
                 {
                     if (m_recvBuffer.OnWrite(eventArgs.BytesTransferred) == false)
                     {
-                        if (CoreLogger.Logger != null)
-                            CoreLogger.Logger.Error("OnRecvCompleted - RecvBuffer.OnWrite() was false");
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes is larger than current data size");
 
                         Disconnect();
                         return;
@@ -386,27 +376,21 @@ namespace ServerCoreTCP
 #endif
                     if (processLength <= 0)
                     {
-                        if (CoreLogger.Logger != null)
-                            CoreLogger.Logger.Error("OnRecvCompleted - processLength <= 0");
-
+                        CoreLogger.LogError("Session.OnRecvCompleted", "processLength <= 0");
                         Disconnect();
                         return;
                     }
 
                     if (m_recvBuffer.DataSize < processLength)
                     {
-                        if (CoreLogger.Logger != null)
-                            CoreLogger.Logger.Error("OnRecvCompleted - RecvBuffer.DataSize < processLength");
-
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The datasize of recvBuffer[{0}] was larger than processLength[{1}]", m_recvBuffer.DataSize, processLength);
                         Disconnect();
                         return;
                     }
 
                     if (m_recvBuffer.OnRead(processLength) == false)
                     {
-                        if (CoreLogger.Logger != null)
-                            CoreLogger.Logger.Error("OnRecvCompleted - RecvBuffer.OnRead() was false");
-
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes was larger than current data size");
                         Disconnect();
                         return;
                     }
@@ -416,29 +400,22 @@ namespace ServerCoreTCP
                 }
                 catch (Exception ex)
                 {
-                    if (CoreLogger.Logger != null)
-                        CoreLogger.Logger.Error(ex, "OnRecvCompleted - Exception");
+                    CoreLogger.LogError("Session.OnRecvCompleted", ex, "Exception");
                 }
             }
             else if (eventArgs.SocketError != SocketError.Success)
             {
-                if (CoreLogger.Logger != null)
-                    CoreLogger.Logger.Error("OnRecvCompleted - SocketError: {SocketError}", eventArgs.SocketError);
-
+                CoreLogger.LogError("Session.OnRecvCompleted", "SocketError was {0}", eventArgs.SocketError);
                 Disconnect();
             }
             else if (eventArgs.BytesTransferred == 0)
             {
-                if (CoreLogger.Logger != null)
-                    CoreLogger.Logger.Error("OnRecvCompleted - The length of received data is 0.");
-
+                CoreLogger.LogError("Session.OnRecvCompleted", "BytesTransferred was 0");
                 Disconnect();
             }
             else
             {
-                if (CoreLogger.Logger != null)
-                    CoreLogger.Logger.Error("OnRecvCompleted - Unknown.");
-
+                CoreLogger.LogError("Session.OnRecvCompleted", "Other error");
                 Disconnect();
             }
         }
@@ -457,16 +434,22 @@ namespace ServerCoreTCP
             m_socket.Shutdown(SocketShutdown.Both);
             m_socket.Close();
 
-            Clear();
+            if (m_service.ServiceType == Service.ServiceTypes.Server)
+            {
+                (m_service as ServerService).m_sessionPool.Push(this);
+            }
+            else Clear();
         }
 
         public void OnDisconnectedCompleted(SocketAsyncEventArgs eventArgs)
         {
-
+            ;
         }
 
         internal void Clear()
         {
+            PreSessionCleanup();
+
             m_connected = 0;
             m_socket = null;
 

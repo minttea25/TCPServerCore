@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 using Chat;
 using Google.Protobuf.WellKnownTypes;
+using ServerCoreTCP.CLogger;
 
 namespace ChatServer
 {
@@ -84,11 +85,7 @@ namespace ChatServer
                 {
                     if (RoomManager.Instance.TryRemoveRoom(RoomNo))
                     {
-                        Program.ConsoleLogger.Information("The room [id={RoomNo}] is removed", RoomNo);
-                    }
-                    else
-                    {
-                        Program.ConsoleLogger.Error("Trying to remove room; Can not find room [id={RoomNo}]", RoomNo);
+                        CoreLogger.LogInfo("Room", "The room [id={0}] is removed", RoomNo);
                     }
                 }
 

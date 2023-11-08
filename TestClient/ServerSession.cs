@@ -7,6 +7,8 @@ using ServerCoreTCP.MessageWrapper;
 using Google.Protobuf;
 using Chat;
 using Google.Protobuf.WellKnownTypes;
+using ServerCoreTCP.CLogger;
+using System.Threading.Tasks;
 
 namespace TestClient
 {
@@ -19,8 +21,7 @@ namespace TestClient
 
         public void Send_<T>(T message) where T : IMessage
         {
-            //Program.Logger.Information("Send Message: {message}", message);
-
+            CoreLogger.LogSend(message);
             Send(message);
         }
 
@@ -31,7 +32,7 @@ namespace TestClient
             Console.WriteLine($"Entered the room: {roomNo}");
         }
 
-        public void TrafficTestAuto()
+        public async void TrafficTestAuto()
         {
             while (true)
             {
@@ -41,7 +42,7 @@ namespace TestClient
                     ChatMsgId = 0,
                     SenderInfo = userInfo,
                     ChatBase = new() { ChatType = ChatType.Text, Timestamp = Timestamp.FromDateTime(DateTime.UtcNow.AddHours(9)) },
-                    Msg = $"Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World!  {enteredRoomNo} - {Program.UserName}",
+                    Msg = $"Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World!  {enteredRoomNo} - {Program.UserName}",
                 };
 
                 for (int i = 0; i < 10; ++i)
@@ -50,15 +51,15 @@ namespace TestClient
                 }
 
                 int delay = Program.rand.Next(1000, 3000);
-                Thread.Sleep(delay);
+                await Task.Delay(delay);
             }
         }
 
         public override void OnConnected(EndPoint endPoint)
         {
-            Program.Logger.Information("OnConnected: {endPoint}", endPoint);
+            CoreLogger.LogInfo("ServerSession", "OnConnected: {0}", endPoint);
 
-            enteredRoomNo = (uint)(Program.rand.Next(1, 6));
+            enteredRoomNo = (uint)(Program.rand.Next(1, 3));
 
             SUserAuthReq req = new()
             {
@@ -69,7 +70,7 @@ namespace TestClient
 
         public override void OnDisconnected(EndPoint endPoint, object error = null)
         {
-            Program.Logger.Information("OnDisconnected: {endpoint}", endPoint);
+            CoreLogger.LogInfo("ServerSession", "OnDisconnected: {0}", endPoint);
         }
 
         public override void OnRecv(ReadOnlySpan<byte> buffer)
@@ -79,10 +80,14 @@ namespace TestClient
 
         public override void OnSend(int numOfBytes)
         {
-            Program.Logger.Information("Sent: {numOfBytes} bytes to {ConnectedEndPoint}", numOfBytes, ConnectedEndPoint);
         }
 
         public override void InitSession()
+        {
+            ;
+        }
+
+        public override void PreSessionCleanup()
         {
             ;
         }

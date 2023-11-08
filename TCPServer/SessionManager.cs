@@ -16,13 +16,25 @@ namespace ChatServer
 
         public ClientSession CreateNewSession()
         {
+            return new ClientSession();
+
+            //lock (_lock)
+            //{
+            //    uint id = _sessionId++;
+            //    ClientSession session = new ClientSession(id);
+            //    _sessions.Add(id, session);
+
+            //    return session;
+            //}
+        }
+
+        public void AddNewSession(ClientSession session)
+        {
             lock (_lock)
             {
                 uint id = _sessionId++;
-                ClientSession session = new ClientSession(id);
+                session.SetConnectedId(id);
                 _sessions.Add(id, session);
-
-                return session;
             }
         }
 

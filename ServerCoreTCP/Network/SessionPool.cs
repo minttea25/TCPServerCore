@@ -9,6 +9,8 @@ namespace ServerCoreTCP
 {
     internal class SessionPool
     {
+        internal int PooledSessionCount => m_pool.Count;
+
         readonly ConcurrentStack<Session> m_pool;
         readonly Func<Session> m_emptySessionFactory;
 

@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
+using Chat;
 using Serilog;
-using Serilog.Core;
-using ServerCoreTCP.Utils;
+using ServerCoreTCP;
+using ServerCoreTCP.CLogger;
 
 namespace ChatServer
 {
     class Program
     {
-        public static Logger Logger = ServerLogger.CreateServerLogger(LoggerSink.File);
-        public static Logger ConsoleLogger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-
         public static bool OnGoing = true;
 
         static void Main(string[] args)
@@ -19,6 +18,13 @@ namespace ChatServer
             //int coreCount = Environment.ProcessorCount;
             //ThreadPool.SetMinThreads(1, 1);
             //ThreadPool.SetMaxThreads(coreCount, coreCount);
+            var config = LoggerConfig.GetDefault();
+            config.RestrictedMinimumLevel = Serilog.Events.LogEventLevel.Error;
+            CoreLogger.CreateLoggerWithFlag(
+                (uint)(CoreLogger.LoggerSinks.CONSOLE | CoreLogger.LoggerSinks.FILE),
+                config);
+
+            MessageManager.Instance.Init();
 
             while (OnGoing)
             {
@@ -39,14 +45,24 @@ namespace ChatServer
                         if (Server.IsOn == true) Console.WriteLine($"{SessionManager.Instance.GetSessionCount()}");
                         else Console.WriteLine("Not started");
                         break;
+                    case "pooled_session_count":
+                        if (Server.IsOn == true) Console.WriteLine($"{Server.Instance._networkManager?.serverService?.PooledSessionCount}");
+                        else Console.WriteLine("Not started");
+                        break;
+                    case "collect":
+                        if (Server.IsOn == true)
+                        {
+                            GC.Collect();
+                            Console.WriteLine("GC.Collect()");
+                        }
+                        else Console.WriteLine("Not started");
+                        break;
                     default:
                         Console.WriteLine($"Unknown Command: {command}");
                         break;
                 }
             }
-
-            Logger.Dispose();
-            ConsoleLogger.Dispose();
+            CoreLogger.StopLogging();
         }
     }
 }

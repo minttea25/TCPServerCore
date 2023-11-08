@@ -1,4 +1,4 @@
-﻿using ServerCoreTCP.LoggerDebug;
+﻿using ServerCoreTCP.CLogger;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -37,7 +37,7 @@ namespace ServerCoreTCP
             m_serverSession = session;
         }
 
-        internal override void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
+        internal sealed override void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
         {
             if (!(eventArgs.UserToken is ConnectEventToken _)) throw new InvalidCastException();
 
@@ -46,8 +46,7 @@ namespace ServerCoreTCP
 
         internal void Connect()
         {
-            if (CoreLogger.Logger != null)
-                CoreLogger.Logger.Information("Connector is trying to connect the server: {m_endPoint}, count={m_connectionCount}", m_endPoint, m_connectionCount);
+            CoreLogger.LogInfo("Connector.Connect", "Connector is trying to connect the server: {0}, count={1}", m_endPoint, m_connectionCount);
 
             for (int i = 0; i < m_connectionCount; ++i)
             {
@@ -74,8 +73,7 @@ namespace ServerCoreTCP
             }
             catch (Exception ex)
             {
-                if (CoreLogger.Logger != null)
-                    CoreLogger.Logger.Error(ex, "[Connector] Exception at RegisterConnect");
+                CoreLogger.LogError("Connector.RegisterConnect", ex, "Exception");
             }
         }
 
@@ -89,7 +87,7 @@ namespace ServerCoreTCP
             }
             else
             {
-                // error
+                CoreLogger.LogError("Connector.OnConnectCompleted", "SocketError was {0}. EndPoint: {1}",eventArgs.SocketError , eventArgs.RemoteEndPoint);
             }
         }
 

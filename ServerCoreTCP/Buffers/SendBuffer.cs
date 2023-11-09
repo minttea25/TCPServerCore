@@ -1,4 +1,4 @@
-﻿using ServerCoreTCP.CLogger;
+﻿using ServerCoreTCP.LoggerDebug;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,13 +13,10 @@ namespace ServerCoreTCP
     /// </summary>
     public class SendBufferTLS
     {
-        public static int BufferSize { get; private set; } = 65535 * 100;
+        public static int BufferSize { get; private set; } = 65535;
 
-        //public readonly static ThreadLocal<SendBuffer> TLS_CurrentBuffer 
-        //    = new ThreadLocal<SendBuffer>(() => new SendBuffer(BufferSize));
-
-        public readonly static ThreadLocal<SendBuffer> TLS_CurrentBuffer
-            = new ThreadLocal<SendBuffer>(() => { return null; });
+        public readonly static ThreadLocal<SendBuffer> TLS_CurrentBuffer 
+            = new ThreadLocal<SendBuffer>(() => new SendBuffer(BufferSize), false);
 
 
         /// <summary>
@@ -31,16 +28,10 @@ namespace ServerCoreTCP
         {
             if (reserveSize > BufferSize)
             {
-                CoreLogger.LogError("SendBuffer.Reserve", "The reserveSize[{0}] is bigger than the bufferSize[{1}]", reserveSize, BufferSize);
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error("The reserveSize[{reserveSize}] is bigger than the bufferSize[{BufferSize}] => return null", reserveSize, BufferSize);
                 return null;
             }
-
-            if (TLS_CurrentBuffer.Value == null)
-            {
-                TLS_CurrentBuffer.Value = new SendBuffer(BufferSize);
-            }
-
-            if (TLS_CurrentBuffer.Value.FreeSize < reserveSize) TLS_CurrentBuffer.Value = new SendBuffer(BufferSize);
 
             return TLS_CurrentBuffer.Value.Reserve(reserveSize);
         }

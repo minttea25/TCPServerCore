@@ -1,4 +1,4 @@
-﻿using ServerCoreTCP.CLogger;
+﻿using ServerCoreTCP.LoggerDebug;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +29,8 @@ namespace ServerCoreTCP
 #if DEBUG
             if (reserveSize > BufferSize)
             {
-                CoreLogger.LogError("SendBuffer.Reserve", "The reserveSize[{0}] is bigger than the bufferSize[{1}]", reserveSize, BufferSize);
+                if (CoreLogger.Logger != null)
+                    CoreLogger.Logger.Error("The reserveSize[{reserveSize}] is bigger than the bufferSize[{BufferSize}] => return null", reserveSize, BufferSize);
                 return null;
             }
 #endif

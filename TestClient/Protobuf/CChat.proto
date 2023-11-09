@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+import "PacketBase.proto";
+
+option csharp_namespace = "ChatTest";
+
+enum AuthErrorType {
+    Success = 0;
+    InvalidRoom = 1;
+    RejectFromServer = 2;
+}
+
+message C_ResEnterRoom {
+    PacketType PType = 1;
+    uint32 UserId = 2;
+    bool Success = 3;
+    AuthErrorType ErrorType = 4;
+}
+
+message C_EnterRoom {
+    PacketType PType = 1;   
+    uint32 UserId = 2;
+    string UserName = 3;
+}
+
+message C_LeaveRoom {
+    PacketType PType = 1;
+    string UserName = 2;
+}
+
+message C_Chat {
+    PacketType PType = 1;
+    uint32 UserId = 2;
+    string UserName = 3;
+    string msg = 4;
+}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option csharp_namespace = "ChatTest";
+
+enum PacketType {
+    P_INVALID = 0;
+    P_S_ReqEnterRoom = 1;
+    P_S_LeaveRoom = 2;
+    P_S_Chat = 3;
+    P_C_ResEnterRoom = 4;
+    P_C_LeaveRoom = 5;
+    P_C_EnterRoom = 6;
+    P_C_Chat = 7;
+}

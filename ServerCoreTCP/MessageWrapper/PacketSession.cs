@@ -8,7 +8,6 @@ namespace ServerCoreTCP.MessageWrapper
     public abstract class PacketSession : Session
     {
         const int MinimumPacketLength = MessageWrapper.HeaderMessageLengthSize + MessageWrapper.HeaderPacketTypeSize;
-        const int SendDefaultReserveSize = 1024;
 
         /// <summary>
         /// Send message to endpoint of the socket [Protobuf Wrapper]

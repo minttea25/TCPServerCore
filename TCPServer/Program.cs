@@ -1,90 +1,68 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using Chat;
 using Serilog;
-using Serilog.Core;
 using ServerCoreTCP;
-using ServerCoreTCP.LoggerDebug;
-using ServerCoreTCP.Utils;
+using ServerCoreTCP.CLogger;
 
-namespace TCPServer
+namespace ChatServer
 {
     class Program
     {
-        public readonly static Logger Logger = new LoggerConfiguration().WriteTo.File(
-            path: LoggerHelper.GetFileName("ServerLogs"),
-            encoding: Encoding.Unicode,
-            flushToDiskInterval: TimeSpan.FromSeconds(1)
-            ).CreateLogger();
-
-        static void FlushRoom()
-        {
-            foreach (var room in Rooms.Values)
-            {
-                room.AddJob(() => room.Flush());
-            }
-            JobTimer.Instance.Push(FlushRoom, 500);
-        }
-        readonly static object _lock = new object();
-        public static IReadOnlyDictionary<uint, Room> Rooms => _rooms;
-        readonly static Dictionary<uint, Room> _rooms = new Dictionary<uint, Room>();
-
-        public static void AddRoom(uint roomNo, Room room)
-        {
-            lock (_lock)
-            {
-                _rooms.Add(roomNo, room);
-            }
-        }
+        public static bool OnGoing = true;
 
         static void Main(string[] args)
         {
-#if DEBUG
-            CoreLogger.Logging = true;
-#else
-            CoreLogger.Logger = new LoggerConfiguration().WriteTo.File(
-                path: LoggerHelper.GetFileName("CoreLogs"),
-                encoding: Encoding.Unicode,
-                flushToDiskInterval: TimeSpan.FromSeconds(1)
-            ).CreateLogger();
-#endif
+            //int coreCount = Environment.ProcessorCount;
+            //ThreadPool.SetMinThreads(1, 1);
+            //ThreadPool.SetMaxThreads(coreCount, coreCount);
+            var config = LoggerConfig.GetDefault();
+            config.RestrictedMinimumLevel = Serilog.Events.LogEventLevel.Error;
+            CoreLogger.CreateLoggerWithFlag(
+                (uint)(CoreLogger.LoggerSinks.CONSOLE | CoreLogger.LoggerSinks.FILE),
+                config);
 
-            string host = Dns.GetHostName(); // local host name of my pc
-            IPHostEntry ipHost = Dns.GetHostEntry(host);
-            IPAddress ipAddr = ipHost.AddressList[0];
-            IPEndPoint endPoint = new IPEndPoint(address: ipAddr, port: 8888);
+            MessageManager.Instance.Init();
 
-            Listener listener = new Listener(endPoint, () => { return SessionManager.Instance.CreateNewSession(); });
-            listener.Listen(register: 10, backLog: 100);
-
-            // exec right now
-            JobTimer.Instance.Push(FlushRoom, 0);
-
-            bool onGoing = true;
-
-            Thread t = new Thread(() =>
+            while (OnGoing)
             {
-                while (onGoing)
+                string command = Console.ReadLine();
+
+                switch (command)
                 {
-                    JobTimer.Instance.Flush();
+                    case "start":
+                        if (Server.IsOn == false) Server.Instance.StartServer();
+                        else Console.WriteLine("Already on going.");
+                        break;
+
+                    case "stop":
+                        if (Server.IsOn == true) Server.Instance.StopServer();
+                        else Console.WriteLine("Not started.");
+                        break;
+                    case "session_count":
+                        if (Server.IsOn == true) Console.WriteLine($"{SessionManager.Instance.GetSessionCount()}");
+                        else Console.WriteLine("Not started");
+                        break;
+                    case "pooled_session_count":
+                        if (Server.IsOn == true) Console.WriteLine($"{Server.Instance._networkManager?.serverService?.PooledSessionCount}");
+                        else Console.WriteLine("Not started");
+                        break;
+                    case "collect":
+                        if (Server.IsOn == true)
+                        {
+                            GC.Collect();
+                            Console.WriteLine("GC.Collect()");
+                        }
+                        else Console.WriteLine("Not started");
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown Command: {command}");
+                        break;
                 }
-                Console.WriteLine("Server stopped.");
-            });
-            t.Start();
-
-            while (true)
-            {
-                string s = Console.ReadLine();
-                if (s.Equals("stop")) break;
             }
-
-            onGoing = false;
-            t.Join();
-
-            Logger.Dispose();
-            Console.WriteLine("Server is closed.");
+            CoreLogger.StopLogging();
         }
     }
 }

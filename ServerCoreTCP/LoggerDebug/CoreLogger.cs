@@ -1,53 +1,101 @@
-﻿using Serilog.Core;
+﻿using Google.Protobuf;
+using Serilog;
+using Serilog.Core;
 using System;
 
-namespace ServerCoreTCP.LoggerDebug
+namespace ServerCoreTCP.CLogger
 {
     /// <summary>
     /// Static Class for Logging of the ServerCoreTCP.
     /// </summary>
-    public static class CoreLogger
+    public class CoreLogger
     {
-#if DEBUG
-        public static Logger Logger => _logger;
-
-        static bool _logging = false;
-        static Logger _logger;
+        public enum LoggerSinks : uint
+        {
+            DEBUG = 1,
+            CONSOLE = 1 << 1,
+            FILE = 1 << 2,
+        }
 
         /// <summary>
-        /// The initial value is false; If it becomes true, the logger will be created.
+        /// Logger can be created with 'CreateLoggerWithFlag' or user's needs in directly.
         /// </summary>
-        public static bool Logging
-        {
-            get => _logging;
-            set
-            {
-                if (value == false)
-                {
-                    Console.WriteLine("Once set to true, it cannot be false again. (The logger instance is already created and logging)");
-                    return;
-                }
+        public static Logger CLogger { get; set; } = null;
 
-                _logging = value;
-                _logger = new LoggerHelper()
-                {
-                    FlushToDistInterval = TimeSpan.FromSeconds(1),
-                    FilePath = LoggerHelper.GetFileName("ServerCoreTCP")
-                }.CreateLogger((ushort)(Sinks.CONSOLE));
+        public static void CreateLoggerWithFlag(uint flag, LoggerConfig loggerConfig)
+        {
+            LoggerConfiguration config = new LoggerConfiguration();
+
+            if ((flag & (uint)LoggerSinks.DEBUG) == (uint)LoggerSinks.DEBUG)
+            {
+                config.WriteTo.Debug(
+                    outputTemplate: loggerConfig.OutputTemplate, 
+                    restrictedToMinimumLevel: loggerConfig.RestrictedMinimumLevel);
             }
+
+            if ((flag & (uint)LoggerSinks.CONSOLE) == (uint)LoggerSinks.CONSOLE)
+            {
+                config.WriteTo.Console(
+                    outputTemplate: loggerConfig.OutputTemplate, 
+                    restrictedToMinimumLevel: loggerConfig.RestrictedMinimumLevel);
+            }
+
+            if ((flag & (uint)LoggerSinks.FILE) == (uint)LoggerSinks.FILE)
+            {
+                config.WriteTo.File(
+                    path: LoggerHelper.GetFileName(loggerConfig.DirPath, loggerConfig.LogFileExtension),
+                    outputTemplate: loggerConfig.OutputTemplate,
+                    restrictedToMinimumLevel: loggerConfig.RestrictedMinimumLevel,
+                    encoding: loggerConfig.FileEncoding,
+                    flushToDiskInterval: loggerConfig.FlushToDistInterval);
+            }
+
+            CLogger =  config.CreateLogger();
         }
 
-        public static void StartLogging(Logger logger)
+        public static void StopLogging()
         {
-            if (Logging == true)
-            {
-                Console.WriteLine("The logger is already created and started.");
-                return;
-            }
-            _logger = logger;
+            CLogger.Dispose();
         }
+
+        public static void LogInfo(string header, string messageTemplate, params object?[]? propertyValues)
+        {
+            string msg = $"[{header}] {messageTemplate}";
+            CLogger.Information(msg, propertyValues);
+        }
+
+        public static void LogError(string header, Exception ex, string messageTemplate, params object?[]? propertyValues)
+        {
+            string msg = $"[{header}] {messageTemplate}";
+            CLogger?.Error(ex, msg, propertyValues);
+        }
+
+        public static void LogError(string header, string messageTemplate, params object?[]? propertyValues)
+        {
+            string msg = $"[{header}] {messageTemplate}";
+            CLogger?.Error(msg, propertyValues);
+        }
+
+        public static void LogDebug(string header, string messageTemplate, params object?[]? propertyValues)
+        {
+            string msg = $"[{header}] {messageTemplate}";
+            CLogger?.Debug(msg, propertyValues);
+        }
+
+
+#if CUSTOM_PACKET
 #else
-        public static Logger Logger { get; set; } = null;
-#endif
+        public static void LogRecv<T>(T message, string header = "Recv") where T : IMessage
+        {
+            string msg = $"[{header}] [{typeof(T)}] {message}";
+            CLogger?.Information(msg);
+        }
+
+        public static void LogSend<T>(T message, string header = "Send") where T : IMessage
+        {
+            string msg = $"[{header}] [{typeof(T)}] {message}";
+            CLogger?.Information(msg);
+        }
     }
+#endif
 }

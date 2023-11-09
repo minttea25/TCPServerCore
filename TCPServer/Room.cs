@@ -1,29 +1,47 @@
 ﻿using Google.Protobuf;
-using ServerCoreTCP;
 using ServerCoreTCP.Utils;
+using ServerCoreTCP.MessageWrapper;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
-using ChatTest;
-using ServerCoreTCP.MessageWrapper;
-using System.Collections.Concurrent;
+using Chat;
+using Google.Protobuf.WellKnownTypes;
+using ServerCoreTCP.CLogger;
 
-namespace TCPServer
+namespace ChatServer
 {
     public class Room
     {
-        public readonly Dictionary<uint, string> Users = new Dictionary<uint, string>();
+        public bool IsActivate => _pendingMessages.Count != 0;
         public uint RoomNo => _roomNo;
         readonly uint _roomNo;
 
-        readonly List<ClientSession> _sessions = new List<ClientSession>();
-        readonly JobQueue _jobs = new JobQueue();
-        readonly List<ArraySegment<byte>> _pendingMessages = new List<ArraySegment<byte>>();
+        Dictionary<uint, ClientSession> _users = new();
+        JobQueue _jobs = new JobQueue();
+        List<ArraySegment<byte>> _pendingMessages = new List<ArraySegment<byte>>();
 
-        public Room(uint id)
+        readonly object _roomLock = new();
+        readonly object _sessionLock = new();
+        readonly object _pendingQueueLock = new();
+
+        public Room(uint roomId)
         {
-            _roomNo = id;
+            _roomNo = roomId;
+        }
+
+        ~Room()
+        {
+            _users = null;
+            _jobs = null;
+            _pendingMessages = null;
+        }
+
+        public IReadOnlyList<uint> GetUsers()
+        {
+            lock (_roomLock)
+            {
+                return new List<uint>(_users.Keys);
+            }
         }
 
         public void AddJob(Action job)
@@ -33,66 +51,104 @@ namespace TCPServer
 
         public void Flush()
         {
-            foreach (ClientSession session in _sessions)
+            lock (_pendingQueueLock)
             {
-                session.SendRaw(_pendingMessages);
+                foreach (ClientSession session in _users.Values)
+                {
+                    session.SendRaw(_pendingMessages);
+                }
+                _pendingMessages.Clear();
+            }
+        }
+
+        public bool Enter(ClientSession session)
+        {
+            if (_users.ContainsKey(session.User.Id)) return false;
+
+            lock (_sessionLock)
+            {
+                _users.Add(session.User.Id, session);
             }
 
-            _pendingMessages.Clear();
+            session.EnterRoom(this);
+
+            return true;
         }
 
-        public void Enter(ClientSession session)
+        public bool Leave(ClientSession session)
         {
-            _sessions.Add(session);
-            session.Room = this;
-            Users.Add(session.SessionId, session.UserName);
-
-            C_EnterRoom pkt = new C_EnterRoom()
+            lock (_sessionLock)
             {
-                UserId = session.SessionId,
-                UserName = session.UserName,
+                bool ret = _users.Remove(session.User.Id);
+
+                if (_users.Count == 0)
+                {
+                    if (RoomManager.Instance.TryRemoveRoom(RoomNo))
+                    {
+                        CoreLogger.LogInfo("Room", "The room [id={0}] is removed", RoomNo);
+                    }
+                }
+
+                return ret;
+            }
+
+            CLeaveRoom msg = new()
+            {
+                RoomId = RoomNo,
+                UserInfo = session.User.UserInfo
             };
-
-            BroadCast(pkt);
+            BroadCast(msg);
         }
 
-        public void Leave(ClientSession session)
+        public void SendChatText(ClientSession session, string msg)
         {
-            C_LeaveRoom send = new C_LeaveRoom()
+            ChatBase chat = new();
+            chat.Timestamp = Timestamp.FromDateTime(DateTime.UtcNow.AddHours(9));
+            chat.ChatType = ChatType.Text;
+
+            CRecvChatText res = new()
             {
-                UserName = session.UserName
-            };
-            Console.WriteLine(send);
-
-            _sessions.Remove(session);
-            Users.Remove(session.SessionId);
-
-            session.Room.BroadCast(send);
-            session.Room = null;
-        }
-
-        public void SendChat(ClientSession session, string msg)
-        {
-            C_Chat msgPkt = new C_Chat()
-            {
-                UserId = session.SessionId,
+                RoomId = RoomNo,
+                SenderInfo = session.User.UserInfo,
+                ChatBase = chat,
                 Msg = msg,
-                UserName = Users[session.SessionId]
             };
+            BroadCast(res);
+        }
 
-            Console.WriteLine(msgPkt);
+        public void SendChatIcon(ClientSession session, uint iconId)
+        {
+            ChatBase chat = new();
+            chat.Timestamp = Timestamp.FromDateTime(DateTime.UtcNow.AddHours(9));
+            chat.ChatType = ChatType.Icon;
 
-            BroadCast(msgPkt);
+            CRecvChatIcon res = new()
+            {
+                RoomId = RoomNo,
+                SenderInfo = session.User.UserInfo,
+                ChatBase = chat,
+                IconId = iconId
+            };
+            BroadCast(res);
         }
 
         public void BroadCast(ArraySegment<byte> buffer)
         {
-            _pendingMessages.Add(buffer);
+            lock (_pendingQueueLock)
+            {
+                _pendingMessages.Add(buffer);
+            }
         }
 
         public void BroadCast<T>(T message) where T : IMessage
         {
-            _pendingMessages.Add(message.SerializeWrapper());
+            var type = typeof(T);
+
+            //Program.ConsoleLogger.Information("[BroadCast] {type} {message}", type, message);
+            lock (_pendingQueueLock)
+            {
+                _pendingMessages.Add(message.SerializeWrapper());
+            }
         }
     }
 }

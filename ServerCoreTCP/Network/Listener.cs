@@ -1,4 +1,5 @@
 ﻿using ServerCoreTCP.CLogger;
+using ServerCoreTCP.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -7,8 +8,6 @@ namespace ServerCoreTCP
 {
     internal class Listener : SocketObject
     {
-        public const int BackLog = 100;
-        public int MaxAcceptClients = 100;
         public int Port => m_port;
 
         internal ServerService m_serverService;
@@ -17,6 +16,9 @@ namespace ServerCoreTCP
         readonly Func<Session> m_sessionFactory;
         readonly int m_port;
 
+        readonly int m_backlog;
+        readonly int m_registerCount;
+
         /// <summary>
         /// Create a socket and bind the endpoint.
         /// </summary>
@@ -24,13 +26,21 @@ namespace ServerCoreTCP
         /// <param name="endPoint">The endpoint to bind to socket</param>
         /// <param name="sessionFactory"></param>
         /// <param name="addressFamily"></param>
-        internal Listener(ServerService service, IPEndPoint endPoint, Func<Session> sessionFactory, AddressFamily addressFamily)
+        internal Listener(ServerService service, IPEndPoint endPoint, Func<Session> sessionFactory, AddressFamily addressFamily, ServerServiceConfig config)
         {
+            m_backlog = config.ListenerBacklogCount;
+            m_registerCount = config.RegisterListenCount;
+
             m_service = service;
             m_serverService = service;
             m_sessionFactory = sessionFactory;
-            m_listenSocket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
             m_port = endPoint.Port;
+
+            m_listenSocket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+            m_listenSocket.SetLinger(config.Linger);
+            m_listenSocket.SetKeepAlive(config.KeepAlive);
+            m_listenSocket.SetReuseAddress(config.ReuseAddress);
+            m_listenSocket.SetNoDelay(config.NoDelay);
 
             m_listenSocket.Bind(endPoint);
         }
@@ -40,11 +50,11 @@ namespace ServerCoreTCP
         /// </summary>
         internal void StartListen()
         {
-            m_listenSocket.Listen(BackLog);
+            m_listenSocket.Listen(m_backlog);
 
-            CoreLogger.LogInfo("Listener.StartListen", "Socket is listening on port={0}... [MaxAcceptClients={1}]", m_port, MaxAcceptClients);
+            CoreLogger.LogInfo("Listener.StartListen", "Socket is listening on port={0}... [MaxAcceptClients={1}]", m_port, m_registerCount);
 
-            for (int i = 0; i < MaxAcceptClients; ++i)
+            for (int i = 0; i < m_registerCount; ++i)
             {
                 AcceptEventToken token = new AcceptEventToken(this);
                 SocketAsyncEventArgs args = m_service.m_saeaPool.Pop();

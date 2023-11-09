@@ -1,4 +1,5 @@
 ﻿using ServerCoreTCP.CLogger;
+using ServerCoreTCP.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -17,22 +18,27 @@ namespace ServerCoreTCP
             SocketError = 4,
             EtcError = 5,
         }
-
-        const int TimeoutMilliSeconds = 5000;
+        
 
         IPEndPoint m_endPoint;
         readonly int m_connectionCount = 1;
         Session[] m_serverSession;
         ClientService m_clientService;
 
+        int m_connectTimeOutMilliseconds;
+        bool m_reuseAddress;
+
         public EventHandler<ConnectError> ConnectHandler;
 
 
-        public Connector(ClientService clientService, Session[] session, IPEndPoint endPoint, int count = 1)
+        public Connector(ClientService clientService, Session[] session, IPEndPoint endPoint, int sessionCount, ClientServiceConfig config)
         {
+            m_connectTimeOutMilliseconds = config.ConnectTimeOutMilliseconds;
+            m_reuseAddress = config.ReuseAddress;
+
             m_service = clientService;
             m_clientService = clientService;
-            m_connectionCount = count;
+            m_connectionCount = sessionCount;
             m_endPoint = endPoint;
             m_serverSession = session;
         }
@@ -54,6 +60,9 @@ namespace ServerCoreTCP
                 SocketAsyncEventArgs connectEventArgs = m_service.m_saeaPool.Pop();
                 connectEventArgs.RemoteEndPoint = m_endPoint;
                 connectEventArgs.UserToken = new ConnectEventToken(this, socket, m_serverSession[i]);
+
+                socket = new Socket(m_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                socket.SetReuseAddress(m_reuseAddress);
 
                 RegisterConnect(socket, connectEventArgs);
             }

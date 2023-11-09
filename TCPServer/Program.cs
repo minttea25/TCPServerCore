@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Chat;
@@ -14,7 +15,6 @@ namespace ChatServer
 
         static void Main(string[] args)
         {
-            //Server.Instance.StartServer();
             //int coreCount = Environment.ProcessorCount;
             //ThreadPool.SetMinThreads(1, 1);
             //ThreadPool.SetMaxThreads(coreCount, coreCount);

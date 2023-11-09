@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace ServerCoreTCP
 {
@@ -43,7 +42,7 @@ namespace ServerCoreTCP
 
     public class ServerService : Service
     {
-        const int MaxSessionCount = 200;
+        readonly int m_sessionPoolCount;
 
         public int PooledSessionCount
         {
@@ -58,11 +57,13 @@ namespace ServerCoreTCP
         internal SessionPool m_sessionPool;
         // Semaphore m_maxConnections;
 
-        public ServerService(IPEndPoint endPoint, Func<Session> emptySessionFactory) : base(ServiceTypes.Server)
+        public ServerService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ServerServiceConfig config) : base(ServiceTypes.Server)
         {
+            m_sessionPoolCount = config.SessionPoolCount;
+
             //m_maxConnections = new Semaphore(0, MaxSessionCount);
-            m_listener = new Listener(this, endPoint, emptySessionFactory, endPoint.AddressFamily);
-            m_sessionPool = new SessionPool(this, MaxSessionCount, emptySessionFactory);
+            m_listener = new Listener(this, endPoint, emptySessionFactory, endPoint.AddressFamily, config);
+            m_sessionPool = new SessionPool(this, m_sessionPoolCount, emptySessionFactory);
         }
 
         public override void Start()
@@ -84,20 +85,22 @@ namespace ServerCoreTCP
 
     public class ClientService : Service
     {
-        const int SessionCount = 1;
+        readonly int m_sessionCount = 1;
 
         readonly Connector m_connector;
         readonly Session[] m_session;
 
-        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, int count = SessionCount) : base(ServiceTypes.Client)
+        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ClientServiceConfig config) : base(ServiceTypes.Client)
         {
-            m_session = new Session[count];
-            for (int i = 0; i < count; ++i)
+            m_sessionCount = config.ClientServiceSessionCount;
+
+            m_session = new Session[m_sessionCount];
+            for (int i = 0; i < m_sessionCount; ++i)
             {
                 m_session[i] = emptySessionFactory.Invoke();
                 m_session[i].SetService(this);
             }
-            m_connector = new Connector(this, m_session, endPoint, count);
+            m_connector = new Connector(this, m_session, endPoint, m_sessionCount, config);
         }
 
         public override void Start()

@@ -32,7 +32,7 @@ namespace ChatServer
 
             CoreLogger.LogInfo("NetworkManager", "Server started");
 
-            serverService = new ServerService(endPoint, m_emptySessionFactory);
+            serverService = new ServerService(endPoint, m_emptySessionFactory, ServerServiceConfig.GetDefault());
             serverService.Start();
         }
 

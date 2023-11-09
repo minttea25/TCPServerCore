@@ -34,10 +34,13 @@ namespace TestClient
 
             UserName = "test" + rand.Next(1, 100000);
 
+            ClientServiceConfig config = ClientServiceConfig.GetDefault();
+            config.ClientServiceSessionCount = 50;
+
             ClientService clientService 
                 = new ClientService(
                     endPoint, () => { return SessionManager.Instance.CreateNewSession(); }, 
-                    50);
+                    config);
             clientService.Start();
 
             while (true)

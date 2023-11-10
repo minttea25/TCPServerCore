@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PacketFactories", "PacketFa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageWrapperFactory", "MessageWrapperFactory\MessageWrapperFactory.csproj", "{661F6258-74E0-436F-BC7D-8F2791C28311}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageFactory", "MessageFactory\MessageFactory.csproj", "{EFA09BCB-6D3E-4294-91C3-0EC1523D3D0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageFactory", "MessageFactory\MessageFactory.csproj", "{EFA09BCB-6D3E-4294-91C3-0EC1523D3D0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

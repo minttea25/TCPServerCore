@@ -46,7 +46,11 @@ namespace ChatServer
                         else Console.WriteLine("Not started");
                         break;
                     case "pooled_session_count":
-                        if (Server.IsOn == true) Console.WriteLine($"{Server.Instance._networkManager?.serverService?.PooledSessionCount}");
+                        if (Server.IsOn == true) Console.WriteLine($"{Server.Instance._networkManager?.serverService?.SessionCurrentPooledCount}");
+                        else Console.WriteLine("Not started");
+                        break;
+                    case "pooled_saea_count":
+                        if (Server.IsOn == true) Console.WriteLine($"{Server.Instance._networkManager?.serverService?.SAEACurrentPooledCount}");
                         else Console.WriteLine("Not started");
                         break;
                     case "collect":

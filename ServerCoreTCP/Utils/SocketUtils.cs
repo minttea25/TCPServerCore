@@ -28,26 +28,5 @@ namespace ServerCoreTCP.Utils
         {
             socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, reuseAddress);
         }
-
-        // low-level api
-        public static void SetKeepAlive(Socket socket, int keepAliveTime, int keepAliveInterval)
-        {
-            try
-            {
-                // set keepalive true on socket level
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-
-                // set keepalive true on tcp level
-                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.KeepAlive, BitConverter.GetBytes(1));
-
-                byte[] keepAliveTimeValues = BitConverter.GetBytes(keepAliveTime);
-                byte[] keepAliveIntervalValues = BitConverter.GetBytes(keepAliveInterval);
-                socket.IOControl(IOControlCode.KeepAliveValues, keepAliveTimeValues, keepAliveIntervalValues);
-            }
-            catch(Exception ex)
-            {
-                CoreLogger.LogError("SocketUtils.SetKeepAlive", ex, "Exception");
-            }
-        }
     }
 }

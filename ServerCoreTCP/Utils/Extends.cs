@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Text;
+﻿using System.Net.Sockets;
 
 namespace ServerCoreTCP.Utils
 {
@@ -25,11 +22,6 @@ namespace ServerCoreTCP.Utils
         public static void SetReuseAddress(this Socket socket, bool reuseAddress)
         {
             SocketUtils.SetReuseAddress(socket, reuseAddress);
-        }
-
-        public static void SetKeepAlive(this Socket socket, int keepAliveTime, int keepAliveInterval)
-        {
-            SocketUtils.SetKeepAlive(socket, keepAliveTime, keepAliveInterval);
         }
     }
 }

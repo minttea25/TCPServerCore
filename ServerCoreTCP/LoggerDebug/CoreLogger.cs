@@ -1,4 +1,6 @@
-﻿using Google.Protobuf;
+﻿#nullable enable
+
+using Google.Protobuf;
 using Serilog;
 using Serilog.Core;
 using System;
@@ -29,14 +31,14 @@ namespace ServerCoreTCP.CLogger
             if ((flag & (uint)LoggerSinks.DEBUG) == (uint)LoggerSinks.DEBUG)
             {
                 config.WriteTo.Debug(
-                    outputTemplate: loggerConfig.OutputTemplate, 
+                    outputTemplate: loggerConfig.OutputTemplate,
                     restrictedToMinimumLevel: loggerConfig.RestrictedMinimumLevel);
             }
 
             if ((flag & (uint)LoggerSinks.CONSOLE) == (uint)LoggerSinks.CONSOLE)
             {
                 config.WriteTo.Console(
-                    outputTemplate: loggerConfig.OutputTemplate, 
+                    outputTemplate: loggerConfig.OutputTemplate,
                     restrictedToMinimumLevel: loggerConfig.RestrictedMinimumLevel);
             }
 
@@ -50,18 +52,18 @@ namespace ServerCoreTCP.CLogger
                     flushToDiskInterval: loggerConfig.FlushToDistInterval);
             }
 
-            CLogger =  config.CreateLogger();
+            CLogger = config.CreateLogger();
         }
 
         public static void StopLogging()
         {
-            CLogger.Dispose();
+            CLogger?.Dispose();
         }
 
         public static void LogInfo(string header, string messageTemplate, params object?[]? propertyValues)
         {
             string msg = $"[{header}] {messageTemplate}";
-            CLogger.Information(msg, propertyValues);
+            CLogger?.Information(msg, propertyValues);
         }
 
         public static void LogError(string header, Exception ex, string messageTemplate, params object?[]? propertyValues)

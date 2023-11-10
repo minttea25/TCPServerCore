@@ -15,6 +15,9 @@ namespace ServerCoreTCP
         public ServiceTypes ServiceType => m_serviceType;
         readonly internal ServiceTypes m_serviceType;
 
+        public int SAEATotalPoolCount => m_saeaPool.TotalPoolCount;
+        public int SAEACurrentPooledCount => m_saeaPool.CurrentPooledCount;
+
         internal readonly SocketAsyncEventArgsPool m_saeaPool;
 
         public abstract void Start();
@@ -44,14 +47,8 @@ namespace ServerCoreTCP
     {
         readonly int m_sessionPoolCount;
 
-        public int PooledSessionCount
-        {
-            get
-            {
-                if (m_sessionPool == null) return -1;
-                else return m_sessionPool.PooledSessionCount;
-            }
-        }
+        public int SessionTotalPoolCount => m_sessionPool.TotalPoolCount;
+        public int SessionCurrentPooledCount => m_sessionPool.CurrentPooledCount;
 
         readonly Listener m_listener;
         internal SessionPool m_sessionPool;

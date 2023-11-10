@@ -52,7 +52,7 @@ namespace ServerCoreTCP
                 case SocketAsyncOperation.Disconnect:
                     OnDisconnectedCompleted(eventArgs);
                     break;
-                
+
                 case SocketAsyncOperation.Receive:
                     OnRecvCompleted(eventArgs);
                     break;
@@ -70,14 +70,14 @@ namespace ServerCoreTCP
 
 
 #if MEMORY_BUFFER
-        protected readonly MRecvBuffer _recvBuffer = new MRecvBuffer(RecvBufferSize);
-        protected readonly Queue<Memory<byte>> _sendQueue = new Queue<Memory<byte>>();
-        protected readonly List<Memory<byte>> _sendPendingList = new List<Memory<byte>>();
-        protected readonly List<ArraySegment<byte>> _sendBufferList = new List<ArraySegment<byte>>();
+        protected readonly MRecvBuffer m_recvBuffer;
+        protected readonly Queue<Memory<byte>> m_sendQueue;
+        protected readonly List<Memory<byte>> m_sendPendingList;
+        protected readonly List<ArraySegment<byte>> m_sendBufferList;
 #else
-        protected readonly RecvBuffer m_recvBuffer = new RecvBuffer(RecvBufferSize);
-        protected readonly Queue<ArraySegment<byte>> m_sendQueue = new Queue<ArraySegment<byte>>();
-        protected readonly List<ArraySegment<byte>> m_sendPendingList = new List<ArraySegment<byte>>();
+        protected readonly RecvBuffer m_recvBuffer;
+        protected readonly Queue<ArraySegment<byte>> m_sendQueue;
+        protected readonly List<ArraySegment<byte>> m_sendPendingList;
 #endif
 
         #region Abstract Methods
@@ -126,9 +126,22 @@ namespace ServerCoreTCP
         protected abstract int OnRecvProcess(ArraySegment<byte> buffer);
 #endif
 
-#endregion
+        #endregion
 
-        
+        public Session()
+        {
+#if MEMORY_BUFFER
+            m_recvBuffer = new MRecvBuffer(RecvBufferSize);
+            m_sendQueue = new Queue<Memory<byte>>();
+            m_sendPendingList = new List<Memory<byte>>();
+            m_sendBufferList = new List<ArraySegment<byte>>();
+#else
+            m_recvBuffer = new RecvBuffer(RecvBufferSize);
+            m_sendQueue = new Queue<ArraySegment<byte>>();
+            m_sendPendingList = new List<ArraySegment<byte>>();
+#endif
+        }
+
 
         /// <summary>
         /// A session must be initialized with this method with socket.
@@ -164,9 +177,9 @@ namespace ServerCoreTCP
         {
             lock (_lock)
             {
-                _sendQueue.Enqueue(sendBuffer);
+                m_sendQueue.Enqueue(sendBuffer);
 
-                if (_sendPendingList.Count == 0) RegisterSend();
+                if (m_sendPendingList.Count == 0) RegisterSend();
             }
         }
 
@@ -182,10 +195,10 @@ namespace ServerCoreTCP
             {
                 foreach (var buffer in sendBufferList)
                 {
-                    _sendQueue.Enqueue(buffer);
+                    m_sendQueue.Enqueue(buffer);
                 }
 
-                if (_sendPendingList.Count == 0) RegisterSend();
+                if (m_sendPendingList.Count == 0) RegisterSend();
             }
         }
 #else
@@ -240,25 +253,24 @@ namespace ServerCoreTCP
             // USE EventArgs.BufferList = list instead.
             // WHY? https://stackoverflow.com/questions/11820677/how-use-bufferlist-with-socketasynceventargs-and-not-get-socketerror-invalidargu
 #if MEMORY_BUFFER
-            while (_sendQueue.Count > 0)
+            while (m_sendQueue.Count > 0)
             {
-                _sendPendingList.Add(_sendQueue.Dequeue());
+                m_sendPendingList.Add(m_sendQueue.Dequeue());
             }
 
-            foreach (Memory<byte> buff in _sendPendingList)
+            foreach (Memory<byte> buff in m_sendPendingList)
             {
                 if (MemoryMarshal.TryGetArray<byte>(buff, out var segment))
                 {
-                    _sendBufferList.Add(segment);
+                    m_sendBufferList.Add(segment);
                 }
                 else
                 {
-                    if (CoreLogger.Logger != null)
-                        CoreLogger.Logger.Error("An error occured at RegisterSend: MemoryMarshal.TryGetArray<byte>");
+                    CoreLogger.LogError("Session.RegisterSend", "Failed: MemoryMarshal.TryGetArray<byte>(buff, out var segment)");
                 }
             }
-            _sendEvent.BufferList = _sendBufferList;
-            _sendPendingList.Clear();
+            m_sendEventArgs.BufferList = m_sendBufferList;
+            m_sendPendingList.Clear();
 #else
             while (m_sendQueue.Count > 0)
             {
@@ -287,8 +299,8 @@ namespace ServerCoreTCP
             if (m_connected == 0) return;
 
 #if MEMORY_BUFFER
-            _recvBuffer.CleanUp();
-            _recvEvent.SetBuffer(_recvBuffer.WriteMemory);
+            m_recvBuffer.CleanUp();
+            m_recvEventArgs.SetBuffer(m_recvBuffer.WriteMemory);
 #else
             m_recvBuffer.CleanUp(); // expensive
             var segment = m_recvBuffer.WriteSegment;
@@ -321,9 +333,9 @@ namespace ServerCoreTCP
                     {
                         OnSend(eventArgs.BytesTransferred);
 #if MEMORY_BUFFER
-                        _sendBufferList.Clear();
-                        //e.SetBuffer(null);
-                        _sendEvent.BufferList = null;
+                        m_sendBufferList.Clear();
+                        m_sendEventArgs.SetBuffer(null);
+                        m_sendEventArgs.BufferList = null;
 #else
                         m_sendEventArgs.BufferList = null;
                         m_sendPendingList.Clear();
@@ -370,7 +382,7 @@ namespace ServerCoreTCP
                         return;
                     }
 #if MEMORY_BUFFER
-                    int processLength = OnRecvProcess(_recvBuffer.DataMemory);
+                    int processLength = OnRecvProcess(m_recvBuffer.DataMemory);
 #else
                     int processLength = OnRecvProcess(m_recvBuffer.DataSegment);
 #endif
@@ -459,12 +471,18 @@ namespace ServerCoreTCP
             m_recvEventArgs = null;
             m_sendEventArgs = null;
 
+#if MEMORY_BUFFER
+            m_recvBuffer.ClearBuffer();
+#else
+            m_recvBuffer.ClearBuffer();
+#endif
+
             lock (_lock)
             {
                 m_sendQueue.Clear();
                 m_sendPendingList.Clear();
 #if MEMORY_BUFFER
-                _sendBufferList.Clear();
+                m_sendBufferList.Clear();
 #endif
             }
         }

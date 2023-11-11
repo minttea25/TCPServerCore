@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 
 using Google.Protobuf;
+using ServerCoreTCP.CLogger;
 
 namespace ServerCoreTCP.MessageWrapper
 {
@@ -86,21 +87,14 @@ namespace ServerCoreTCP.MessageWrapper
             }
             catch(KeyNotFoundException knfe)
             {
-                if (LoggerDebug.CoreLogger.Logger != null)
-                    LoggerDebug.CoreLogger.Logger.Error(knfe, "Error");
-
+                CoreLogger.LogError("MessageWrapper.Serialize", knfe, "Can not find key={0} in PacketMap", typeof(T));
                 return null;
             }
             catch(Exception e)
             {
-                if (LoggerDebug.CoreLogger.Logger != null)
-                    LoggerDebug.CoreLogger.Logger.Error(e, "Error");
-
+                CoreLogger.LogError("MessageWrapper.Serialize", e, "Other Exception");
                 return null;
             }
-            
-
-            
         }
 
         /// <summary>

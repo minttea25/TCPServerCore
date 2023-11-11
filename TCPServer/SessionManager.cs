@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TCPServer
+namespace ChatServer
 {
     public class SessionManager
     {
@@ -10,24 +10,39 @@ namespace TCPServer
         public static SessionManager Instance => _instance;
         #endregion
 
-        /// <summary>
-        /// The identifier of sessions. It starts at 1. (0 is invalid id) 
-        /// </summary>
         uint _sessionId = 0;
-        readonly Dictionary<uint, ClientSession> _sessions = new Dictionary<uint, ClientSession>();
+        public readonly Dictionary<uint, ClientSession> _sessions = new Dictionary<uint, ClientSession>();
         readonly object _lock = new object();
 
         public ClientSession CreateNewSession()
         {
+            return new ClientSession();
+
+            //lock (_lock)
+            //{
+            //    uint id = _sessionId++;
+            //    ClientSession session = new ClientSession(id);
+            //    _sessions.Add(id, session);
+
+            //    return session;
+            //}
+        }
+
+        public void AddNewSession(ClientSession session)
+        {
             lock (_lock)
             {
                 uint id = _sessionId++;
-                ClientSession session = new ClientSession(id);
-
-                Console.WriteLine($"Connected as id={id}");
+                session.SetConnectedId(id);
                 _sessions.Add(id, session);
+            }
+        }
 
-                return session;
+        public int GetSessionCount()
+        {
+            lock (_lock)
+            {
+                return _sessions.Count;
             }
         }
 
@@ -51,11 +66,13 @@ namespace TCPServer
             }
         }
 
-        public bool Remove(ClientSession session)
+        public bool ClearSession(ClientSession session)
         {
+            session.LeaveAllRooms();
+
             lock (_lock)
             {
-                return _sessions.Remove(session.SessionId);
+                return _sessions.Remove(session.ConnectedId);
             }
         }
     }

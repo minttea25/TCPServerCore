@@ -77,6 +77,11 @@ namespace ServerCoreTCP
             }
         }
 
+        public void ClearBuffer()
+        {
+            readPtr = writePtr = 0;
+        }
+
         /// <summary>
         /// Move the read pointer of the recvbuffer.
         /// </summary>

@@ -30,9 +30,14 @@ This is a library that can be used in both Client and Server based on TCP.
   - `[size, 2][packeType, 2]` `[data, ~]`
   - You can wrap messages with just a single call to MessageWrapper.Serialize() by defining the packetType in the content code.
 ### Logging
-- Uses Serilog (Serilog.File, Serilog.Console)
-- Logs only for ServerCore can be recorded separately, and the same logger can be used in the content code
-- `CoreLogger.Logger` (Applied in Release build only)
+- Use `Serilog` (Serilog.File, Serilog.Console)
+- You can use `CoreLogger` at your content-codes. (through static-class)
+- Before starting the service, you can select the sink for logging by setting a flag through the `CoreLogger.LoggerSinks`; enum: `Debug`, `Console`, `File`
+- If you do not initialize the logger through the `CreateLoggerWithFlag` function of `CoreLogger.CLogger`, or do not create and assign a new logger, logging will not occur.
+- The following codes correspond to each code in Serilog.
+   - `CoreLogger.LogInfo`: Information
+   - `CoreLogger.LogError`: Error
+   - `CoreLogger.LogDebug`: Debug
 ### JobQueue and JobTimer Provided
 - Push messages into the queue and flush for broadcasting
 - Use the corresponding JobQueue in the content code (event signal or busy-waiting)
@@ -44,6 +49,19 @@ This is a library that can be used in both Client and Server based on TCP.
   - CustomPacket: [PacketFactory-README.md](https://github.com/minttea25/TCPServerCore/blob/master/PacketFactory/PacketFactory-README.md)
   - Message: [MessageFactory-README.md](https://github.com/minttea25/TCPServerCore/blob/master/MessageFactory/MessageFactory-README.md)
   - MessageWrapper: [MessageWrapperFactory-README.md](https://github.com/minttea25/TCPServerCore/blob/master/MessageWrapperFactory/MessageWrapperFactory-README.md)
+### Service
+Users can manage net connections by creating ClientService and ServerService objects.
+- `ClientService`: Provides service in client mode. 
+Threre is one session by default.
+You can change this value to set up multiple connections for testing through `ClientServiceConfig`.
+- `ServerService`: Provides service in server mode.
+ It has a `SocketAsyncEventArgs` pool and a `Session` pool.
+  The default capacity of the pool can be set before starting the service using the `ServerServiceConfig` structure.
+  For `EmptySessionFactory`, it must be specified as a Func that creates an empty session rather than initializing the required data. 
+  The pool uses this function to pool the Session in advance. Initialization of data for the session can be done in `Session.InitSession`.
+### Pooling
+ServerService pools `SocketAsyncEventArgs` and `Session` objects. The pooling capacity value can be changed through the `ServerServiceConfig` structure and must be loaded before the service starts. If there are not enough objects in the pool, a new one is created and added to the pool. Please note the following:
+- `EmptySessionFactory`: This `Func` delegate is not a factory function that creates a session where a connection is established and the valid data is initialized. It must be specified as a function to create an empty `Session` object in advance in `SessionPool`. Initialization to a valid value can be accomplished by overriding the `Session.InitSession` method.
 ### TestServer
 - Test server for testing, corresponding to the TestClient
 - Creates and manages rooms according to client requests
@@ -98,8 +116,13 @@ TCP를 기반으로 하는 Client와 Server에서 모두 공용으로 사용가�
   - packetType를 컨텐츠 코드에서 정의 하여 dictionary를 형성하고 해당 메시지를 `MessageWrapper.Serialize()`를 호출하는 것만으로 메시지 랩핑 가능
 ### Logging
 - `Serilog` 사용 (Serilog.File, Serilog.Console)
-- ServerCore에 대한 로그만 따로 기록될 수 있도록 하였고, 콘텐츠 코드에서도 해당 로거 사용 가능
-- `CoreLogger.Logger` (Release용에서만 적용)
+- 컨텐츠코드에서도 `CoreLogger`를 직접 호출 하여 사용할 수 있습니다. (static class)
+- 서비스 시작전 `CoreLogger.LoggerSinks` enum을 통해 flag를 설정하여 로깅할 sink를 선택할 수 있습니다: `Debug`, `Console`, `File`
+- `CoreLogger.CLogger`을 `CreateLoggerWithFlag`함수를 통해 로거를 초기화하지 않거나, 새로운 로거를 만들어 할당하지 않는다면 로깅이 되지 않습니다.
+- 다음 코드는 Serilog의 각각의 코드에 대응합니다.
+  - `CoreLogger.LogInfo` : Information
+  - `CoreLogger.LogError` : Error
+  - `CoreLogger.LogDebug` : Debug
 ### JobQueue, JobTimer 제공
 - Queue에 메시지를 push후, flush하여 broadcasting
 - 컨텐츠 코드에서 해당 JobQueue 사용 (event signal or busy-waiting)
@@ -111,6 +134,13 @@ TCP를 기반으로 하는 Client와 Server에서 모두 공용으로 사용가�
   - CustomPacket: https://github.com/minttea25/TCPServerCore/blob/master/PacketFactory/PacketFactory-README.md
   - Message: https://github.com/minttea25/TCPServerCore/blob/master/MessageFactory/MessageFactory-README.md
   - MessageWrapper: https://github.com/minttea25/TCPServerCore/blob/master/MessageWrapperFactory/MessageWrapperFactory-README.md
+### Service
+사용자는 ClientService와 ServerService 객체를 생성하여 네트연결 관리를 할 수 있습니다.
+- `ClientService`: 클라이언트 모드로 서비스를 제공합니다. 기본적으로 하나의 세션을 가지고 있습니다. 이 값은 `ClientServiceConfig`에서 변경하여 테스트용으로 여러개의 연결을 설정할 수 있습니다.
+- `ServerService`: 서버 모드로 서비스를 제공합니다. `SocketAsyncEventArgs` 풀과 `Session` 풀을 가지고 있습니다. 풀의 기본 용량은 `ServerServiceConfig`구조체를 이용해 서비스 시작전 설정할 수 있습니다. `EmptySessionFactory`의 경우, 필요한 데이터를 초기화하는 것이 아닌 빈 세션을 만드는 Func로 지정해야 합니다. 풀에서 이 함수를 이용해 Session을 미리 풀링 해놓습니다. 세션에 대한 데이터 초기화는 `Session.InitSession`에서 진행하면 됩니다.
+### Pooling
+ServerService는 `SocketAsyncEventArgs`와 `Session`객체에 대해서 풀링을 합니다. 풀링 용량 값은 `ServerServiceConfig` 구조체를 통해 변경할 수 있으며, 서비스 시작 전 로드되어야 합니다. 만약 풀에서 객체가 부족할 경우, 새롭게 하나를 생성하여 풀에 추가합니다. 다음을 주의해주세요:
+- `EmptySessionFactory`: 이 `Func` delegate 대리자는 connection이 형성되고 초기 데이터가 유효한 세션을 생성하는 factory 함수가 아닙니다. `SessionPool`에서 비어있는 `Session`객체를 사전에 생성해 놓기 위한 함수로 지정되어야 합니다. 유효한 값에 대한 초기화는 `Session.InitSession` 메서드를 오버라이드하여 이루어지면 됩니다.
 ### TestServer
 - TestClient에 대응하는 테스트용 서버
 - 클라이언트 요청에 따라 방을 생성 및 관리

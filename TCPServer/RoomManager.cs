@@ -30,7 +30,7 @@ namespace ChatServer
             }
             rwLock.ExitReadLock();
 
-            JobTimer.Instance.Push(FlushRoom, FlushTickInterval);
+            Server.timer.Add(FlushRoom, FlushTickInterval);
         }
 
         public void CreateNewRoom(uint roomId, out Room room)

@@ -3,8 +3,13 @@ using System.Collections.Generic;
 
 namespace ServerCoreTCP.Utils
 {
+
+    // lock을 최소한으로 하거나, Concurrent Collection으로 사용할 수는 없을까...?
+
     /// <summary>
     /// PriorityQueue (If the type is numeric, Peek() will return highest value.)
+    /// NOTE: If count==0, `Peek()` and `Dequeue()` will return DEFAULT value.
+    /// Use `TryPeek` and `TryDequeue` safely with primitive types.
     /// </summary>
     /// <typeparam name="T">System.IComparable: the comparable object</typeparam>
     public class PriorityQueue<T> where T : IComparable<T>
@@ -88,7 +93,18 @@ namespace ServerCoreTCP.Utils
 
         public T Peek()
         {
-            return _heap.Count == 0 ? throw new InvalidOperationException("PrioirtyQueue is empty.") : _heap[0];
+            return _heap.Count == 0 ? default : _heap[0];
+        }
+
+        public bool TryPeek(out T peek)
+        {
+            if (_heap.Count == 0)
+            {
+                peek = default;
+                return false;
+            }
+            peek = _heap[0];
+            return true;
         }
 
         public void Clear()

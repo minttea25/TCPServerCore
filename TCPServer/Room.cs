@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Chat;
 using Google.Protobuf.WellKnownTypes;
 using ServerCoreTCP.CLogger;
+using ServerCoreTCP.Job;
 
 namespace ChatServer
 {
@@ -17,7 +18,7 @@ namespace ChatServer
         readonly uint _roomNo;
 
         Dictionary<uint, ClientSession> _users = new();
-        JobQueue _jobs = new JobQueue();
+        JobSerializer _jobs = new JobSerializer();
         List<ArraySegment<byte>> _pendingMessages = new List<ArraySegment<byte>>();
 
         readonly object _roomLock = new();

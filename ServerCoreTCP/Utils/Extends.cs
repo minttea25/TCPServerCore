@@ -4,6 +4,7 @@ namespace ServerCoreTCP.Utils
 {
     static class Extends
     {
+#region Socket Util Extends
         public static void SetLinger(this Socket socket, int lingerSeconds)
         {
             SocketUtils.SetLinger(socket, lingerSeconds);
@@ -23,5 +24,6 @@ namespace ServerCoreTCP.Utils
         {
             SocketUtils.SetReuseAddress(socket, reuseAddress);
         }
+#endregion
     }
 }

@@ -1,4 +1,5 @@
-﻿using ServerCoreTCP.Utils;
+﻿using ServerCoreTCP.Job;
+using ServerCoreTCP.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace ChatServer
 
         public NetworkManager _networkManager = null;
         readonly Thread updateThread = new(Update);
+        public readonly static JobSerializerWithTimer jobs = new JobSerializerWithTimer();
         public static bool IsOn = false;
         Server()
         {
@@ -25,13 +27,12 @@ namespace ChatServer
 
         static void Update()
         {
-            JobTimer.Instance.Push(RoomManager.Instance.FlushRoom, 0);
+            jobs.AddAfter(RoomManager.Instance.FlushRoom, 0);
             while (IsOn)
             {
-                JobTimer.Instance.Flush();
+                jobs.Flush();
             }
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            //Program.Logger.Information("Server stopped at {time}", time);
             Program.OnGoing = false;
         }
 

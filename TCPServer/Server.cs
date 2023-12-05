@@ -17,7 +17,7 @@ namespace ChatServer
 
         public NetworkManager _networkManager = null;
         readonly Thread updateThread = new(Update);
-        public readonly static JobTimer timer = new JobTimer();
+        public readonly static JobSerializerWithTimer jobs = new JobSerializerWithTimer();
         public static bool IsOn = false;
         Server()
         {
@@ -27,10 +27,10 @@ namespace ChatServer
 
         static void Update()
         {
-            timer.Add(RoomManager.Instance.FlushRoom, 0);
+            jobs.AddAfter(RoomManager.Instance.FlushRoom, 0);
             while (IsOn)
             {
-                timer.Flush();
+                jobs.Flush();
             }
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             Program.OnGoing = false;

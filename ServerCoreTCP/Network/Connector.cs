@@ -18,15 +18,17 @@ namespace ServerCoreTCP
             SocketError = 4,
             EtcError = 5,
         }
-        
 
-        IPEndPoint m_endPoint;
+        readonly IPEndPoint _endPoint;
         readonly int m_connectionCount = 1;
-        Session[] m_serverSession;
-        ClientService m_clientService;
+        readonly Session[] m_serverSession;
+        readonly ClientService m_clientService;
 
-        int m_connectTimeOutMilliseconds;
-        bool m_reuseAddress;
+        readonly int m_connectTimeOutMilliseconds;
+        readonly bool _reuseAddress;
+
+        public ClientService ClientService => m_clientService;
+        public int ConnectionCount => m_connectionCount;
 
         //public EventHandler<ConnectError> ConnectHandler;
 
@@ -34,12 +36,12 @@ namespace ServerCoreTCP
         public Connector(ClientService clientService, Session[] session, IPEndPoint endPoint, int sessionCount, ClientServiceConfig config)
         {
             m_connectTimeOutMilliseconds = config.ConnectTimeOutMilliseconds;
-            m_reuseAddress = config.ReuseAddress;
+            _reuseAddress = config.ReuseAddress;
 
             m_service = clientService;
             m_clientService = clientService;
             m_connectionCount = sessionCount;
-            m_endPoint = endPoint;
+            _endPoint = endPoint;
             m_serverSession = session;
         }
 
@@ -52,17 +54,17 @@ namespace ServerCoreTCP
 
         internal void Connect()
         {
-            CoreLogger.LogInfo("Connector.Connect", "Connector is trying to connect the server: {0}, count={1}", m_endPoint, m_connectionCount);
+            CoreLogger.LogInfo("Connector.Connect", "Connector is trying to connect the server: {0}, count={1}", _endPoint, m_connectionCount);
 
             for (int i = 0; i < m_connectionCount; ++i)
             {
-                Socket socket = new Socket(m_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                Socket socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 SocketAsyncEventArgs connectEventArgs = m_service.m_saeaPool.Pop();
-                connectEventArgs.RemoteEndPoint = m_endPoint;
+                connectEventArgs.RemoteEndPoint = _endPoint;
                 connectEventArgs.UserToken = new ConnectEventToken(this, socket, m_serverSession[i]);
 
-                socket = new Socket(m_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.SetReuseAddress(m_reuseAddress);
+                socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                socket.SetReuseAddress(_reuseAddress);
 
                 RegisterConnect(socket, connectEventArgs);
             }

@@ -11,6 +11,7 @@ namespace ServerCoreTCP.MessageWrapper
     {
         public readonly static Dictionary<Type, ushort> PacketMap = new Dictionary<Type, ushort>()
         {
+            // example
             //{ typeof(Vector3), (ushort)PacketType.Pvector3 },
         };
 

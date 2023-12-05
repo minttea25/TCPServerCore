@@ -66,14 +66,14 @@ namespace ServerCoreTCP
     /// </summary>
     public class SendBuffer
     {
-        readonly byte[] buffer;
-        int usedSize = 0;
+        readonly byte[] _buffer;
+        int _usedSize = 0;
 
-        public int FreeSize { get { return buffer.Length - usedSize; } }
+        public int FreeSize { get { return _buffer.Length - _usedSize; } }
 
         public SendBuffer(int bufferSize)
         {
-            buffer = new byte[bufferSize];
+            _buffer = new byte[bufferSize];
         }
 
         /// <summary>
@@ -85,11 +85,11 @@ namespace ServerCoreTCP
         {
             if (reserveSize > FreeSize)
             {
-                usedSize = 0;
+                _usedSize = 0;
             }
 
             // return buffer segment from usedSize to usedSize + reserveSize
-            return new ArraySegment<byte>(buffer, usedSize, reserveSize);
+            return new ArraySegment<byte>(_buffer, _usedSize, reserveSize);
         }
 
         /// <summary>
@@ -99,16 +99,16 @@ namespace ServerCoreTCP
         /// <returns>The segment of the actually used buffer.</returns>
         public ArraySegment<byte> Return(int usedSize)
         {
-            ArraySegment<byte> segment = new ArraySegment<byte>(buffer, this.usedSize, usedSize);
-            this.usedSize += usedSize;
+            ArraySegment<byte> segment = new ArraySegment<byte>(_buffer, this._usedSize, usedSize);
+            this._usedSize += usedSize;
             return segment;
         }
 
         public ArraySegment<byte> Use(int size)
         {
-            if (size > FreeSize) usedSize = 0;
-            ArraySegment<byte> segment = new ArraySegment<byte>(buffer, usedSize, size);
-            usedSize += size;
+            if (size > FreeSize) _usedSize = 0;
+            ArraySegment<byte> segment = new ArraySegment<byte>(_buffer, _usedSize, size);
+            _usedSize += size;
             return segment;
         }
     }

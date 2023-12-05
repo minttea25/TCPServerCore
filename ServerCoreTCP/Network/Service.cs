@@ -49,6 +49,9 @@ namespace ServerCoreTCP
 
         public int SessionTotalPoolCount => m_sessionPool.TotalPoolCount;
         public int SessionCurrentPooledCount => m_sessionPool.CurrentPooledCount;
+        public int Port => m_listener.Port;
+        public int ListenerBackLog => m_listener.Backlog;
+        public int ListenrRegisterCount => m_listener.RegisterCount;
 
         readonly Listener m_listener;
         internal SessionPool m_sessionPool;
@@ -86,6 +89,8 @@ namespace ServerCoreTCP
 
         readonly Connector m_connector;
         readonly Session[] m_session;
+
+        public int ConnectionCount => m_connector.ConnectionCount;
 
         public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ClientServiceConfig config) : base(ServiceTypes.Client)
         {

@@ -17,7 +17,7 @@ namespace ServerCoreTCP
         public SocketEventType EventType => m_eventType;
         protected SocketEventType m_eventType;
 
-        internal SocketObject m_socketObject;
+        protected SocketObject m_socketObject;
 
         public SocketEventToken(SocketEventType eventType, SocketObject socketObject)
         {

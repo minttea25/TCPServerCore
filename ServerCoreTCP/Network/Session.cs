@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace ServerCoreTCP
@@ -23,10 +22,12 @@ namespace ServerCoreTCP
         /// <summary>
         /// The value to check the session connected; 0: disconnected, 1: connected (Used with Interlocked)
         /// </summary>
-        int m_connected = 0;
+        int _connected = 0;
         uint m_sessionId;
-        SocketAsyncEventArgs m_recvEventArgs = null;
-        SocketAsyncEventArgs m_sendEventArgs = null;
+
+        SocketAsyncEventArgs _recvEventArgs = null;
+        SocketAsyncEventArgs _sendEventArgs = null;
+
         /// <summary>
         /// Note: Send/Recv can be occurred in multiple threads
         /// </summary>
@@ -115,7 +116,6 @@ namespace ServerCoreTCP
 
         public Session()
         {
-
             m_recvBuffer = new RecvBuffer(RecvBufferSize);
             m_sendQueue = new Queue<ArraySegment<byte>>();
             m_sendPendingList = new List<ArraySegment<byte>>();
@@ -130,13 +130,13 @@ namespace ServerCoreTCP
         {
             m_socket = socket;
 
-            m_connected = 1;
+            _connected = 1;
 
-            m_recvEventArgs = m_service.m_saeaPool.Pop();
-            m_sendEventArgs = m_service.m_saeaPool.Pop();
+            _recvEventArgs = m_service.m_saeaPool.Pop();
+            _sendEventArgs = m_service.m_saeaPool.Pop();
 
-            m_recvEventArgs.UserToken = new RecvEventToken(this);
-            m_sendEventArgs.UserToken = new SendEventToken(this);
+            _recvEventArgs.UserToken = new RecvEventToken(this);
+            _sendEventArgs.UserToken = new SendEventToken(this);
 
             InitSession();
             RegisterRecv();
@@ -190,7 +190,7 @@ namespace ServerCoreTCP
         protected void RegisterSend()
         {
             // If it is already disconnected, return
-            if (m_connected == 0) return;
+            if (_connected == 0) return;
 
             // NOTE:
             // DO NOT ADD ITEMS to eventArgs.BufferList through Add method.
@@ -203,12 +203,12 @@ namespace ServerCoreTCP
                 m_sendPendingList.Add(m_sendQueue.Dequeue());
             }
 
-            m_sendEventArgs.BufferList = m_sendPendingList;
+            _sendEventArgs.BufferList = m_sendPendingList;
 
             try
             {
-                bool pending = m_socket.SendAsync(m_sendEventArgs);
-                if (pending == false) OnSendCompleted(m_sendEventArgs);
+                bool pending = m_socket.SendAsync(_sendEventArgs);
+                if (pending == false) OnSendCompleted(_sendEventArgs);
             }
             catch (Exception ex)
             {
@@ -221,17 +221,17 @@ namespace ServerCoreTCP
         /// </summary>
         protected void RegisterRecv()
         {
-            if (m_connected == 0) return;
+            if (_connected == 0) return;
 
 
             m_recvBuffer.CleanUp(); // expensive
             var segment = m_recvBuffer.WriteSegment;
-            m_recvEventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
+            _recvEventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
 
             try
             {
-                bool pending = m_socket.ReceiveAsync(m_recvEventArgs);
-                if (pending == false) OnRecvCompleted(m_recvEventArgs);
+                bool pending = m_socket.ReceiveAsync(_recvEventArgs);
+                if (pending == false) OnRecvCompleted(_recvEventArgs);
             }
             catch (Exception ex)
             {
@@ -254,7 +254,7 @@ namespace ServerCoreTCP
                     {
                         OnSend(eventArgs.BytesTransferred);
 
-                        m_sendEventArgs.BufferList = null;
+                        _sendEventArgs.BufferList = null;
                         m_sendPendingList.Clear();
                     }
                     catch (Exception ex)
@@ -352,7 +352,7 @@ namespace ServerCoreTCP
         public void Disconnect()
         {
             // Check that it is already disconnected
-            if (Interlocked.Exchange(ref m_connected, 0) == 0) return;
+            if (Interlocked.Exchange(ref _connected, 0) == 0) return;
 
             OnDisconnected(m_socket.RemoteEndPoint);
 
@@ -376,14 +376,14 @@ namespace ServerCoreTCP
         {
             PreSessionCleanup();
 
-            m_connected = 0;
+            _connected = 0;
             m_socket = null;
 
-            m_service.m_saeaPool.Push(m_recvEventArgs);
-            m_service.m_saeaPool.Push(m_sendEventArgs);
+            m_service.m_saeaPool.Push(_recvEventArgs);
+            m_service.m_saeaPool.Push(_sendEventArgs);
 
-            m_recvEventArgs = null;
-            m_sendEventArgs = null;
+            _recvEventArgs = null;
+            _sendEventArgs = null;
 
 
             m_recvBuffer.ClearBuffer();

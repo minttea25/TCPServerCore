@@ -12,26 +12,26 @@ namespace ServerCoreTCP.Job
 
     public class RevocableJob : IRevocableJob, IComparable<RevocableJob>
     {
-        readonly protected IJob _job;
-        readonly protected long _millisecondsAfterExec;
-        protected bool _canceled;
+        readonly IJob _job;
+        readonly long _millisecondsAfterExec;
+        bool m_canceled;
 
         public RevocableJob(IJob job, long millisecondsAfterExec)
         {
             _job = job;
             _millisecondsAfterExec = millisecondsAfterExec;
-            _canceled = false;
+            m_canceled = false;
         }
 
         public void Execute()
         {
-            if (_canceled == false) _job?.Execute();
+            if (m_canceled == false) _job?.Execute();
         }
 
         public bool Canceled
         {
-            get => _canceled;
-            set => _canceled = value;
+            get => m_canceled;
+            set => m_canceled = value;
         }
 
         public long MillisecondsExec

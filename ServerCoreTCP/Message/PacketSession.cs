@@ -23,11 +23,8 @@ namespace ServerCoreTCP.Message
         public void Send<T>(T message) where T : IMessage
         {
             int size = message.CalculateSize();
-#if MEMORY_BUFFER
-            var sendBuffer = MessageParser.MSerialize(message);
-#else
+
             var sendBuffer = MessageParser.Serialize(message);
-#endif
 
             lock (_lock)
             {
@@ -37,40 +34,6 @@ namespace ServerCoreTCP.Message
             }
         }
 
-#if MEMORY_BUFFER
-        /// <summary>
-        /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
-        /// </summary>
-        /// <param name="buffer">The buffer received on socket.</param>
-        /// <returns>The length of processed bytes.</returns>
-        protected sealed override int OnRecvProcess(Memory<byte> buffer)
-        {
-            // If the size of received buffer is shorter than the header size, it is not the whole data.
-            if (buffer.Length < MinimumPacketLength) return 0;
-
-            int processed = 0;
-
-            while (processed < buffer.Length)
-            {
-                // Note: the protobuf packet buffer (The size type is fixed32 that has 4 bytes on PROTO and it becomes uint type on C#)
-                // [tag, 1][size, 4][tag, 1][pacektType, 1][data, ~]
-                // Get total size of the unit packet (sizeof(uint) = 4)
-                // Jump the tag size (1 byte)
-                //int size = (int)BitConverter.ToUInt32(buffer.Span.Slice(processed + 1, HeaderSize));
-                int size = (int)Base128Encoding.ReadUInt32(buffer.Span.Slice(processed), out int bytesRead);
-                processed += bytesRead;
-
-                if (size + processed > buffer.Length) break;
-
-                ReadOnlySpan<byte> data = buffer.Span.Slice(processed, size);
-                processed += size;
-
-                OnRecv(data);
-            }
-
-            return processed;
-        }
-#else
         /// <summary>
         /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
         /// </summary>
@@ -102,7 +65,6 @@ namespace ServerCoreTCP.Message
 
             return processed;
         }
-#endif
     }
 }
 #endif

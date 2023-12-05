@@ -16,13 +16,9 @@ namespace ServerCoreTCP.CustomPacket
     public interface IPacket
     {
         public ushort PacketType { get; }
-#if MEMORY_BUFFER
-        public Memory<byte> MSerialize();
-        public void MDeserialize(Memory<byte> data);
-#else
+
         public ArraySegment<byte> Serialize();
         public void Deserialize(ReadOnlySpan<byte> span);
-#endif
 
         //public static string ToString<T>(T pkt) where T : IPacket
         //{
@@ -70,13 +66,9 @@ namespace ServerCoreTCP.CustomPacket
 
     public abstract class PacketItem
     {
-#if MEMORY_BUFFER
-        public abstract bool MSerialize(Memory<byte> buffer, ref int offset);
-        public abstract void MDeserialize(Memory<byte> buffer, ref int offset);
-#else
+
         public abstract bool Serialize(Span<byte> span, ref int offset);
         public abstract void Deserialize(ReadOnlySpan<byte> span, ref int offset);
-#endif
 
         //public override string ToString()
         //{

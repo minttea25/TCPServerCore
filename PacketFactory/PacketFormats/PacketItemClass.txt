@@ -1,20 +1,7 @@
 public class {0} : PacketItem
 {{
     {1}
-#if MEMORY_BUFFER
-    public override bool MSerialize(Memory<byte> buffer, ref int offset)
-    {{
-        bool suc = true;
 
-        {2}
-        return suc;
-    }}
-
-    public override void MDeserialize(Memory<byte> buffer, ref int offset)
-    {{
-        {3}
-    }}
-#else
     public override bool Serialize(Span<byte> span, ref int offset)
     {{
         bool suc = true;
@@ -27,5 +14,4 @@ public class {0} : PacketItem
     {{
         {5}
     }}
-#endif
 }}

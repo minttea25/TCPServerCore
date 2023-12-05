@@ -1,4 +1,0 @@
-int {0}Len = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
-offset += sizeof(ushort);
-{0} = Encoding.{1}.GetString(buffer.Span.Slice(offset, {0}Len));
-offset += {0}Len;

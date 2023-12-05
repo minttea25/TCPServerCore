@@ -13,17 +13,11 @@ namespace {0}
         public static PacketManager Instance {{ get {{ return _instance; }} }}
         #endregion
 
-#if MEMORY_BUFFER
-        /// <summary>
-        /// Key is Packets(ushort); Value: the func returns a created packet with the received buffer.
-        /// </summary>
-        Dictionary<ushort, Func<Session, Memory<byte>, IPacket>> _packetFactory = new Dictionary<ushort, Func<Session, Memory<byte>, IPacket>>();
-#else
         /// <summary>
         /// Key is Packets(ushort); Value: the func returns a created packet with the received buffer.
         /// </summary>
         Dictionary<ushort, Func<Session, ArraySegment<byte>, IPacket>> _packetFactory = new Dictionary<ushort, Func<Session, ArraySegment<byte>, IPacket>>();
-#endif
+
         /// <summary>
         /// Value: action which handles the packet(ushort, Packets).
         /// </summary>
@@ -33,36 +27,7 @@ namespace {0}
         {{
             {1}
         }}
-#if MEMORY_BUFFER
-        public void OnRecvPacket(Session session, Memory<byte> buffer, Action<Session, IPacket> callback = null)
-        {{
-            int offset = 0;
 
-            // The whole size of the received packet
-            ushort size = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
-            offset += sizeof(ushort);
-
-            // The type of the received packet
-            ushort pkt = BitConverter.ToUInt16(buffer.Span.Slice(offset, sizeof(ushort)));
-            offset += sizeof(ushort);
-
-            if (_packetFactory.TryGetValue(pkt, out var factory))
-            {{
-                IPacket packet = factory.Invoke(session, buffer);
-
-                callback?.Invoke(session, packet);
-
-                HandlePacket(packet, session);
-            }}
-        }}
-
-        static T MakePacket<T>(Session session, Memory<byte> buffer) where T : IPacket, new()
-        {{
-            T packet = new T();
-            packet.MDeserialize(buffer);
-            return packet;
-        }}
-#else
         public void OnRecvPacket(Session session, ArraySegment<byte> buffer, Action<Session, IPacket> callback = null)
         {{
             int offset = 0;
@@ -91,7 +56,6 @@ namespace {0}
             packet.Deserialize(buffer);
             return packet;
         }}
-#endif
 
         void HandlePacket(IPacket packet, Session session)
         {{

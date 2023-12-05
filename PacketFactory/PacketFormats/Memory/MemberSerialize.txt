@@ -1,2 +1,0 @@
-suc &= BitConverter.TryWriteBytes(buffer.Span.Slice(offset, sizeof({0})), {1});
-offset += sizeof({0});

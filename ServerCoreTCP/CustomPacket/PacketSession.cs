@@ -11,38 +11,10 @@ namespace ServerCoreTCP.CustomPacket
 
         public void Send(IPacket data)
         {
-#if MEMORY_BUFFER
-            SendRaw(data.MSerialize());
-#else
+
             SendRaw(data.Serialize());
-#endif
+
         }
-
-#if MEMORY_BUFFER
-        protected sealed override int OnRecvProcess(Memory<byte> buffer)
-        {
-            if (buffer.Length < MinimumPacketLength) return 0;
-
-            int processed = 0;
-
-            while (processed < buffer.Length)
-            {
-                if (buffer.Length < HeaderSize) break;
-
-                // size contains the length of the packet type and message.
-                ushort size = BitConverter.ToUInt16(buffer.Span.Slice(processed, HeaderSize));
-                processed += HeaderSize;
-
-                if (size + processed > buffer.Length) break;
-
-                ReadOnlySpan<byte> data = buffer.Span.Slice(processed, size);
-                OnRecv(data);
-                processed += size;
-            }
-
-            return processed;
-        }
-#else
 
         protected sealed override int OnRecvProcess(ArraySegment<byte> buffer)
         {
@@ -67,7 +39,6 @@ namespace ServerCoreTCP.CustomPacket
 
             return processed;
         }
-#endif
     }
 }
 #endif

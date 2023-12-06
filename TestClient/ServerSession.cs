@@ -22,6 +22,7 @@ namespace TestClient
         public void Send_<T>(T message) where T : IMessage
         {
             CoreLogger.LogSend(message);
+            Console.WriteLine((message));
             Send(message);
         }
 

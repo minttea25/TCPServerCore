@@ -33,6 +33,10 @@ namespace {0}
 
         MessageManager()
         {{
+        }}
+
+        public void Init()
+        {{
             {2}
 
             {3}
@@ -59,7 +63,7 @@ namespace {0}
 
         static ushort ReadPacketType(ReadOnlySpan<byte> buffer)
         {{
-            return BitConverter.ToUInt16(buffer.Slice(0, MessageTypeLength));
+            return buffer.ToUInt16();
         }}
 
         void HandlePacket(ushort packetType, IMessage msg, Session session)

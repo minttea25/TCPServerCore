@@ -32,10 +32,10 @@ namespace TestClient
 
             Thread.Sleep(1000);
 
-            UserName = "test" + rand.Next(1, 100000);
+            UserName = "test" + rand.Next(1, 100000).ToString("00000");
 
             ClientServiceConfig config = ClientServiceConfig.GetDefault();
-            config.ClientServiceSessionCount = 50;
+            config.ClientServiceSessionCount = 1;
 
             ClientService clientService 
                 = new ClientService(

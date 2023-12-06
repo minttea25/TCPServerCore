@@ -1,9 +1,9 @@
-﻿#if MESSAGE_WRAPPER_PACKET
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using Google.Protobuf;
 using ServerCoreTCP.CLogger;
+using ServerCoreTCP.Utils;
 
 namespace ServerCoreTCP.MessageWrapper
 {
@@ -15,43 +15,43 @@ namespace ServerCoreTCP.MessageWrapper
             //{ typeof(Vector3), (ushort)PacketType.Pvector3 },
         };
 
-        public const int HeaderMessageLengthSize = sizeof(ushort);
-        public const int HeaderPacketTypeSize = sizeof(ushort);
+        public const int HeaderSize = sizeof(ushort);
+        public const int MessageTypeSize = sizeof(ushort);
 
         /// <summary>
-        /// Serialize the message with PacketWrapper [ArraySegment]
+        /// Serialize the message with PacketWrapper using little-endian [ArraySegment]
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
         /// <param name="message">The message to serialize.</param>
         /// <returns>The serialized buffer with PacketWrapper.</returns>
         public static ArraySegment<byte> Serialize<T>(T message) where T : IMessage
         {
-            ushort size = (ushort)(message.CalculateSize() + HeaderPacketTypeSize);
             try
             {
+                // [packetSize (except this header)(2)][messageType(2)][message]
                 ushort messageType = PacketMap[typeof(T)];
+                ushort packetSize = (ushort)((ushort)(message.CalculateSize()) + MessageTypeSize);
                 int offset = 0;
-                ArraySegment<byte> buffer = SendBufferTLS.Reserve(HeaderMessageLengthSize + size);
-                if (BitConverter.TryWriteBytes(buffer.Slice(offset, sizeof(ushort)), size) == false)
-                {
-                    return null;
-                }
-                offset += sizeof(ushort);
-                if (BitConverter.TryWriteBytes(buffer.Slice(offset, sizeof(ushort)), messageType) == false)
-                {
-                    return null;
-                }
-                offset += sizeof(ushort);
+
+                ArraySegment<byte> buffer = SendBufferTLS.Use(HeaderSize + packetSize);
+
+                // contains offset += sizeof(ushort)
+                packetSize.FromUInt16(buffer, ref offset);  // 2 bytes
+                // contains offset += sizeof(ushort)
+                messageType.FromUInt16(buffer, ref offset); // 2 bytes
                 message.WriteTo(buffer.Slice(offset));
 
-                return SendBufferTLS.Return(HeaderMessageLengthSize + size);
+                // needless code
+                // offset += packetSize - sizeof(ushort);
+
+                return buffer;
             }
-            catch(KeyNotFoundException knfe)
+            catch (KeyNotFoundException knfe)
             {
                 CoreLogger.LogError("MessageWrapper.Serialize", knfe, "Can not find key={0} in PacketMap", typeof(T));
                 return null;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 CoreLogger.LogError("MessageWrapper.Serialize", e, "Other Exception");
                 return null;
@@ -70,4 +70,3 @@ namespace ServerCoreTCP.MessageWrapper
         }
     }
 }
-#endif

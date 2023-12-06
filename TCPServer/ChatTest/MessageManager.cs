@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using ServerCoreTCP;
+using ServerCoreTCP.Utils;
 using ServerCoreTCP.MessageWrapper;
 
 namespace Chat
@@ -136,7 +137,7 @@ namespace Chat
 
         static ushort ReadPacketType(ReadOnlySpan<byte> buffer)
         {
-            return BitConverter.ToUInt16(buffer.Slice(0, MessageTypeLength));
+            return buffer.ToUInt16();
         }
 
         void HandlePacket(ushort packetType, IMessage msg, Session session)

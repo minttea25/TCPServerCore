@@ -57,6 +57,19 @@ namespace ServerCoreTCP
 
         public static ArraySegment<byte> Use(int size)
         {
+            if (size > BufferSize)
+            {
+                CoreLogger.LogError("SendBuffer.Use", "The reserveSize[{0}] is bigger than the bufferSize[{1}]", size, BufferSize);
+                return null;
+            }
+
+            if (TLS_CurrentBuffer.Value == null)
+            {
+                TLS_CurrentBuffer.Value = new SendBuffer(BufferSize);
+            }
+
+            if (TLS_CurrentBuffer.Value.FreeSize < size) TLS_CurrentBuffer.Value = new SendBuffer(BufferSize);
+
             return TLS_CurrentBuffer.Value.Use(size);
         }
     }

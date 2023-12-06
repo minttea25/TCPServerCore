@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-option csharp_namespace = /*namespace*/;
-
-enum PacketType {{
-    P_Invalid = 0;
-    {0}
-}}
-

@@ -1,6 +1,0 @@
-public static void {0}MessageHandler(IMessage message, Session session)
-{{
-    {0} msg = message as {0};
-
-    // TODO
-}}

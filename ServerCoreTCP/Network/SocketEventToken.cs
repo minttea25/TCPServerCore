@@ -9,23 +9,23 @@ namespace ServerCoreTCP
 {
     internal abstract class SocketEventToken
     {
-        public enum SocketEventType : ushort
+        internal enum SocketEventType : ushort
         {
             Connect, Disconnect, Accept, Recv, Send
         }
 
-        public SocketEventType EventType => m_eventType;
+        internal SocketEventType EventType => m_eventType;
         protected SocketEventType m_eventType;
 
         internal SocketObject m_socketObject;
 
-        public SocketEventToken(SocketEventType eventType, SocketObject socketObject)
+        internal SocketEventToken(SocketEventType eventType, SocketObject socketObject)
         {
             m_eventType = eventType;
             m_socketObject = socketObject;
         }
 
-        public void SetSocketObject(SocketObject socketObject)
+        internal void SetSocketObject(SocketObject socketObject)
         {
             m_socketObject = socketObject;
         }
@@ -35,7 +35,7 @@ namespace ServerCoreTCP
     {
         internal Socket m_socket;
         internal Session m_session;
-        public ConnectEventToken(Connector connector, Socket socket, Session session) : base(SocketEventType.Connect, connector)
+        internal ConnectEventToken(Connector connector, Socket socket, Session session) : base(SocketEventType.Connect, connector)
         {
             m_socket = socket;
             m_session = session;
@@ -44,7 +44,7 @@ namespace ServerCoreTCP
 
     internal class AcceptEventToken : SocketEventToken
     {
-        public AcceptEventToken(Listener listener) : base(SocketEventType.Accept, listener)
+        internal AcceptEventToken(Listener listener) : base(SocketEventType.Accept, listener)
         {
 
         }
@@ -52,7 +52,7 @@ namespace ServerCoreTCP
 
     internal class RecvEventToken : SocketEventToken
     {
-        public RecvEventToken(Session session) : base(SocketEventType.Recv, session)
+        internal RecvEventToken(Session session) : base(SocketEventType.Recv, session)
         {
 
         }
@@ -60,7 +60,7 @@ namespace ServerCoreTCP
 
     internal class SendEventToken : SocketEventToken
     {
-        public SendEventToken(Session session) : base(SocketEventType.Send, session)
+        internal SendEventToken(Session session) : base(SocketEventType.Send, session)
         {
 
         }

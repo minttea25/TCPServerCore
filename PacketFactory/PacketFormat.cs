@@ -69,24 +69,6 @@ namespace PacketFactory
         public static new readonly string MemberDeserializeList = $"{BaseDir}{Path.DirectorySeparatorChar}{ArraySegmentDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberDeserializeList}";
         public static new readonly string MemberDeserializeString = $"{BaseDir}{Path.DirectorySeparatorChar}{ArraySegmentDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberDeserializeString}";
     }
-
-    class MemoryFormat : BufferFormat
-    {
-        private const string MemoryDirPath = "Memory";
-
-        public static new readonly string MemberSerialize = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberSerialize}";
-        public static new readonly string MemberSerializeClass = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberSerializeClass}";
-        public static new readonly string MemberSerializeList = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberSerializeList}";
-        public static new readonly string MemberSerializeString = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberSerializeString}";
-
-        public static new readonly string MemberDeserialize = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberDeserialize}";
-        public static new readonly string MemberDeserializeAdd = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberDeserializeAdd}";
-        public static new readonly string MemberDeserializeAddClass = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberDeserializeAddClass}";
-        public static new readonly string MemberDeserializeAddString = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberDeserializeAddString}";
-        public static new readonly string MemberDeserializeClass = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberDeserializeClass}";
-        public static new readonly string MemberDeserializeList = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberDeserializeList}";
-        public static new readonly string MemberDeserializeString = $"{BaseDir}{Path.DirectorySeparatorChar}{MemoryDirPath}{Path.DirectorySeparatorChar}{BufferFormat.MemberDeserializeString}";
-    }
 }
 
 

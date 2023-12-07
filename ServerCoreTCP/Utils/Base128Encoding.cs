@@ -4,9 +4,9 @@ namespace ServerCoreTCP.Utils
 {
     public static class Base128Encoding
     {
-        public static int WriteUInt32(uint value, Span<byte> buffer)
+        public static int WriteUInt32(uint value, Span<byte> buffer, int offset = 0)
         {
-            int index = 0;
+            int index = offset;
 
             while (value >= 0x80)
             {
@@ -19,13 +19,13 @@ namespace ServerCoreTCP.Utils
             return index;
         }
 
-        public static uint ReadUInt32(ReadOnlySpan<byte> buffer, out int bytesRead)
+        public static uint ReadUInt32(ReadOnlySpan<byte> buffer, out int bytesRead, int offset = 0)
         {
             uint result = 0;
             int shift = 0;
             bytesRead = 0;
 
-            for (int i = 0; i < buffer.Length; i++)
+            for (int i = 0 + offset; i < buffer.Length + offset; i++)
             {
                 byte b = buffer[i];
                 result |= (uint)(b & 0x7F) << shift;

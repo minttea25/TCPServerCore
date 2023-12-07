@@ -9,6 +9,9 @@ namespace ServerCoreTCP
     internal class Listener : SocketObject
     {
         public int Port => m_port;
+        public int Backlog => m_backlog;
+        public int RegisterCount => m_registerCount;
+        public ServerService ServerService => m_serverService;
 
         internal ServerService m_serverService;
 

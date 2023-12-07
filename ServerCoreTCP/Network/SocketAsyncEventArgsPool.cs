@@ -8,23 +8,23 @@ namespace ServerCoreTCP
     internal class SocketAsyncEventArgsPool
     {
         public int TotalPoolCount => m_totalCount;
-        public int CurrentPooledCount => m_pool.Count;
+        public int CurrentPooledCount => _pool.Count;
 
 
-        readonly ConcurrentStack<SocketAsyncEventArgs> m_pool;
-        readonly Action<object, SocketAsyncEventArgs> m_completedCallback;
+        readonly ConcurrentStack<SocketAsyncEventArgs> _pool;
+        readonly Action<object, SocketAsyncEventArgs> _completedCallback;
 
         int m_totalCount = 0;
 
         internal SocketAsyncEventArgsPool(int capacity, Action<object, SocketAsyncEventArgs> completedCallback)
         {
-            m_completedCallback = completedCallback;
-            m_pool = new ConcurrentStack<SocketAsyncEventArgs>();
+            _completedCallback = completedCallback;
+            _pool = new ConcurrentStack<SocketAsyncEventArgs>();
 
             for (int i = 0; i < capacity; ++i)
             {
                 var args = CreateNew();
-                m_pool.Push(args);
+                _pool.Push(args);
 
                 //var e = new SocketAsyncEventArgs();
                 //e.Completed += new EventHandler<SocketAsyncEventArgs>(m_completedCallback);
@@ -34,7 +34,7 @@ namespace ServerCoreTCP
 
         internal SocketAsyncEventArgs Pop()
         {
-            if (m_pool.TryPop(out var args) == true) return args;
+            if (_pool.TryPop(out var args) == true) return args;
             else return CreateNew();
         }
 
@@ -48,12 +48,12 @@ namespace ServerCoreTCP
             args.BufferList = null;
             args.SetBuffer(null, 0, 0);
 
-            m_pool.Push(args);
+            _pool.Push(args);
         }
 
         internal void Clear()
         {
-            m_pool.Clear();
+            _pool.Clear();
         }
 
         SocketAsyncEventArgs CreateNew()
@@ -61,7 +61,7 @@ namespace ServerCoreTCP
             _ = Interlocked.Increment(ref m_totalCount);
 
             var args = new SocketAsyncEventArgs();
-            args.Completed += new EventHandler<SocketAsyncEventArgs>(m_completedCallback);
+            args.Completed += new EventHandler<SocketAsyncEventArgs>(_completedCallback);
 
             return args;
         }

@@ -3,15 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace ServerCoreTCP
 {
     public abstract class Session : SocketObject
     {
-        public const int RecvBufferSize = 65535 * 10;
-
         public uint SessionId => m_sessionId;
         public EndPoint ConnectedEndPoint => m_socket?.RemoteEndPoint;
 
@@ -23,10 +20,12 @@ namespace ServerCoreTCP
         /// <summary>
         /// The value to check the session connected; 0: disconnected, 1: connected (Used with Interlocked)
         /// </summary>
-        int m_connected = 0;
+        int _connected = 0;
         uint m_sessionId;
-        SocketAsyncEventArgs m_recvEventArgs = null;
-        SocketAsyncEventArgs m_sendEventArgs = null;
+
+        SocketAsyncEventArgs _recvEventArgs = null;
+        SocketAsyncEventArgs _sendEventArgs = null;
+
         /// <summary>
         /// Note: Send/Recv can be occurred in multiple threads
         /// </summary>
@@ -68,17 +67,9 @@ namespace ServerCoreTCP
             }
         }
 
-
-#if MEMORY_BUFFER
-        protected readonly MRecvBuffer m_recvBuffer;
-        protected readonly Queue<Memory<byte>> m_sendQueue;
-        protected readonly List<Memory<byte>> m_sendPendingList;
-        protected readonly List<ArraySegment<byte>> m_sendBufferList;
-#else
         protected readonly RecvBuffer m_recvBuffer;
         protected readonly Queue<ArraySegment<byte>> m_sendQueue;
         protected readonly List<ArraySegment<byte>> m_sendPendingList;
-#endif
 
         #region Abstract Methods
         /// <summary>
@@ -110,36 +101,22 @@ namespace ServerCoreTCP
         /// <param name="endPoint">The end point of the socket.</param>
         /// <param name="error">The additional object of error</param>
         public abstract void OnDisconnected(EndPoint endPoint, object error = null);
-#if MEMORY_BUFFER
-        /// <summary>
-        /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
-        /// </summary>
-        /// <param name="buffer">The buffer received on socket.</param>
-        /// <returns>The length of processed bytes.</returns>
-        protected abstract int OnRecvProcess(Memory<byte> buffer);
-#else
+
         /// <summary>
         /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
         /// </summary>
         /// <param name="buffer">The buffer received on socket.</param>
         /// <returns>The length of processed bytes.</returns>
         protected abstract int OnRecvProcess(ArraySegment<byte> buffer);
-#endif
+
 
         #endregion
 
         public Session()
         {
-#if MEMORY_BUFFER
-            m_recvBuffer = new MRecvBuffer(RecvBufferSize);
-            m_sendQueue = new Queue<Memory<byte>>();
-            m_sendPendingList = new List<Memory<byte>>();
-            m_sendBufferList = new List<ArraySegment<byte>>();
-#else
-            m_recvBuffer = new RecvBuffer(RecvBufferSize);
+            m_recvBuffer = new RecvBuffer(Defines.RecvBufferSize);
             m_sendQueue = new Queue<ArraySegment<byte>>();
             m_sendPendingList = new List<ArraySegment<byte>>();
-#endif
         }
 
 
@@ -151,13 +128,13 @@ namespace ServerCoreTCP
         {
             m_socket = socket;
 
-            m_connected = 1;
+            _connected = 1;
 
-            m_recvEventArgs = m_service.m_saeaPool.Pop();
-            m_sendEventArgs = m_service.m_saeaPool.Pop();
+            _recvEventArgs = m_service.m_saeaPool.Pop();
+            _sendEventArgs = m_service.m_saeaPool.Pop();
 
-            m_recvEventArgs.UserToken = new RecvEventToken(this);
-            m_sendEventArgs.UserToken = new SendEventToken(this);
+            _recvEventArgs.UserToken = new RecvEventToken(this);
+            _sendEventArgs.UserToken = new SendEventToken(this);
 
             InitSession();
             RegisterRecv();
@@ -168,46 +145,14 @@ namespace ServerCoreTCP
             ;
         }
 
-#if MEMORY_BUFFER
-        /// <summary>
-        /// Send data to endpoint of the socket. [Memory]
-        /// </summary>
-        /// <param name="sendBuffer">Serialized data to send</param>
-        public void SendRaw(Memory<byte> sendBuffer)
-        {
-            lock (_lock)
-            {
-                m_sendQueue.Enqueue(sendBuffer);
 
-                if (m_sendPendingList.Count == 0) RegisterSend();
-            }
-        }
-
-        /// <summary>
-        /// Send a list of data to endpoint of the socket. [Memory]
-        /// </summary>
-        /// <param name="sendBufferList">A list of serialized data to send</param>
-        public void SendRaw(List<Memory<byte>> sendBufferList)
-        {
-            if (sendBufferList.Count == 0) return;
-
-            lock (_lock)
-            {
-                foreach (var buffer in sendBufferList)
-                {
-                    m_sendQueue.Enqueue(buffer);
-                }
-
-                if (m_sendPendingList.Count == 0) RegisterSend();
-            }
-        }
-#else
         /// <summary>
         /// Send data to endpoint of the socket. [ArraySegment]
         /// </summary>
         /// <param name="sendBuffer">Serialized data to send</param>
         public void SendRaw(ArraySegment<byte> sendBuffer)
         {
+            if (sendBuffer == null) throw new Exception("Failed to serialize the message.");
             if (sendBuffer.Count == 0) throw new Exception("The count of 'sendBuffer' was 0.");
 
             lock (_lock)
@@ -236,7 +181,6 @@ namespace ServerCoreTCP
                 if (m_sendPendingList.Count == 0) RegisterSend();
             }
         }
-#endif
 
 
         /// <summary>
@@ -245,45 +189,25 @@ namespace ServerCoreTCP
         protected void RegisterSend()
         {
             // If it is already disconnected, return
-            if (m_connected == 0) return;
+            if (_connected == 0) return;
 
             // NOTE:
             // DO NOT ADD ITEMS to eventArgs.BufferList through Add method.
             // It does not work well and causes SocketError.InvalidArguments.
             // USE EventArgs.BufferList = list instead.
             // WHY? https://stackoverflow.com/questions/11820677/how-use-bufferlist-with-socketasynceventargs-and-not-get-socketerror-invalidargu
-#if MEMORY_BUFFER
+
             while (m_sendQueue.Count > 0)
             {
                 m_sendPendingList.Add(m_sendQueue.Dequeue());
             }
 
-            foreach (Memory<byte> buff in m_sendPendingList)
-            {
-                if (MemoryMarshal.TryGetArray<byte>(buff, out var segment))
-                {
-                    m_sendBufferList.Add(segment);
-                }
-                else
-                {
-                    CoreLogger.LogError("Session.RegisterSend", "Failed: MemoryMarshal.TryGetArray<byte>(buff, out var segment)");
-                }
-            }
-            m_sendEventArgs.BufferList = m_sendBufferList;
-            m_sendPendingList.Clear();
-#else
-            while (m_sendQueue.Count > 0)
-            {
-                m_sendPendingList.Add(m_sendQueue.Dequeue());
-            }
-
-            m_sendEventArgs.BufferList = m_sendPendingList;
-#endif
+            _sendEventArgs.BufferList = m_sendPendingList;
 
             try
             {
-                bool pending = m_socket.SendAsync(m_sendEventArgs);
-                if (pending == false) OnSendCompleted(m_sendEventArgs);
+                bool pending = m_socket.SendAsync(_sendEventArgs);
+                if (pending == false) OnSendCompleted(_sendEventArgs);
             }
             catch (Exception ex)
             {
@@ -296,21 +220,17 @@ namespace ServerCoreTCP
         /// </summary>
         protected void RegisterRecv()
         {
-            if (m_connected == 0) return;
+            if (_connected == 0) return;
 
-#if MEMORY_BUFFER
-            m_recvBuffer.CleanUp();
-            m_recvEventArgs.SetBuffer(m_recvBuffer.WriteMemory);
-#else
+
             m_recvBuffer.CleanUp(); // expensive
             var segment = m_recvBuffer.WriteSegment;
-            m_recvEventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
-#endif
+            _recvEventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
 
             try
             {
-                bool pending = m_socket.ReceiveAsync(m_recvEventArgs);
-                if (pending == false) OnRecvCompleted(m_recvEventArgs);
+                bool pending = m_socket.ReceiveAsync(_recvEventArgs);
+                if (pending == false) OnRecvCompleted(_recvEventArgs);
             }
             catch (Exception ex)
             {
@@ -332,14 +252,9 @@ namespace ServerCoreTCP
                     try
                     {
                         OnSend(eventArgs.BytesTransferred);
-#if MEMORY_BUFFER
-                        m_sendBufferList.Clear();
-                        m_sendEventArgs.SetBuffer(null);
-                        m_sendEventArgs.BufferList = null;
-#else
-                        m_sendEventArgs.BufferList = null;
+
+                        _sendEventArgs.BufferList = null;
                         m_sendPendingList.Clear();
-#endif
                     }
                     catch (Exception ex)
                     {
@@ -381,11 +296,9 @@ namespace ServerCoreTCP
                         Disconnect();
                         return;
                     }
-#if MEMORY_BUFFER
-                    int processLength = OnRecvProcess(m_recvBuffer.DataMemory);
-#else
+
                     int processLength = OnRecvProcess(m_recvBuffer.DataSegment);
-#endif
+
                     if (processLength <= 0)
                     {
                         CoreLogger.LogError("Session.OnRecvCompleted", "processLength <= 0");
@@ -438,7 +351,7 @@ namespace ServerCoreTCP
         public void Disconnect()
         {
             // Check that it is already disconnected
-            if (Interlocked.Exchange(ref m_connected, 0) == 0) return;
+            if (Interlocked.Exchange(ref _connected, 0) == 0) return;
 
             OnDisconnected(m_socket.RemoteEndPoint);
 
@@ -462,28 +375,23 @@ namespace ServerCoreTCP
         {
             PreSessionCleanup();
 
-            m_connected = 0;
+            _connected = 0;
             m_socket = null;
 
-            m_service.m_saeaPool.Push(m_recvEventArgs);
-            m_service.m_saeaPool.Push(m_sendEventArgs);
+            m_service.m_saeaPool.Push(_recvEventArgs);
+            m_service.m_saeaPool.Push(_sendEventArgs);
 
-            m_recvEventArgs = null;
-            m_sendEventArgs = null;
+            _recvEventArgs = null;
+            _sendEventArgs = null;
 
-#if MEMORY_BUFFER
+
             m_recvBuffer.ClearBuffer();
-#else
-            m_recvBuffer.ClearBuffer();
-#endif
+
 
             lock (_lock)
             {
                 m_sendQueue.Clear();
                 m_sendPendingList.Clear();
-#if MEMORY_BUFFER
-                m_sendBufferList.Clear();
-#endif
             }
         }
     }

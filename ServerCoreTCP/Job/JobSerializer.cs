@@ -63,7 +63,7 @@ namespace ServerCoreTCP.Job
 
     public class JobSerializerWithTimer : JobSerializer, IUseJobTimer
     {
-        readonly protected JobTimer _jobTimer = new JobTimer();
+        readonly JobTimer _jobTimer = new JobTimer();
 
         public RevocableJob AddAfter(Action action, int millisecondsAfter) { return AddAfter(new Job(action), millisecondsAfter); }
         public RevocableJob AddAfter<T1>(Action<T1> action, int millisecondsAfter, T1 t1) { return AddAfter(new Job<T1>(action, t1), millisecondsAfter); }

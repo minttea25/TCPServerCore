@@ -18,8 +18,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PacketFactories", "PacketFa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageWrapperFactory", "MessageWrapperFactory\MessageWrapperFactory.csproj", "{661F6258-74E0-436F-BC7D-8F2791C28311}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageFactory", "MessageFactory\MessageFactory.csproj", "{EFA09BCB-6D3E-4294-91C3-0EC1523D3D0F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,10 +44,6 @@ Global
 		{661F6258-74E0-436F-BC7D-8F2791C28311}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{661F6258-74E0-436F-BC7D-8F2791C28311}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{661F6258-74E0-436F-BC7D-8F2791C28311}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EFA09BCB-6D3E-4294-91C3-0EC1523D3D0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EFA09BCB-6D3E-4294-91C3-0EC1523D3D0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EFA09BCB-6D3E-4294-91C3-0EC1523D3D0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EFA09BCB-6D3E-4294-91C3-0EC1523D3D0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -57,7 +51,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{0305B7EF-3704-4E6C-83FD-98DDA1519EF6} = {C80F3B50-E626-4C3A-BB24-73521EB6113B}
 		{661F6258-74E0-436F-BC7D-8F2791C28311} = {C80F3B50-E626-4C3A-BB24-73521EB6113B}
-		{EFA09BCB-6D3E-4294-91C3-0EC1523D3D0F} = {C80F3B50-E626-4C3A-BB24-73521EB6113B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA7BDFB5-D1FA-428A-AF94-5F0A4EEF2B51}

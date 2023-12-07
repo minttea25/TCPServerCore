@@ -12,28 +12,28 @@ namespace ServerCoreTCP
     /// </summary>
     public class RecvBuffer
     {
-        readonly ArraySegment<byte> buffer;
+        readonly ArraySegment<byte> _buffer;
         /// <summary>
         /// Pointer of reading in the buffer
         /// </summary>
-        int readPtr;
+        int _readPtr;
         /// <summary>
         /// Pointer of writing in the buffer
         /// </summary>
-        int writePtr;
+        int _writePtr;
 
         /// <summary>
         /// Get size of written data.
         /// </summary>
-        public int DataSize { get { return writePtr - readPtr; } }
+        public int DataSize { get { return _writePtr - _readPtr; } }
         /// <summary>
         /// Get writable size of the buffer now.
         /// </summary>
-        public int FreeSize { get { return buffer.Count - writePtr; } }
+        public int FreeSize { get { return _buffer.Count - _writePtr; } }
 
         public RecvBuffer(int bufferSize)
         {
-            buffer = new ArraySegment<byte>(new byte[bufferSize], 0, bufferSize);
+            _buffer = new ArraySegment<byte>(new byte[bufferSize], 0, bufferSize);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace ServerCoreTCP
         /// </summary>
         public ArraySegment<byte> DataSegment
         {
-            get { return new ArraySegment<byte>(buffer.Array, buffer.Offset + readPtr, DataSize); }
+            get { return new ArraySegment<byte>(_buffer.Array, _buffer.Offset + _readPtr, DataSize); }
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace ServerCoreTCP
         /// </summary>
         public ArraySegment<byte> WriteSegment
         {
-            get { return new ArraySegment<byte>(buffer.Array, buffer.Offset + writePtr, FreeSize); }
+            get { return new ArraySegment<byte>(_buffer.Array, _buffer.Offset + _writePtr, FreeSize); }
         }
 
         /// <summary>
@@ -62,24 +62,24 @@ namespace ServerCoreTCP
             // If no more data, reset the pointers
             if (dataSize == 0)
             {
-                readPtr = writePtr = 0;
+                _readPtr = _writePtr = 0;
             }
             // If there is left data, copy the data at index=0
             else
             {
-                Array.Copy(buffer.Array, buffer.Offset + readPtr,
-                    buffer.Array, buffer.Offset, dataSize);
+                Array.Copy(_buffer.Array, _buffer.Offset + _readPtr,
+                    _buffer.Array, _buffer.Offset, dataSize);
 
                 // reset read pointer to 0
-                readPtr = 0;
+                _readPtr = 0;
                 // reset write pointer after the position of the data
-                writePtr = dataSize;
+                _writePtr = dataSize;
             }
         }
 
         public void ClearBuffer()
         {
-            readPtr = writePtr = 0;
+            _readPtr = _writePtr = 0;
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace ServerCoreTCP
             if (numOfBytes > DataSize) return false;
 
             // Move the pointer as much as the read data length
-            readPtr += numOfBytes;
+            _readPtr += numOfBytes;
             return true;
         }
 
@@ -108,7 +108,7 @@ namespace ServerCoreTCP
             if (numOfBytes > FreeSize) return false;
 
             // Move the pointer as much as the written data length
-            writePtr += numOfBytes;
+            _writePtr += numOfBytes;
             return true;
         }
     }

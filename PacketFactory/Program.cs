@@ -107,17 +107,13 @@ namespace PacketFactory
             List<string> createdFiles = new List<string>();
 
             // check files
-            if (!(CheckFiles<BufferFormat>() && CheckFiles<MemoryFormat>() && CheckFiles<ArraySegmentFormat>()) == true) return;
+            if (!(CheckFiles<BufferFormat>() && CheckFiles<ArraySegmentFormat>()) == true) return;
 
             Dictionary<string, string> baseFormat = BufferFormat.ReadAllFiles<BufferFormat>();
-            Dictionary<string, string> memoryFormat = BufferFormat.ReadAllFiles<MemoryFormat>();
             Dictionary<string, string> arraySegmentFormat = BufferFormat.ReadAllFiles<ArraySegmentFormat>();
 
             WritePacketFiles(format, createdFiles,
                 baseFormat[BufferFormat.Packet], baseFormat[BufferFormat.PacketMember], baseFormat[BufferFormat.PacketMemberList],
-                memoryFormat[MemoryFormat.MemberSerialize], memoryFormat[MemoryFormat.MemberSerializeString], memoryFormat[MemoryFormat.MemberSerializeClass], memoryFormat[MemoryFormat.MemberSerializeList],
-                memoryFormat[MemoryFormat.MemberDeserialize], memoryFormat[MemoryFormat.MemberDeserializeString], memoryFormat[MemoryFormat.MemberDeserializeClass], memoryFormat[MemoryFormat.MemberDeserializeList],
-                memoryFormat[MemoryFormat.MemberDeserializeAdd], memoryFormat[MemoryFormat.MemberDeserializeAddString], memoryFormat[MemoryFormat.MemberDeserializeAddClass],
                 arraySegmentFormat[ArraySegmentFormat.MemberSerialize], arraySegmentFormat[ArraySegmentFormat.MemberSerializeString], arraySegmentFormat[ArraySegmentFormat.MemberSerializeClass], arraySegmentFormat[ArraySegmentFormat.MemberSerializeList],
                 arraySegmentFormat[ArraySegmentFormat.MemberDeserialize], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeString], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeClass], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeList],
                 arraySegmentFormat[ArraySegmentFormat.MemberDeserializeAdd], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeAddString], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeAddClass]);
@@ -127,9 +123,6 @@ namespace PacketFactory
 
             WritePacketItemFile(format, createdFiles,
                 baseFormat[BufferFormat.PacketItem], baseFormat[BufferFormat.PacketItemClass], baseFormat[BufferFormat.PacketMember], baseFormat[BufferFormat.PacketMemberList],
-                memoryFormat[MemoryFormat.MemberSerialize], memoryFormat[MemoryFormat.MemberSerializeString], memoryFormat[MemoryFormat.MemberSerializeClass], memoryFormat[MemoryFormat.MemberSerializeList],
-                memoryFormat[MemoryFormat.MemberDeserialize], memoryFormat[MemoryFormat.MemberDeserializeString], memoryFormat[MemoryFormat.MemberDeserializeClass], memoryFormat[MemoryFormat.MemberDeserializeList],
-                memoryFormat[MemoryFormat.MemberDeserializeAdd], memoryFormat[MemoryFormat.MemberDeserializeAddString], memoryFormat[MemoryFormat.MemberDeserializeAddClass],
                 arraySegmentFormat[ArraySegmentFormat.MemberSerialize], arraySegmentFormat[ArraySegmentFormat.MemberSerializeString], arraySegmentFormat[ArraySegmentFormat.MemberSerializeClass], arraySegmentFormat[ArraySegmentFormat.MemberSerializeList],
                 arraySegmentFormat[ArraySegmentFormat.MemberDeserialize], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeString], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeClass], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeList],
                 arraySegmentFormat[ArraySegmentFormat.MemberDeserializeAdd], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeAddString], arraySegmentFormat[ArraySegmentFormat.MemberDeserializeAddClass]);
@@ -180,9 +173,6 @@ namespace PacketFactory
         public static void WritePacketFiles(Format format, List<string> createdFiles, 
             string packetFormat, 
             string packetMemberFormat, string packetMemberListFormat,
-            string m_memberSerializeFormat, string m_memberSerializeStringFormat, string m_memberSerializeClassFormat, string m_memberSerializeListFormat,
-            string m_memberDeserializeFormat, string m_memberDeserializeStringFormat, string m_memberDeserializeClassFormat, string m_memberDeserializeListFormat,
-            string m_memberDeserializeAddFormat, string m_memberDeserializeAddStringFormat, string m_memberDeserializeAddClassFormat,
             string memberSerializeFormat, string memberSerializeStringFormat, string memberSerializeClassFormat, string memberSerializeListFormat,
             string memberDeserializeFormat, string memberDeserializeStringFormat, string memberDeserializeClassFormat, string memberDeserializeListFormat,
             string memberDeserializeAddFormat, string memberDeserializeAddStringFormat, string memberDeserializeAddClassFormat)
@@ -194,29 +184,21 @@ namespace PacketFactory
                 string content = "";
 
                 string members = "";
-                string s_m_members = "";
-                string d_m_members = "";
                 string s_members = "";
                 string d_members = "";
 
                 foreach (Member m in pkt.Members)
                 {
                     members += ParseMember(m, packetMemberFormat, packetMemberListFormat);
-                    s_m_members += ParseSerialize(m, m_memberSerializeFormat, m_memberSerializeStringFormat, m_memberSerializeClassFormat, m_memberSerializeListFormat);
-                    d_m_members += ParseDeserialize(m, m_memberDeserializeFormat, m_memberDeserializeStringFormat, m_memberDeserializeClassFormat, m_memberDeserializeListFormat, m_memberDeserializeAddFormat, m_memberDeserializeAddStringFormat, m_memberDeserializeAddClassFormat);
                     s_members += ParseSerialize(m, memberSerializeFormat, memberSerializeStringFormat, memberSerializeClassFormat, memberSerializeListFormat);
                     d_members += ParseDeserialize(m, memberDeserializeFormat, memberDeserializeStringFormat, memberDeserializeClassFormat, memberDeserializeListFormat, memberDeserializeAddFormat, memberDeserializeAddStringFormat, memberDeserializeAddClassFormat);
 
                     members += Environment.NewLine;
-                    s_m_members += Environment.NewLine;
-                    d_m_members += Environment.NewLine;
                     s_members += Environment.NewLine;
                     d_members += Environment.NewLine;
                 }
 
                 members = members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
-                s_m_members = s_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
-                d_m_members = d_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
                 s_members = s_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
                 d_members = d_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t\t");
 
@@ -226,7 +208,6 @@ namespace PacketFactory
                     pkt.Name,
                     members,
                     pkt.ReserveBufferSize,
-                    s_m_members, d_m_members,
                     s_members, d_members);
 
                 content = content.Replace("\t", "    ");
@@ -262,9 +243,6 @@ namespace PacketFactory
         public static void WritePacketItemFile(Format format, List<string> createdFiles,
             string packetItemFormat, string packetItemClassFormat,
             string packetMemberFormat, string packetMemberListFormat,
-            string m_memberSerializeFormat, string m_memberSerializeStringFormat, string m_memberSerializeClassFormat, string m_memberSerializeListFormat,
-            string m_memberDeserializeFormat, string m_memberDeserializeStringFormat, string m_memberDeserializeClassFormat, string m_memberDeserializeListFormat,
-            string m_memberDeserializeAddFormat, string m_memberDeserializeAddStringFormat, string m_memberDeserializeAddClassFormat,
             string memberSerializeFormat, string memberSerializeStringFormat, string memberSerializeClassFormat, string memberSerializeListFormat,
             string memberDeserializeFormat, string memberDeserializeStringFormat, string memberDeserializeClassFormat, string memberDeserializeListFormat,
             string memberDeserializeAddFormat, string memberDeserializeAddStringFormat, string memberDeserializeAddClassFormat)
@@ -274,30 +252,22 @@ namespace PacketFactory
             foreach (PacketItem item in items)
             {
                 string members = "";
-                string s_m_members = "";
-                string d_m_members = "";
                 string s_members = "";
                 string d_members = "";
 
                 foreach (Member m in item.Members)
                 {
                     members += ParseMember(m, packetMemberFormat, packetMemberListFormat);
-                    s_m_members += ParseSerialize(m, m_memberSerializeFormat, m_memberSerializeStringFormat, m_memberSerializeClassFormat, m_memberSerializeListFormat);
-                    d_m_members += ParseDeserialize(m, m_memberDeserializeFormat, m_memberDeserializeStringFormat, m_memberDeserializeClassFormat, m_memberDeserializeListFormat, m_memberDeserializeAddFormat, m_memberDeserializeAddStringFormat, m_memberDeserializeAddClassFormat);
                     s_members += ParseSerialize(m, memberSerializeFormat, memberSerializeStringFormat, memberSerializeClassFormat, memberSerializeListFormat);
                     d_members += ParseDeserialize(m, memberDeserializeFormat, memberDeserializeStringFormat, memberDeserializeClassFormat, memberDeserializeListFormat, memberDeserializeAddFormat, memberDeserializeAddStringFormat, memberDeserializeAddClassFormat);
 
 
                     members += Environment.NewLine;
-                    s_m_members += Environment.NewLine;
-                    d_m_members += Environment.NewLine;
                     s_members += Environment.NewLine;
                     d_members += Environment.NewLine;
                 }
 
                 members = members.Replace(Environment.NewLine, $"{Environment.NewLine}\t");
-                s_m_members = s_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
-                d_m_members = d_m_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
                 s_members = s_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
                 d_members = d_members.Replace(Environment.NewLine, $"{Environment.NewLine}\t\t");
 
@@ -305,8 +275,6 @@ namespace PacketFactory
                         packetItemClassFormat,
                         item.Name,
                         members,
-                        s_m_members,
-                        d_m_members,
                         s_members,
                         d_members
                     );

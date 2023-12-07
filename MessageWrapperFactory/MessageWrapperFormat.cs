@@ -4,10 +4,38 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MessageWrapperFactory
 {
+    [Serializable]
+    public class FactoryConfig
+    {
+        public string? CommonNamespace { get; set; }
+        public string TargetDirectoryPath { get; set; }
+
+        public string? OutputServerCodeDirectoryPath { get; set; }
+        public string? OutputClientCodeDirectoryPath { get; set; }
+
+        public string? ServerPacketExcludePrefix { get; set; }
+        public string? ClientPacketExcludePrefix { get; set; }
+        public string? ProtoFileExtension { get; set; }
+
+        public static FactoryConfig GetDefault()
+        {
+            return new()
+            {
+                CommonNamespace = "",
+                TargetDirectoryPath = "",
+                OutputServerCodeDirectoryPath = "server",
+                OutputClientCodeDirectoryPath = "client",
+                ServerPacketExcludePrefix = "C_",
+                ClientPacketExcludePrefix = "S_",
+                ProtoFileExtension = "proto"
+            };
+        }
+
+    }
+
     class MessageWrapperFormat
     {
         const string BaseDir = "MessageWrapperFormats";
@@ -16,17 +44,22 @@ namespace MessageWrapperFactory
         public static readonly string MessageHandler = $"{BaseDir}{Path.DirectorySeparatorChar}MessageHandler.{FormatExtension}";
         public static readonly string MessageHandlerItem = $"{BaseDir}{Path.DirectorySeparatorChar}MessageHandlerItem.{FormatExtension}";
         public static readonly string MessageManager = $"{BaseDir}{Path.DirectorySeparatorChar}MessageManager.{FormatExtension}";
-        public static readonly string PacketTypeEnumItemFormat = $"{BaseDir}{Path.DirectorySeparatorChar}PacketTypeEnumItemFormat.{FormatExtension}";
-        public static readonly string MessageManagerMapping = $"{BaseDir}{Path.DirectorySeparatorChar}MessageManagerMapping.{FormatExtension}";
+        public static readonly string MessageTypeEnumFormat = $"{BaseDir}{Path.DirectorySeparatorChar}MessageTypeEnumFormat.{FormatExtension}";
+        public static readonly string MessageManagerMapping_uint = $"{BaseDir}{Path.DirectorySeparatorChar}MessageManagerMapping_uint.{FormatExtension}";
+        public static readonly string MessageManagerMapping_ushort = $"{BaseDir}{Path.DirectorySeparatorChar}MessageManagerMapping_ushort.{FormatExtension}";
         public static readonly string MessageManagerInit = $"{BaseDir}{Path.DirectorySeparatorChar}MessageManagerInit.{FormatExtension}";
+        public static readonly string MessageTypes = $"{BaseDir}{Path.DirectorySeparatorChar}MessageTypes.{FormatExtension}";
     
         public static Dictionary<string, string> ReadAllFiles()
         {
+            if (CheckFiles() == false) return null;
+
             Dictionary<string, string> dict = new();
             foreach (string file in GetAllFileNames())
             {
                 dict.Add(file, File.ReadAllText(file, Encoding.UTF8));
             }
+
             return dict;
         }
 
@@ -37,7 +70,7 @@ namespace MessageWrapperFactory
             return stringFields.Select(field => (field.GetValue(null) as string)).ToArray();
         }
 
-        public static bool CheckFiles()
+        static bool CheckFiles()
         {
             bool flag = true;
             foreach (string file in GetAllFileNames())

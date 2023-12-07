@@ -7,6 +7,6 @@ namespace {0}
 {{
     public class MessageHandler
     {{
-        {1}
+{1}
     }}
 }}

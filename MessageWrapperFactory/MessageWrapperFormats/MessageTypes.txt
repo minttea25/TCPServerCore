@@ -6,13 +6,13 @@ namespace {0}
     public enum PacketType : uint
     {{
         P_INVALID = 0,
-        {1}
+{1}
     }}
 #else
     public enum PacketType : ushort
     {{
         P_INVALID = 0,
-        {2}
+{1}
     }}
 #endif
 }}

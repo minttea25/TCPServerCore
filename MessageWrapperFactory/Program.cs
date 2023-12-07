@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Text;
+using System.Linq;
 
 namespace MessageWrapperFactory
 {
@@ -93,17 +95,14 @@ namespace MessageWrapperFactory
             Console.WriteLine();
         }
 
-        static bool FindMessages(List<string> protos, out List<string> messages)
+        static Dictionary<string, List<string>> FindMessages(List<string> protos)
         {
-            messages = null;
-
-            List<string> msgList = new List<string>();
             Stack<char> stack = new Stack<char>();
-            Dictionary<string, List<string>> _foundMessages = new Dictionary<string, List<string>>();
+            Dictionary<string, List<string>> messages = new Dictionary<string, List<string>>();
             foreach (string filePath in protos)
             {
                 string text = File.ReadAllText(filePath);
-                _foundMessages.Add(filePath, new List<string>());
+                messages.Add(filePath, new List<string>());
 
                 int startIndex = 0;
                 for (int i = 0; i < text.Length; i++)
@@ -122,14 +121,13 @@ namespace MessageWrapperFactory
                                 {
                                     int idx = messageBlock.IndexOf(Braces_Open, MessageToken.Length + 1);
                                     string name = messageBlock.Substring(MessageToken.Length + 1, idx - MessageToken.Length - 1).Trim();
-                                    msgList.Add(name);
-                                    _foundMessages[filePath].Add(name);
+                                    messages[filePath].Add(name);
                                 }
                             }
                             else
                             {
                                 Console.WriteLine($"The file[{filePath}] may have error(s): e.g. syntax error");
-                                return false;
+                                return null;
                             }
                         }
                     }
@@ -147,25 +145,64 @@ namespace MessageWrapperFactory
                 stack.Clear();
             }
 
-            if (msgList.Count == 0)
+            if (messages.Count == 0)
             {
                 Console.WriteLine($"There is no found message in the proto files.");
-                return false;
+                return null;
             }
 
             Console.WriteLine("Found messages (top-level, except nested)");
             foreach (string file in protos)
             {
-                Console.WriteLine($"### {Path.GetFileName(file)} ({_foundMessages[file].Count}): ");
-                foreach (string name in _foundMessages[file])
+                Console.WriteLine($"### {Path.GetFileName(file)} ({messages[file].Count}): ");
+                foreach (string name in messages[file])
                 {
                     Console.WriteLine($"- {name}");
                 }
             }
             Console.WriteLine();
 
-            messages = msgList;
-            return true;
+            return messages;
+        }
+
+        static void CreateLogFile(FactoryConfig config, Dictionary<string, List<string>> messages)
+        {
+            StringBuilder sb = new();
+
+            sb.AppendLine($"MessageWrapperFactory at {DateTime.Now}");
+
+            sb.AppendLine();
+
+            sb.AppendLine($"Namespace: {config.CommonNamespace}");
+            sb.AppendLine($"Target path: {config.TargetDirectoryPath}");
+            sb.AppendLine($"Proto file extension: {config.ProtoFileExtension}");
+            sb.AppendLine($"The prefix of exclude-packet in server: {config.ServerPacketExcludePrefix}");
+            sb.AppendLine($"The prefix of exclude-packet in client: {config.ClientPacketExcludePrefix}");
+            sb.AppendLine($"Output path of server code: {config.OutputServerCodeDirectoryPath}");
+            sb.AppendLine($"Output path of client code: {config.OutputClientCodeDirectoryPath}");
+
+            sb.AppendLine();
+
+            sb.AppendLine($"Found .{config.ProtoFileExtension} files in {config.TargetDirectoryPath} ({messages.Count} files) : ");
+            foreach (var p in messages.Keys)
+            {
+                sb.AppendLine(p);
+            }
+
+            sb.AppendLine();
+
+            sb.AppendLine("Found messages (top-level, except nested)");
+            foreach (string file in messages.Keys)
+            {
+                sb.AppendLine($"### {Path.GetFileName(file)} ({messages[file].Count}): ");
+                foreach (string name in messages[file])
+                {
+                    sb.AppendLine($"- {name}");
+                }
+            }
+            sb.AppendLine();
+
+            File.WriteAllText($"./MessageWrapperFactory_{DateTime.Now:yyyy-MM-dd-HH-mm}.log", sb.ToString());
         }
 
 
@@ -182,6 +219,10 @@ namespace MessageWrapperFactory
 
             var config = JsonSerializer.Deserialize<FactoryConfig>(File.ReadAllText(ConfigPath));
 
+            // check format files
+            Dictionary<string, string> formats = MessageWrapperFormat.ReadAllFiles();
+            if (formats == null) return;
+
             // validate configs
             if (ValidateConfigs(config) == false) return;
 
@@ -193,14 +234,14 @@ namespace MessageWrapperFactory
             PrintInfos(config, protos);
 
             // find messages and print them all
-            if (FindMessages(protos, out var messages) == false) return;
+            Dictionary<string, List<string>> messages = FindMessages(protos);
+            if (messages == null) return;
+
+            List<string> msgList = messages.SelectMany(pair => pair.Value).ToList();
 
             ValidPacketMessagePrefix.Add(config.ClientPacketExcludePrefix);
             ValidPacketMessagePrefix.Add(config.ServerPacketExcludePrefix);
             
-            Dictionary<string, string> formats = MessageWrapperFormat.ReadAllFiles();
-            if (formats == null) return;
-
 
             string messageTypesPath_server = $"{config.OutputServerCodeDirectoryPath}{Path.DirectorySeparatorChar}{MessageTypesFile}";
             string messageTypesPath_client = $"{config.OutputClientCodeDirectoryPath}{Path.DirectorySeparatorChar}{MessageTypesFile}";
@@ -212,28 +253,30 @@ namespace MessageWrapperFactory
             string messageHandlerPath_client = $"{config.OutputClientCodeDirectoryPath}{Path.DirectorySeparatorChar}{MessageHandlerFile}";
 
 
-            WriteMessageTypes(messageTypesPath_server, messageTypesPath_client, config.CommonNamespace, messages,
+            WriteMessageTypes(messageTypesPath_server, messageTypesPath_client, config.CommonNamespace, msgList,
                 formats[MessageWrapperFormat.MessageTypes], formats[MessageWrapperFormat.MessageTypeEnumFormat]);
 
-            WriteMessageManager(messageManagerPath_server, config.CommonNamespace, messages,
+            WriteMessageManager(messageManagerPath_server, config.CommonNamespace, msgList,
                 formats[MessageWrapperFormat.MessageManager],
                 formats[MessageWrapperFormat.MessageManagerMapping_uint],
                 formats[MessageWrapperFormat.MessageManagerMapping_ushort],
                 formats[MessageWrapperFormat.MessageManagerInit],
                 config.ClientPacketExcludePrefix);
 
-            WriteMessageManager(messageManagerPath_client, config.CommonNamespace, messages,
+            WriteMessageManager(messageManagerPath_client, config.CommonNamespace, msgList,
                 formats[MessageWrapperFormat.MessageManager],
                 formats[MessageWrapperFormat.MessageManagerMapping_uint],
                 formats[MessageWrapperFormat.MessageManagerMapping_ushort],
                 formats[MessageWrapperFormat.MessageManagerInit],
                 config.ServerPacketExcludePrefix);
 
-            WriteMessageHandler(messageHandlerPath_server, config.CommonNamespace, messages,
+            WriteMessageHandler(messageHandlerPath_server, config.CommonNamespace, msgList,
                 formats[MessageWrapperFormat.MessageHandler], formats[MessageWrapperFormat.MessageHandlerItem], config.ClientPacketExcludePrefix);
 
-            WriteMessageHandler(messageHandlerPath_client, config.CommonNamespace, messages,
+            WriteMessageHandler(messageHandlerPath_client, config.CommonNamespace, msgList,
                 formats[MessageWrapperFormat.MessageHandler], formats[MessageWrapperFormat.MessageHandlerItem], config.ServerPacketExcludePrefix);
+
+            CreateLogFile(config, messages);
 
             Console.WriteLine("All files are created successfully.");
 
@@ -245,6 +288,8 @@ namespace MessageWrapperFactory
 
             Console.WriteLine($"{messageHandlerPath_server}");
             Console.WriteLine($"{messageHandlerPath_client}");
+
+
         }
 
         static bool CheckExclude(string name, string prefix)

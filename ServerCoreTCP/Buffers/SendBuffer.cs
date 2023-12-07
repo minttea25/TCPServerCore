@@ -13,11 +13,6 @@ namespace ServerCoreTCP
     /// </summary>
     public class SendBufferTLS
     {
-        public static int BufferSize { get; private set; } = 65535 * 100;
-
-        //public readonly static ThreadLocal<SendBuffer> TLS_CurrentBuffer 
-        //    = new ThreadLocal<SendBuffer>(() => new SendBuffer(BufferSize));
-
         public readonly static ThreadLocal<SendBuffer> TLS_CurrentBuffer
             = new ThreadLocal<SendBuffer>(() => { return null; });
 
@@ -29,18 +24,7 @@ namespace ServerCoreTCP
         /// <returns>The segment of Memory reserved</returns>
         public static ArraySegment<byte> Reserve(int reserveSize)
         {
-            if (reserveSize > BufferSize)
-            {
-                CoreLogger.LogError("SendBuffer.Reserve", "The reserveSize[{0}] is bigger than the bufferSize[{1}]", reserveSize, BufferSize);
-                return null;
-            }
-
-            if (TLS_CurrentBuffer.Value == null)
-            {
-                TLS_CurrentBuffer.Value = new SendBuffer(BufferSize);
-            }
-
-            if (TLS_CurrentBuffer.Value.FreeSize < reserveSize) TLS_CurrentBuffer.Value = new SendBuffer(BufferSize);
+            if (ValidateBuffer(reserveSize) == false) return null;
 
             return TLS_CurrentBuffer.Value.Reserve(reserveSize);
         }
@@ -57,20 +41,24 @@ namespace ServerCoreTCP
 
         public static ArraySegment<byte> Use(int size)
         {
-            if (size > BufferSize)
-            {
-                CoreLogger.LogError("SendBuffer.Use", "The reserveSize[{0}] is bigger than the bufferSize[{1}]", size, BufferSize);
-                return null;
-            }
-
-            if (TLS_CurrentBuffer.Value == null)
-            {
-                TLS_CurrentBuffer.Value = new SendBuffer(BufferSize);
-            }
-
-            if (TLS_CurrentBuffer.Value.FreeSize < size) TLS_CurrentBuffer.Value = new SendBuffer(BufferSize);
+            if (ValidateBuffer(size) == false) return null;
 
             return TLS_CurrentBuffer.Value.Use(size);
+        }
+
+        static bool ValidateBuffer(int size)
+        {
+            if (size > Defines.SendBufferSize)
+            {
+                CoreLogger.LogError("SendBuffer.Reserve", "The reserveSize[{0}] is bigger than the bufferSize[{1}]", size, Defines.SendBufferSize);
+                return false;
+            }
+
+            if (TLS_CurrentBuffer.Value == null) TLS_CurrentBuffer.Value = new SendBuffer(Defines.SendBufferSize);
+
+            if (TLS_CurrentBuffer.Value.FreeSize < size) TLS_CurrentBuffer.Value = new SendBuffer(Defines.SendBufferSize);
+
+            return true;
         }
     }
 
@@ -112,14 +100,15 @@ namespace ServerCoreTCP
         /// <returns>The segment of the actually used buffer.</returns>
         public ArraySegment<byte> Return(int usedSize)
         {
-            ArraySegment<byte> segment = new ArraySegment<byte>(_buffer, this._usedSize, usedSize);
-            this._usedSize += usedSize;
+            ArraySegment<byte> segment = new ArraySegment<byte>(_buffer, _usedSize, usedSize);
+            _usedSize += usedSize;
             return segment;
         }
 
         public ArraySegment<byte> Use(int size)
         {
-            if (size > FreeSize) _usedSize = 0;
+            if (size > FreeSize) _usedSize = 0; // TODO : need to be refactored...
+
             ArraySegment<byte> segment = new ArraySegment<byte>(_buffer, _usedSize, size);
             _usedSize += size;
             return segment;

@@ -9,8 +9,6 @@ namespace ServerCoreTCP
 {
     public abstract class Session : SocketObject
     {
-        public const int RecvBufferSize = 65535 * 10;
-
         public uint SessionId => m_sessionId;
         public EndPoint ConnectedEndPoint => m_socket?.RemoteEndPoint;
 
@@ -116,7 +114,7 @@ namespace ServerCoreTCP
 
         public Session()
         {
-            m_recvBuffer = new RecvBuffer(RecvBufferSize);
+            m_recvBuffer = new RecvBuffer(Defines.RecvBufferSize);
             m_sendQueue = new Queue<ArraySegment<byte>>();
             m_sendPendingList = new List<ArraySegment<byte>>();
         }
@@ -154,6 +152,7 @@ namespace ServerCoreTCP
         /// <param name="sendBuffer">Serialized data to send</param>
         public void SendRaw(ArraySegment<byte> sendBuffer)
         {
+            if (sendBuffer == null) throw new Exception("Failed to serialize the message.");
             if (sendBuffer.Count == 0) throw new Exception("The count of 'sendBuffer' was 0.");
 
             lock (_lock)

@@ -9,14 +9,19 @@ namespace ServerCoreTCP.MessageWrapper
 {
     public static class MessageWrapper
     {
+#if PACKET_TYPE_INT
+        public readonly static Dictionary<Type, uint> PacketMap = new Dictionary<Type, uint>()
+        {
+            // example
+            //{ typeof(Vector3), (uint)PacketType.Pvector3 },
+        };
+#else
         public readonly static Dictionary<Type, ushort> PacketMap = new Dictionary<Type, ushort>()
         {
             // example
             //{ typeof(Vector3), (ushort)PacketType.Pvector3 },
         };
-
-        public const int HeaderSize = sizeof(ushort);
-        public const int MessageTypeSize = sizeof(ushort);
+#endif
 
         /// <summary>
         /// Serialize the message with PacketWrapper using little-endian [ArraySegment]
@@ -28,21 +33,32 @@ namespace ServerCoreTCP.MessageWrapper
         {
             try
             {
+
+#if PACKET_TYPE_INT
+                // [packetSize (except this header)(2)][messageType(4)][message]
+                uint messageType = PacketMap[typeof(T)];
+#else
                 // [packetSize (except this header)(2)][messageType(2)][message]
                 ushort messageType = PacketMap[typeof(T)];
-                ushort packetSize = (ushort)((ushort)(message.CalculateSize()) + MessageTypeSize);
+#endif
+                ushort packetSize = (ushort)(Defines.PACKET_DATATYPE_SIZE + message.CalculateSize());
                 int offset = 0;
 
-                ArraySegment<byte> buffer = SendBufferTLS.Use(HeaderSize + packetSize);
+                ArraySegment<byte> buffer = SendBufferTLS.Use(Defines.PACKET_HEADER_SIZE + packetSize);
 
                 // contains offset += sizeof(ushort)
                 packetSize.FromUInt16(buffer, ref offset);  // 2 bytes
+#if PACKET_TYPE_INT
+                // contains offset += sizeof(uint)
+                messageType.FromUInt32(buffer, ref offset); // 4 bytes
+#else
                 // contains offset += sizeof(ushort)
                 messageType.FromUInt16(buffer, ref offset); // 2 bytes
+#endif
                 message.WriteTo(buffer.Slice(offset));
 
                 // needless code
-                // offset += packetSize - sizeof(ushort);
+                // offset += packetSize - sizeof(ushort) or sizeof(uint);
 
                 return buffer;
             }

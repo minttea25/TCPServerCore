@@ -6,7 +6,7 @@ namespace ServerCoreTCP.MessageWrapper
 {
     public abstract class PacketSession : Session
     {
-        const int MinimumPacketLength = MessageWrapper.HeaderSize + MessageWrapper.MessageTypeSize;
+        public const int MinimumPacketLength = Defines.PACKET_HEADER_SIZE + Defines.PACKET_DATATYPE_SIZE;
 
         /// <summary>
         /// Send message to endpoint of the socket [Protobuf Wrapper]
@@ -32,7 +32,7 @@ namespace ServerCoreTCP.MessageWrapper
 
                 if (bodySize + processed  > buffer.Count) break;
 
-                // The data should be [packet type, 2][message].
+                // The data should be [packet type(2 or 4)][message].
                 ReadOnlySpan<byte> data = buffer.Slice(processed, bodySize);
                 processed += bodySize;
 

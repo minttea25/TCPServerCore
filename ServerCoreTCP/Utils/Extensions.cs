@@ -5,7 +5,7 @@ namespace ServerCoreTCP.Utils
 {
     public static class Extensions
     {
-#region Socket Util Extends
+        #region Socket Util Extends
         public static void SetLinger(this Socket socket, int lingerSeconds)
         {
             SocketUtils.SetLinger(socket, lingerSeconds);
@@ -48,22 +48,22 @@ namespace ServerCoreTCP.Utils
             Serialization.FromInt16(value, buffer, ref offset);
         }
 
-        public static void FromUInt32(this ushort value, Span<byte> buffer, int offset = 0)
+        public static void FromUInt32(this uint value, Span<byte> buffer, int offset = 0)
         {
             Serialization.FromUInt32(value, buffer, offset);
         }
 
-        public static void FromUInt32(this ushort value, Span<byte> buffer, ref int offset)
+        public static void FromUInt32(this uint value, Span<byte> buffer, ref int offset)
         {
             Serialization.FromUInt32(value, buffer, ref offset);
         }
 
-        public static void FromInt32(this ushort value, Span<byte> buffer, int offset = 0)
+        public static void FromInt32(this int value, Span<byte> buffer, int offset = 0)
         {
             Serialization.FromInt32(value, buffer, offset);
         }
 
-        public static void FromInt32(this ushort value, Span<byte> buffer, ref int offset)
+        public static void FromInt32(this int value, Span<byte> buffer, ref int offset)
         {
             Serialization.FromInt32(value, buffer, ref offset);
         }

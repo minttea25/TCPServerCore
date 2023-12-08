@@ -16,7 +16,6 @@ namespace ServerCoreTCP
         internal ServerService m_serverService;
 
         readonly Socket m_listenSocket;
-        readonly Func<Session> m_sessionFactory;
         readonly int m_port;
 
         readonly int m_backlog;
@@ -27,21 +26,23 @@ namespace ServerCoreTCP
         /// </summary>
         /// <param name="service">The ServerService Instance</param>
         /// <param name="endPoint">The endpoint to bind to socket</param>
-        /// <param name="sessionFactory"></param>
         /// <param name="addressFamily"></param>
-        internal Listener(ServerService service, IPEndPoint endPoint, Func<Session> sessionFactory, AddressFamily addressFamily, ServerServiceConfig config)
+        internal Listener(ServerService service, IPEndPoint endPoint, AddressFamily addressFamily, ServerServiceConfig config)
         {
+            if (config.RegisterListenCount == 0)
+            {
+                throw new Exception("The registerListenCount was 0. Check the config.");
+            }
+
             m_backlog = config.ListenerBacklogCount;
             m_registerCount = config.RegisterListenCount;
 
             m_service = service;
             m_serverService = service;
-            m_sessionFactory = sessionFactory;
             m_port = endPoint.Port;
 
             m_listenSocket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
             m_listenSocket.SetLinger(config.Linger);
-            m_listenSocket.SetKeepAlive(config.KeepAlive);
             m_listenSocket.SetReuseAddress(config.ReuseAddress);
             m_listenSocket.SetNoDelay(config.NoDelay);
 

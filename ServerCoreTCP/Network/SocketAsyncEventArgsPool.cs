@@ -26,9 +26,6 @@ namespace ServerCoreTCP
                 var args = CreateNew();
                 _pool.Push(args);
 
-                //var e = new SocketAsyncEventArgs();
-                //e.Completed += new EventHandler<SocketAsyncEventArgs>(m_completedCallback);
-                //m_pool.Push(e);
             }
         }
 

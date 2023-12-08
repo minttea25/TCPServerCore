@@ -124,7 +124,7 @@ namespace ServerCoreTCP
         /// A session must be initialized with this method with socket.
         /// </summary>
         /// <param name="socket">The socket to be connected to the session.</param>
-        public void Init(Socket socket)
+        internal void Init(Socket socket)
         {
             m_socket = socket;
 
@@ -135,6 +135,8 @@ namespace ServerCoreTCP
 
             _recvEventArgs.UserToken = new RecvEventToken(this);
             _sendEventArgs.UserToken = new SendEventToken(this);
+
+
 
             InitSession();
             RegisterRecv();

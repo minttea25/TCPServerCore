@@ -23,5 +23,10 @@ namespace ServerCoreTCP
         public const int SendBufferSize = 65535 * 10;
         #endregion
 
+        #region Session
+        public const long SessionSendFlushMinIntervalMilliseconds = 100;
+        public const int SessionSendFlushMinReservedByteLength = 10000;
+        #endregion
+
     }
 }

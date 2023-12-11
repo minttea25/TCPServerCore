@@ -5,21 +5,14 @@ namespace ServerCoreTCP
     [Serializable]
     public struct ClientServiceConfig
     {
-        public int ClientServiceSessionCount;
-
-        public int ConnectTimeOutMilliseconds;
-
-        //public int SendTimeOutMilliseconds;
-        //public int RecvTimeOutMilliseconds;
-        public bool ReuseAddress;
-
+        public int ClientServiceSessionCount { get; set; }
+        public bool ReuseAddress { get; set; }
 
         public static ClientServiceConfig GetDefault()
         {
             return new ClientServiceConfig()
             {
                 ClientServiceSessionCount = 1,
-                ConnectTimeOutMilliseconds = 3000,
                 ReuseAddress = true,
             };
         }
@@ -28,21 +21,27 @@ namespace ServerCoreTCP
     [Serializable]
     public struct ServerServiceConfig
     {
-        // Note: SocketAsyncEventArgs must be larger than
-        // (SessionPoolCount * 2 + RegisterListenCount)
+        /// <summary>
+        /// The count of SocketAsyncEventArgs must be larger than (SessionPoolCount * 2 + RegisterListenCount)
+        /// </summary>
+        public int SocketAsyncEventArgsPoolCount { get; set; }
+        public int SessionPoolCount { get; set; }
+        
+        public int ListenerBacklogCount { get; set; }
+        /// <summary>
+        /// If 0, the listener will throw exception. It must be larger than 0.
+        /// </summary>
+        public int RegisterListenCount { get; set; }
 
-        public int SocketAsyncEventArgsPoolCount;
-        public int SessionPoolCount;
-
-        public int ListenerBacklogCount;
-        public int RegisterListenCount;
-
-        //public int SendTimeOutMilliseconds;
-        //public int RecvTimeOutMilliseconds;
-        public bool KeepAlive;
-        public bool NoDelay; // for Nagle algorithm
-        public bool ReuseAddress;
-        public int Linger; // if 0, linger set false
+        /// <summary>
+        /// About Nagle algorithm
+        /// </summary>
+        public bool NoDelay { get; set; }
+        public bool ReuseAddress { get; set; }
+        /// <summary>
+        /// If 0, linger set false, otherwise set the time in seconds.
+        /// </summary>
+        public int Linger { get; set; }
 
         public static ServerServiceConfig GetDefault()
         {
@@ -52,7 +51,6 @@ namespace ServerCoreTCP
                 SessionPoolCount = 200,
                 ListenerBacklogCount = 100,
                 RegisterListenCount = 10,
-                KeepAlive = false,
                 NoDelay = false,
                 ReuseAddress = true,
                 Linger = 0

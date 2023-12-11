@@ -9,10 +9,15 @@ namespace ServerCoreTCP
 {
     public abstract class Session : SocketObject
     {
-        public uint SessionId => m_sessionId;
+        /// <summary>
+        /// It is unique id of Session.
+        /// </summary>
+        public uint SessionId
+        {
+            get { return m_sessionId; }
+            internal set { m_sessionId = value; }
+        }
         public EndPoint ConnectedEndPoint => m_socket?.RemoteEndPoint;
-
-
 
         protected Socket m_socket;
 
@@ -31,17 +36,6 @@ namespace ServerCoreTCP
         /// </summary>
         readonly object _lock = new object();
 
-
-        internal void SetService(Service service)
-        {
-            m_service = service;
-        }
-
-        internal void SetSessionId(uint id)
-        {
-            m_sessionId = id;
-        }
-
         internal sealed override void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
         {
             if (!(eventArgs.UserToken is SocketEventToken)) throw new InvalidCastException("The UserToken was not SocketEventToken"); ;
@@ -51,7 +45,6 @@ namespace ServerCoreTCP
                 case SocketAsyncOperation.Disconnect:
                     OnDisconnectedCompleted(eventArgs);
                     break;
-
                 case SocketAsyncOperation.Receive:
                     OnRecvCompleted(eventArgs);
                     break;
@@ -67,9 +60,9 @@ namespace ServerCoreTCP
             }
         }
 
-        protected readonly RecvBuffer m_recvBuffer;
-        protected readonly Queue<ArraySegment<byte>> m_sendQueue;
-        protected readonly List<ArraySegment<byte>> m_sendPendingList;
+        readonly RecvBuffer _recvBuffer;
+        readonly Queue<ArraySegment<byte>> _sendQueue;
+        readonly List<ArraySegment<byte>> _sendPendingList;
 
         #region Abstract Methods
         /// <summary>
@@ -109,14 +102,13 @@ namespace ServerCoreTCP
         /// <returns>The length of processed bytes.</returns>
         protected abstract int OnRecvProcess(ArraySegment<byte> buffer);
 
-
         #endregion
 
         public Session()
         {
-            m_recvBuffer = new RecvBuffer(Defines.RecvBufferSize);
-            m_sendQueue = new Queue<ArraySegment<byte>>();
-            m_sendPendingList = new List<ArraySegment<byte>>();
+            _recvBuffer = new RecvBuffer(Defines.RecvBufferSize);
+            _sendQueue = new Queue<ArraySegment<byte>>();
+            _sendPendingList = new List<ArraySegment<byte>>();
         }
 
 
@@ -124,7 +116,7 @@ namespace ServerCoreTCP
         /// A session must be initialized with this method with socket.
         /// </summary>
         /// <param name="socket">The socket to be connected to the session.</param>
-        public void Init(Socket socket)
+        internal void Init(Socket socket)
         {
             m_socket = socket;
 
@@ -150,24 +142,24 @@ namespace ServerCoreTCP
         /// Send data to endpoint of the socket. [ArraySegment]
         /// </summary>
         /// <param name="sendBuffer">Serialized data to send</param>
-        public void SendRaw(ArraySegment<byte> sendBuffer)
-        {
-            if (sendBuffer == null) throw new Exception("Failed to serialize the message.");
-            if (sendBuffer.Count == 0) throw new Exception("The count of 'sendBuffer' was 0.");
+        //public void SendRaw(ArraySegment<byte> sendBuffer)
+        //{
+        //    if (sendBuffer == null) throw new Exception("Failed to serialize the message.");
+        //    if (sendBuffer.Count == 0) throw new Exception("The count of 'sendBuffer' was 0.");
 
-            lock (_lock)
-            {
-                m_sendQueue.Enqueue(sendBuffer);
+        //    lock (_lock)
+        //    {
+        //        m_sendQueue.Enqueue(sendBuffer);
 
-                if (m_sendPendingList.Count == 0) RegisterSend();
-            }
-        }
+        //        if (m_sendPendingList.Count == 0) RegisterSend();
+        //    }
+        //}
 
         /// <summary>
         /// Send a list of data to endpoint of the socket. [ArraySegment]
         /// </summary>
         /// <param name="sendBufferList">A list of serialized data to send</param>
-        public void SendRaw(List<ArraySegment<byte>> sendBufferList)
+        protected void SendRaw(List<ArraySegment<byte>> sendBufferList)
         {
             if (sendBufferList.Count == 0) throw new Exception("The count of 'sendBufferList' was 0.");
 
@@ -175,13 +167,14 @@ namespace ServerCoreTCP
             {
                 foreach (var buffer in sendBufferList)
                 {
-                    m_sendQueue.Enqueue(buffer);
+                    _sendQueue.Enqueue(buffer);
                 }
 
-                if (m_sendPendingList.Count == 0) RegisterSend();
+                if (_sendPendingList.Count == 0) RegisterSend();
             }
         }
 
+        #region Network IO
 
         /// <summary>
         /// Reserve 'Send' for async-send (Note: It needs to be protected for race-condition.)
@@ -197,12 +190,12 @@ namespace ServerCoreTCP
             // USE EventArgs.BufferList = list instead.
             // WHY? https://stackoverflow.com/questions/11820677/how-use-bufferlist-with-socketasynceventargs-and-not-get-socketerror-invalidargu
 
-            while (m_sendQueue.Count > 0)
+            while (_sendQueue.Count > 0)
             {
-                m_sendPendingList.Add(m_sendQueue.Dequeue());
+                _sendPendingList.Add(_sendQueue.Dequeue());
             }
 
-            _sendEventArgs.BufferList = m_sendPendingList;
+            _sendEventArgs.BufferList = _sendPendingList;
 
             try
             {
@@ -223,8 +216,8 @@ namespace ServerCoreTCP
             if (_connected == 0) return;
 
 
-            m_recvBuffer.CleanUp(); // expensive
-            var segment = m_recvBuffer.WriteSegment;
+            _recvBuffer.CleanUp(); // expensive
+            var segment = _recvBuffer.WriteSegment;
             _recvEventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
 
             try
@@ -254,7 +247,9 @@ namespace ServerCoreTCP
                         OnSend(eventArgs.BytesTransferred);
 
                         _sendEventArgs.BufferList = null;
-                        m_sendPendingList.Clear();
+                        _sendPendingList.Clear();
+
+                        if (_sendQueue.Count > 0) RegisterSend();
                     }
                     catch (Exception ex)
                     {
@@ -289,7 +284,7 @@ namespace ServerCoreTCP
             {
                 try
                 {
-                    if (m_recvBuffer.OnWrite(eventArgs.BytesTransferred) == false)
+                    if (_recvBuffer.OnWrite(eventArgs.BytesTransferred) == false)
                     {
                         CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes is larger than current data size");
 
@@ -297,7 +292,7 @@ namespace ServerCoreTCP
                         return;
                     }
 
-                    int processLength = OnRecvProcess(m_recvBuffer.DataSegment);
+                    int processLength = OnRecvProcess(_recvBuffer.DataSegment);
 
                     if (processLength <= 0)
                     {
@@ -306,14 +301,14 @@ namespace ServerCoreTCP
                         return;
                     }
 
-                    if (m_recvBuffer.DataSize < processLength)
+                    if (_recvBuffer.DataSize < processLength)
                     {
-                        CoreLogger.LogError("Session.OnRecvCompleted", "The datasize of recvBuffer[{0}] was larger than processLength[{1}]", m_recvBuffer.DataSize, processLength);
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The datasize of recvBuffer[{0}] was larger than processLength[{1}]", _recvBuffer.DataSize, processLength);
                         Disconnect();
                         return;
                     }
 
-                    if (m_recvBuffer.OnRead(processLength) == false)
+                    if (_recvBuffer.OnRead(processLength) == false)
                     {
                         CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes was larger than current data size");
                         Disconnect();
@@ -345,6 +340,8 @@ namespace ServerCoreTCP
             }
         }
 
+        #endregion
+
         /// <summary>
         /// Close the socket and clear the session.
         /// </summary>
@@ -366,7 +363,7 @@ namespace ServerCoreTCP
             else Clear();
         }
 
-        public void OnDisconnectedCompleted(SocketAsyncEventArgs eventArgs)
+        public virtual void OnDisconnectedCompleted(SocketAsyncEventArgs eventArgs)
         {
             ;
         }
@@ -384,14 +381,12 @@ namespace ServerCoreTCP
             _recvEventArgs = null;
             _sendEventArgs = null;
 
-
-            m_recvBuffer.ClearBuffer();
-
+            _recvBuffer.ClearBuffer();
 
             lock (_lock)
             {
-                m_sendQueue.Clear();
-                m_sendPendingList.Clear();
+                _sendQueue.Clear();
+                _sendPendingList.Clear();
             }
         }
     }

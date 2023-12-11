@@ -12,6 +12,7 @@ namespace Chat
             SSendChatText msg = message as SSendChatText;
 
             // TODO
+            Console.WriteLine(msg);
         }
 
         public static void SSendChatIconMessageHandler(IMessage message, Session session)

@@ -19,11 +19,6 @@ namespace ServerCoreTCP.Utils
             socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, noDelay);
         }
 
-        public static void SetKeepAlive(Socket socket, bool keepAlive)
-        {
-            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, keepAlive);
-        }
-
         public static void SetReuseAddress(Socket socket, bool reuseAddress)
         {
             socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, reuseAddress);

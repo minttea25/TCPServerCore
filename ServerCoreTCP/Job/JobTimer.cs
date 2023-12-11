@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using ServerCoreTCP.Core;
 using ServerCoreTCP.Utils;
 
 namespace ServerCoreTCP.Job
@@ -11,16 +12,11 @@ namespace ServerCoreTCP.Job
     public class JobTimer
     {
         readonly PriorityQueue<RevocableJob> _pq = new PriorityQueue<RevocableJob>();
-        readonly Stopwatch _stopwatch = new Stopwatch();
         readonly object _queueLock = new object();
 
-
-
-        public RevocableJob AddAfter(IJob job, long millisecondsAfter = 0)
-        {
-            if (_stopwatch.IsRunning == false) _stopwatch.Start();
-
-            long millisecondsExec = _stopwatch.ElapsedMilliseconds + millisecondsAfter;
+        public RevocableJob AddAfter(IJob job, long millisecondsAfter = 0) 
+        { 
+            long millisecondsExec = Global.G_Stopwatch.ElapsedMilliseconds + millisecondsAfter;
             RevocableJob revocableJob = new RevocableJob(job, millisecondsExec);
 
             lock (_queueLock)
@@ -33,11 +29,9 @@ namespace ServerCoreTCP.Job
 
         public void Flush()
         {
-            if (_stopwatch.IsRunning == false) return;
-
             while (true)
             {
-                long now = _stopwatch.ElapsedMilliseconds;
+                long now = Global.G_Stopwatch.ElapsedMilliseconds;
 
                 RevocableJob revocableJob;
                 lock (_queueLock)

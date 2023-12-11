@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServerCoreTCP.Core;
+using System;
 using System.Net;
 using System.Net.Sockets;
 
@@ -13,15 +14,23 @@ namespace ServerCoreTCP
         }
 
         public ServiceTypes ServiceType => m_serviceType;
-        readonly internal ServiceTypes m_serviceType;
+        readonly public ServiceTypes m_serviceType;
 
         public int SAEATotalPoolCount => m_saeaPool.TotalPoolCount;
         public int SAEACurrentPooledCount => m_saeaPool.CurrentPooledCount;
 
         internal readonly SocketAsyncEventArgsPool m_saeaPool;
 
-        public abstract void Start();
-        public abstract void Stop();
+        public virtual void Start()
+        {
+            Global.Init();
+        }
+
+        public virtual void Stop()
+        {
+            Global.Clear();
+        }
+
 
         public Service(ServiceTypes serviceType)
         {
@@ -62,17 +71,19 @@ namespace ServerCoreTCP
             m_sessionPoolCount = config.SessionPoolCount;
 
             //m_maxConnections = new Semaphore(0, MaxSessionCount);
-            m_listener = new Listener(this, endPoint, emptySessionFactory, endPoint.AddressFamily, config);
+            m_listener = new Listener(this, endPoint, endPoint.AddressFamily, config);
             m_sessionPool = new SessionPool(this, m_sessionPoolCount, emptySessionFactory);
         }
 
-        public override void Start()
+        public sealed override void Start()
         {
+            base.Start();
             m_listener.StartListen();
         }
 
-        public override void Stop()
+        public sealed override void Stop()
         {
+            base.Stop();
             m_sessionPool.Clear();
             Clear();
         }
@@ -92,7 +103,7 @@ namespace ServerCoreTCP
 
         public int ConnectionCount => m_connector.ConnectionCount;
 
-        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ClientServiceConfig config) : base(ServiceTypes.Client)
+        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ClientServiceConfig config, Action<SocketError> connectFailedCallback = null) : base(ServiceTypes.Client)
         {
             m_sessionCount = config.ClientServiceSessionCount;
 
@@ -100,18 +111,20 @@ namespace ServerCoreTCP
             for (int i = 0; i < m_sessionCount; ++i)
             {
                 m_session[i] = emptySessionFactory.Invoke();
-                m_session[i].SetService(this);
+                m_session[i].m_service = this;
             }
-            m_connector = new Connector(this, m_session, endPoint, m_sessionCount, config);
+            m_connector = new Connector(this, m_session, endPoint, config, connectFailedCallback);
         }
 
-        public override void Start()
+        public sealed override void Start()
         {
+            base.Start();
             m_connector.Connect();
         }
 
-        public override void Stop()
+        public sealed override void Stop()
         {
+            base.Stop();
             Clear();
         }
     }

@@ -14,7 +14,7 @@ namespace ServerCoreTCP.Job
     /// It need to be called `Flush()` manually.
     /// When `Flush()` called, the thread will invoke all actions in the queue.
     /// </summary>
-    public class JobSerializer : IJobSerializer
+    public abstract class JobSerializer : IJobSerializer
     {
         readonly protected Queue<IJob> _jobQueue = new Queue<IJob>();
         readonly protected object _queueLock = new object();

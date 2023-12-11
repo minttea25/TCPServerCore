@@ -14,7 +14,13 @@ namespace ServerCoreTCP.Job
     {
         readonly IJob _job;
         readonly long _millisecondsAfterExec;
+
         bool m_canceled;
+        public bool Canceled
+        {
+            get => m_canceled;
+            set => m_canceled = value;
+        }
 
         public RevocableJob(IJob job, long millisecondsAfterExec)
         {
@@ -26,12 +32,6 @@ namespace ServerCoreTCP.Job
         public void Execute()
         {
             if (m_canceled == false) _job?.Execute();
-        }
-
-        public bool Canceled
-        {
-            get => m_canceled;
-            set => m_canceled = value;
         }
 
         public long MillisecondsExec

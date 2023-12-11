@@ -2,10 +2,12 @@
 using System.Net;
 using System.Text;
 using System.Threading;
+using Chat;
 using Serilog;
 using Serilog.Core;
 using ServerCoreTCP;
 using ServerCoreTCP.CLogger;
+using ServerCoreTCP.Utils;
 
 namespace TestClient
 {
@@ -13,8 +15,27 @@ namespace TestClient
     {
         public static Random rand = new();
 
+        static ServerSession session = null;
+
+        static void NetworkTask()
+        {
+            session?.FlushSend();
+        }
+
+        static void ClientCommand()
+        {
+            while (true)
+            {
+                string s = Console.ReadLine();
+                if (s == "exit") break;
+            }
+            session.Disconnect();
+        }
+
         static void Main(string[] args)
         {
+            MessageManager.Instance.Init();
+
             CoreLogger.CreateLoggerWithFlag(
                 (uint)(CoreLogger.LoggerSinks.CONSOLE | CoreLogger.LoggerSinks.FILE),
                 LoggerConfig.GetDefault());
@@ -26,25 +47,25 @@ namespace TestClient
             IPAddress ipAddr = ipHost.AddressList[0];
             IPEndPoint endPoint = new IPEndPoint(address: ipAddr, port: 8888);
 
-            Thread.Sleep(1000);
+            Thread.Sleep(3000);
 
 
             ClientServiceConfig config = ClientServiceConfig.GetDefault();
             config.ClientServiceSessionCount = 1;
 
-            //ClientService clientService 
-            //    = new ClientService(
-            //        endPoint, () => { return SessionManager.Instance.CreateNewSession(); }, 
-            //        config);
-            //clientService.Start();
+            // CAUTION JUST FOR TEST FOR ONLY 1 SESSION
+            ClientService clientService
+                = new ClientService(
+                    endPoint, () => { return  session = new ServerSession(); },
+                    config);
+            clientService.Start();
 
-            while (true)
-            {
-                string s = Console.ReadLine();
-                if (s == "exit") break;
-            }
+            ThreadManager tasks = new ThreadManager(1);
 
+            tasks.AddTask(NetworkTask, "NetworkTask");
+            tasks.SetMainTask(ClientCommand);
 
+            tasks.StartTasks();
 
             CoreLogger.StopLogging();
         }

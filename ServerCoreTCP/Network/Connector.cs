@@ -9,16 +9,6 @@ namespace ServerCoreTCP
 {
     internal class Connector : SocketObject
     {
-        public enum ConnectError
-        {
-            Success = 0,
-            Timeout = 1,
-            OutOfRangePort = 2,
-            InvalidOperation = 3,
-            SocketError = 4,
-            EtcError = 5,
-        }
-
         readonly IPEndPoint _endPoint;
         readonly int m_connectionCount = 1;
         readonly Session[] m_serverSession;
@@ -88,16 +78,23 @@ namespace ServerCoreTCP
 
         void OnConnectCompleted(SocketAsyncEventArgs eventArgs)
         {
-            if (eventArgs.SocketError == SocketError.Success)
+            try
             {
-                Session session = (eventArgs.UserToken as ConnectEventToken).m_session;
-                session.Init(eventArgs.ConnectSocket);
-                session.OnConnected(eventArgs.RemoteEndPoint);
+                if (eventArgs.SocketError == SocketError.Success)
+                {
+                    Session session = (eventArgs.UserToken as ConnectEventToken).m_session;
+                    session.Init(eventArgs.ConnectSocket);
+                    session.OnConnected(eventArgs.RemoteEndPoint);
+                }
+                else
+                {
+                    CoreLogger.LogError("Connector.OnConnectCompleted", "SocketError was {0}. EndPoint: {1}", eventArgs.SocketError, eventArgs.RemoteEndPoint);
+                    _connectFailedCallback?.Invoke(eventArgs.SocketError);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                CoreLogger.LogError("Connector.OnConnectCompleted", "SocketError was {0}. EndPoint: {1}",eventArgs.SocketError , eventArgs.RemoteEndPoint);
-                _connectFailedCallback?.Invoke(eventArgs.SocketError);
+                CoreLogger.LogError("Connector.OnConnectedCompleted", ex, "An exception occurred.");
             }
         }
     }

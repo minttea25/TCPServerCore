@@ -7,31 +7,56 @@ using Chat;
 using Serilog;
 using ServerCoreTCP;
 using ServerCoreTCP.CLogger;
+using ServerCoreTCP.Utils;
 
 namespace TCPServer
 {
     class Program
     {
+        static Server server = null;
         static List<ClientSession> sessions = new();
         static object _lock = new();
 
         static void NetworkTask()
         {
-            Thread.CurrentThread.Name = "NetworkTask";
+            foreach (var s in sessions)
+            {
+                s.FlushSend();
+            }
+            Thread.Yield();
+        }
+
+        static void ServerCommand()
+        {
             while (true)
             {
-                foreach (var s in sessions)
+                string command = Console.ReadLine();
+
+                switch (command)
                 {
-                    s.FlushSend();
+                    case "start":
+                        server.Start();
+                        break;
+                    case "stop":
+                        server.Stop();
+                        return;
+                    case "session_count":
+                        break;
+                    case "pooled_session_count":
+                        break;
+                    case "pooled_saea_count":
+                        break;
+                    case "collect":
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown Command: {command}");
+                        break;
                 }
-                Thread.Yield();
             }
         }
-        
 
         static void Main(string[] args)
         {
-            Thread.CurrentThread.Name = "Main Thread";
             MessageManager.Instance.Init();
 
             var config = LoggerConfig.GetDefault();
@@ -56,7 +81,7 @@ namespace TCPServer
             };
             //var serverConfig = ServerServiceConfig.GetDefault();
 
-            Server server = new(
+            server = new(
                 endPoint,
                 () => { 
                     var s = new ClientSession(); 
@@ -68,35 +93,12 @@ namespace TCPServer
                 },
                 serverConfig);
 
-            Thread networkTask = new(NetworkTask);
-            networkTask.Start();
+            ThreadManager tasks = new ThreadManager(1);
+            tasks.AddTask(NetworkTask, "NetworkTask");
+            tasks.SetMainTask(ServerCommand);
 
-            while (true)
-            {
-                string command = Console.ReadLine();
+            tasks.StartTasks();
 
-                switch (command)
-                {
-                    case "start":
-                        server.Start();
-                        break;
-
-                    case "stop":
-                        server.Stop();
-                        break;
-                    case "session_count":
-                        break;
-                    case "pooled_session_count":
-                        break;
-                    case "pooled_saea_count":
-                        break;
-                    case "collect":
-                        break;
-                    default:
-                        Console.WriteLine($"Unknown Command: {command}");
-                        break;
-                }
-            }
             CoreLogger.StopLogging();
         }
     }

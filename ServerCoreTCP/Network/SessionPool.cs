@@ -29,8 +29,8 @@ namespace ServerCoreTCP
             for (_id = 1; _id <= capacity; ++_id)
             {
                 Session session = _emptySessionFactory.Invoke();
-                session.SetService(_service);
-                session.SetSessionId((uint)_id);
+                session.m_service = _service;
+                session.SessionId = (uint)_id;
                 _pool.Push(session);
             }
         }
@@ -61,8 +61,8 @@ namespace ServerCoreTCP
             int id = Interlocked.Increment(ref _id);
 
             Session session = _emptySessionFactory.Invoke();
-            session.SetService(_service);
-            session.SetSessionId((uint)_id);
+            session.m_service = _service;
+            session.SessionId = (uint)_id;
 
             return session;
         }

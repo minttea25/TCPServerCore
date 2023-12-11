@@ -44,7 +44,7 @@ namespace ServerCoreTCP.MessageWrapper
             // capture and copy the elements in the queue
             List<ArraySegment<byte>> sendList = null;
 
-            var dt = Global.g_watch.ElapsedTicks - _lastSendTick;
+            var dt = Global.G_Stopwatch.ElapsedTicks - _lastSendTick;
             if (dt < Defines.SessionSendFlushMinIntervalMilliseconds
                 && _reservedSendBytes < Defines.SessionSendFlushMinReservedByteLength) return;
             int b;
@@ -53,7 +53,7 @@ namespace ServerCoreTCP.MessageWrapper
                 if (_reserveQueue.Count == 0) return;
 
                 // send list
-                _lastSendTick = Global.g_watch.ElapsedTicks;
+                _lastSendTick = Global.G_Stopwatch.ElapsedTicks;
                 b = _reservedSendBytes;
                 _reservedSendBytes = 0;
 

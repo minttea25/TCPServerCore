@@ -103,19 +103,26 @@ namespace ServerCoreTCP
         /// <param name="eventArgs">An object that contains the socket-async-event data</param>
         void OnAcceptCompleted(SocketAsyncEventArgs eventArgs)
         {
-            if (eventArgs.SocketError == SocketError.Success)
+            try
             {
-                CoreLogger.LogInfo("Listener.OnAcceptCompleted", "Accepted Socket. EndPoint: {0}", eventArgs.AcceptSocket.RemoteEndPoint);
+                if (eventArgs.SocketError == SocketError.Success)
+                {
+                    CoreLogger.LogInfo("Listener.OnAcceptCompleted", "Accepted Socket. EndPoint: {0}", eventArgs.AcceptSocket.RemoteEndPoint);
 
-                // initialize session
-                Session session = m_serverService.m_sessionPool.Pop();
-                session.Init(eventArgs.AcceptSocket);
-                session.OnConnected(eventArgs.AcceptSocket.RemoteEndPoint);
+                    // initialize session
+                    Session session = m_serverService.m_sessionPool.Pop();
+                    session.Init(eventArgs.AcceptSocket);
+                    session.OnConnected(eventArgs.AcceptSocket.RemoteEndPoint);
+                }
+                else
+                {
+                    // error
+                    CoreLogger.LogError("Listener.OnAcceptCompleted", "SocketError was {0}.", eventArgs.SocketError);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // error
-                CoreLogger.LogError("Listener.OnAcceptCompleted", "SocketError was {0}.", eventArgs.SocketError);
+                CoreLogger.LogError("Listener.OnAcceptCompleted", ex, "An exception occurred.");
             }
 
             // After Accept, wait again for other Accepts.

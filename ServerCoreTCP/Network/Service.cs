@@ -111,7 +111,7 @@ namespace ServerCoreTCP
             for (int i = 0; i < m_sessionCount; ++i)
             {
                 m_session[i] = emptySessionFactory.Invoke();
-                m_session[i].SetService(this);
+                m_session[i].m_service = this;
             }
             m_connector = new Connector(this, m_session, endPoint, config, connectFailedCallback);
         }

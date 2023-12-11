@@ -7,6 +7,7 @@ using Serilog;
 using Serilog.Core;
 using ServerCoreTCP;
 using ServerCoreTCP.CLogger;
+using ServerCoreTCP.Utils;
 
 namespace TestClient
 {
@@ -18,18 +19,21 @@ namespace TestClient
 
         static void NetworkTask()
         {
-            Thread.CurrentThread.Name = "NetworkTask";
+            session?.FlushSend();
+        }
+
+        static void ClientCommand()
+        {
             while (true)
             {
-                session?.FlushSend();
-
-                Thread.Yield();
+                string s = Console.ReadLine();
+                if (s == "exit") break;
             }
+            session.Disconnect();
         }
 
         static void Main(string[] args)
         {
-            Thread.CurrentThread.Name = "Main Thread";
             MessageManager.Instance.Init();
 
             CoreLogger.CreateLoggerWithFlag(
@@ -43,7 +47,7 @@ namespace TestClient
             IPAddress ipAddr = ipHost.AddressList[0];
             IPEndPoint endPoint = new IPEndPoint(address: ipAddr, port: 8888);
 
-            Thread.Sleep(2000);
+            Thread.Sleep(3000);
 
 
             ClientServiceConfig config = ClientServiceConfig.GetDefault();
@@ -56,16 +60,12 @@ namespace TestClient
                     config);
             clientService.Start();
 
-            Thread networkTask = new(NetworkTask);
-            networkTask.Start();
+            ThreadManager tasks = new ThreadManager(1);
 
-            while (true)
-            {
-                string s = Console.ReadLine();
-                if (s == "exit") break;
-            }
+            tasks.AddTask(NetworkTask, "NetworkTask");
+            tasks.SetMainTask(ClientCommand);
 
-
+            tasks.StartTasks();
 
             CoreLogger.StopLogging();
         }

@@ -24,7 +24,7 @@ namespace TestClient
             Timer timer = new(500);
             timer.Elapsed += (_, _) =>
             {
-                for (int i = 0; i < 100; ++i)
+                for (int i = 0; i < 5; ++i)
                 {
                     SSendChatText chatTextPacket = new()
                     {

@@ -4,13 +4,16 @@ using System.Text;
 
 namespace ServerCoreTCP
 {
-#if PACKET_TYPE_INT
-#else
-#endif
     public class Defines
     {
         #region Packet
+        /// <summary>
+        /// The size of packet body: sizeof(ushort).
+        /// </summary>
         public const int PACKET_HEADER_SIZE = sizeof(ushort);
+        /// <summary>
+        /// The size of packet type.
+        /// </summary>
 #if PACKET_TYPE_INT
         public const int PACKET_DATATYPE_SIZE = sizeof(uint);
 #else
@@ -24,7 +27,10 @@ namespace ServerCoreTCP
         #endregion
 
         #region Session
-        public const long SessionSendFlushMinIntervalMilliseconds = 100;
+        /// <summary>
+        /// It can be changed by user.
+        /// </summary>
+        public static long SessionSendFlushMinIntervalMilliseconds = 100;
         public const int SessionSendFlushMinReservedByteLength = 10000;
         #endregion
 

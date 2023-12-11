@@ -78,7 +78,7 @@ namespace ServerCoreTCP.Job
             return _jobTimer.AddAfter(job, millisecondsAfter);
         }
 
-        public override void Flush()
+        public sealed override void Flush()
         {
             _jobTimer.Flush();
 

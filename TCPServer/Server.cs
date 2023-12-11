@@ -11,25 +11,25 @@ namespace TCPServer
     public class Server
     {
         bool _isRunning = false;
-        readonly ServerService service;
+        public readonly ServerService Service;
 
         public Server(IPEndPoint endPoint, Func<ClientSession> factory, ServerServiceConfig config) 
         {
-            service = new(endPoint, factory, config);
+            Service = new(endPoint, factory, config);
         }
 
         public void Start()
         {
             if (_isRunning == true) return;
             _isRunning = true;
-            service.Start();
+            Service.Start();
         }
 
         public void Stop()
         {
             if (_isRunning == false) return;
             _isRunning = false;
-            service.Stop();
+            Service.Stop();
         }
 
     }

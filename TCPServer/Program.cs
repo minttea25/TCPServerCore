@@ -41,12 +41,16 @@ namespace TCPServer
                         server.Stop();
                         return;
                     case "session_count":
+                        Console.WriteLine(server.Service.SessionTotalPoolCount);
                         break;
                     case "pooled_session_count":
+                        Console.WriteLine(server.Service.SessionCurrentPooledCount);
                         break;
-                    case "pooled_saea_count":
+                    case "saea_count":
+                        Console.WriteLine(server.Service.SAEATotalPoolCount);
                         break;
                     case "collect":
+                        GC.Collect();
                         break;
                     default:
                         Console.WriteLine($"Unknown Command: {command}");
@@ -93,9 +97,9 @@ namespace TCPServer
                 },
                 serverConfig);
 
-            ThreadManager tasks = new ThreadManager(1);
-            tasks.AddTask(NetworkTask, "NetworkTask");
-            tasks.SetMainTask(ServerCommand);
+            TaskManager tasks = new();
+            tasks.AddTask(NetworkTask);
+            tasks.SetMain(ServerCommand);
 
             tasks.StartTasks();
 

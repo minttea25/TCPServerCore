@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace ServerCoreTCP
 {
-    internal class Listener : SocketObject
+    public class Listener : SocketObject
     {
         public int Port => m_port;
         public int Backlog => m_backlog;
@@ -52,7 +52,7 @@ namespace ServerCoreTCP
         /// <summary>
         /// Place the socket in a listening state.
         /// </summary>
-        internal void StartListen()
+        public void StartListen()
         {
             m_listenSocket.Listen(m_backlog);
 
@@ -73,6 +73,8 @@ namespace ServerCoreTCP
 
             OnAcceptCompleted(eventArgs);
         }
+
+        #region Networks
 
         /// <summary>
         /// Register as waiting for Accept
@@ -128,5 +130,7 @@ namespace ServerCoreTCP
             // After Accept, wait again for other Accepts.
             RegisterAccept(eventArgs);
         }
+
+        #endregion
     }
 }

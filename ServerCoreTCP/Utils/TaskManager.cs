@@ -7,7 +7,7 @@ namespace ServerCoreTCP.Utils
 {
     public class TaskManager
     {
-        Task _mainTask = null;
+        Action _main = null;
         readonly List<Task> _taskList = null;
 
         public TaskManager()
@@ -21,7 +21,7 @@ namespace ServerCoreTCP.Utils
         /// <param name="mainTask"></param>
         public void SetMain(Action mainTask)
         {
-            _mainTask = new Task(mainTask);
+            _main = mainTask;
         }
 
 
@@ -48,7 +48,7 @@ namespace ServerCoreTCP.Utils
                 task.Start();
             }
 
-            _mainTask?.Start();
+            _main?.Invoke();
         }
     }
 }

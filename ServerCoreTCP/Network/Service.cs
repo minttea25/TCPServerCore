@@ -16,7 +16,13 @@ namespace ServerCoreTCP
         public ServiceTypes ServiceType => m_serviceType;
         readonly public ServiceTypes m_serviceType;
 
+        /// <summary>
+        /// The total count of SAEA that the pool has.
+        /// </summary>
         public int SAEATotalPoolCount => m_saeaPool.TotalPoolCount;
+        /// <summary>
+        /// The count of SAEA left in the pool.
+        /// </summary>
         public int SAEACurrentPooledCount => m_saeaPool.CurrentPooledCount;
 
         internal readonly SocketAsyncEventArgsPool m_saeaPool;
@@ -56,7 +62,13 @@ namespace ServerCoreTCP
     {
         readonly int m_sessionPoolCount;
 
+        /// <summary>
+        /// The total count of sessions that the pool has.
+        /// </summary>
         public int SessionTotalPoolCount => m_sessionPool.TotalPoolCount;
+        /// <summary>
+        /// The count of sessions left in the pool.
+        /// </summary>
         public int SessionCurrentPooledCount => m_sessionPool.CurrentPooledCount;
         public int Port => m_listener.Port;
         public int ListenerBackLog => m_listener.Backlog;

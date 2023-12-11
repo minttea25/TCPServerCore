@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ServerCoreTCP
 {
-    internal class Connector : SocketObject
+    public class Connector : SocketObject
     {
         readonly IPEndPoint _endPoint;
         readonly int m_connectionCount = 1;
@@ -18,6 +18,9 @@ namespace ServerCoreTCP
         readonly bool _reuseAddress;
 
         public ClientService ClientService => m_clientService;
+        /// <summary>
+        /// The ConnectionCount is determined by the ClientServiceConfig.
+        /// </summary>
         public int ConnectionCount => m_connectionCount;
 
         public Connector(ClientService clientService, Session[] session, IPEndPoint endPoint, ClientServiceConfig config, Action<SocketError> connectFailedCallback = null)
@@ -40,7 +43,7 @@ namespace ServerCoreTCP
             OnConnectCompleted(eventArgs);
         }
 
-        internal void Connect()
+        public void Connect()
         {
             CoreLogger.LogInfo("Connector.Connect", "Connector is trying to connect the server: {0}, count={1}", _endPoint, m_connectionCount);
 
@@ -58,6 +61,7 @@ namespace ServerCoreTCP
             }
         }
 
+        #region Networks
         void RegisterConnect(Socket socket, SocketAsyncEventArgs eventArgs)
         {
             if (!(eventArgs.UserToken is ConnectEventToken _)) throw new InvalidCastException();
@@ -97,5 +101,7 @@ namespace ServerCoreTCP
                 CoreLogger.LogError("Connector.OnConnectedCompleted", ex, "An exception occurred.");
             }
         }
+
+        #endregion
     }
 }

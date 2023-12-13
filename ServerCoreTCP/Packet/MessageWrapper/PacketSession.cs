@@ -11,6 +11,8 @@ namespace ServerCoreTCP.MessageWrapper
     {
         public const int MinimumPacketLength = Defines.PACKET_HEADER_SIZE + Defines.PACKET_DATATYPE_SIZE;
 
+        public static bool Encrypt { get; set; } = false;
+
         List<ArraySegment<byte>> _reserveQueue = new List<ArraySegment<byte>>();
         object _queueLock = new object();
 
@@ -30,7 +32,7 @@ namespace ServerCoreTCP.MessageWrapper
 
         public void Send<T>(T message) where T : IMessage
         {
-            ArraySegment<byte> msg = message.SerializeWrapper();
+            ArraySegment<byte> msg = Encrypt ? message.SerializeWrapperEncrypt() : message.SerializeWrapper();
 
             lock (_queueLock)
             {
@@ -81,8 +83,10 @@ namespace ServerCoreTCP.MessageWrapper
                 if (bodySize + processed  > buffer.Count) break;
 
                 // The data should be [packet type(2 or 4)][message].
-                ReadOnlySpan<byte> data = buffer.Slice(processed, bodySize);
+                ReadOnlySpan<byte> data = Encrypt ? MessageWrapper.Decrypt(buffer.Slice(processed, bodySize)) : buffer.Slice(processed, bodySize);
                 processed += bodySize;
+
+                if (data == null) continue;
 
                 OnRecv(data);
             }

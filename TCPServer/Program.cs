@@ -7,6 +7,7 @@ using Chat;
 using Serilog;
 using ServerCoreTCP;
 using ServerCoreTCP.CLogger;
+using ServerCoreTCP.MessageWrapper;
 using ServerCoreTCP.Utils;
 
 namespace TCPServer
@@ -57,6 +58,8 @@ namespace TCPServer
 
         static void Main(string[] args)
         {
+            PacketSession.Encrypt = true;
+
             MessageManager.Instance.Init();
 
             var config = LoggerConfig.GetDefault();

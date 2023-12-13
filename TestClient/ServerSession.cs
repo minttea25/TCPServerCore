@@ -24,12 +24,12 @@ namespace TestClient
             Timer timer = new(500);
             timer.Elapsed += (_, _) =>
             {
-                for (int i = 0; i < 5; ++i)
+                for (int i = 0; i < 10; ++i)
                 {
                     SSendChatText chatTextPacket = new()
                     {
                         ChatBase = new() { Timestamp = Timestamp.FromDateTime(DateTime.UtcNow) },
-                        Msg = $"It is {i} th message! Genshin is sooooo fun!!!",
+                        Msg = $"Tree",
                         SenderInfo = null,
                     };
                     Send(chatTextPacket);

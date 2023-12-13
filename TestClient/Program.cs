@@ -7,6 +7,7 @@ using Serilog;
 using Serilog.Core;
 using ServerCoreTCP;
 using ServerCoreTCP.CLogger;
+using ServerCoreTCP.MessageWrapper;
 using ServerCoreTCP.Utils;
 
 namespace TestClient
@@ -34,6 +35,7 @@ namespace TestClient
 
         static void Main(string[] args)
         {
+            PacketSession.Encrypt = true ;
             MessageManager.Instance.Init();
 
             CoreLogger.CreateLoggerWithFlag(

@@ -275,7 +275,6 @@ namespace ServerCoreTCP
         /// <summary>
         /// Callback that is called when recv-operation is completed.
         /// </summary>
-        /// <param name="sender">[Ignored] The source of the event</param>
         /// <param name="eventArgs">An object that contains the socket-async-recv-event data</param>
         void OnRecvCompleted(SocketAsyncEventArgs eventArgs)
         {

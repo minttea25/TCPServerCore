@@ -138,9 +138,9 @@ namespace Chat
 #endif
 
 #if PACKET_TYPE_INT
-        static ushort ReadPacketType(ReadOnlySpan<byte> buffer)
+        static uint ReadPacketType(ReadOnlySpan<byte> buffer)
         {
-            return buffer.ToUInt16();
+            return buffer.ToUInt32();
         }
 
         void HandlePacket(uint packetType, IMessage msg, Session session)

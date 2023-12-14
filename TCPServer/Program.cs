@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,6 +59,8 @@ namespace TCPServer
 
         static void Main(string[] args)
         {
+
+
             PacketSession.Encrypt = true;
 
             MessageManager.Instance.Init();

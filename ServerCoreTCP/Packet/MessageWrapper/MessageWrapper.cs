@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using Google.Protobuf;
 using ServerCoreTCP.CLogger;
 using ServerCoreTCP.Utils;
+using ServerCoreTCP.Secure;
 
 namespace ServerCoreTCP.MessageWrapper
 {
@@ -85,12 +86,7 @@ namespace ServerCoreTCP.MessageWrapper
             return Serialize(message);
         }
 
-
-
-        // TODO : temp
-        public static byte[] AES_KEY = Convert.FromBase64String("Irv3uhgf9WqnsxbU9KTTQGd3sHSL9ZbDeRgsxYj4jsY=");
-        public static byte[] AES_IV = Convert.FromBase64String("ahvQXaMrxFfhtl+AJn0L0g==");
-
+        
         /// <summary>
         /// Encrypt andSerialize the message with PacketWrapper using little-endian [ArraySegment]
         /// </summary>
@@ -123,31 +119,11 @@ namespace ServerCoreTCP.MessageWrapper
 #endif
                 message.WriteTo(new ArraySegment<byte>(temp, Defines.PACKET_DATATYPE_SIZE, messageSize));
 
-                using (Aes aes = Aes.Create())
-                {
-                    aes.Key = AES_KEY;
-                    aes.IV = AES_IV;
-                    aes.Mode = CipherMode.CBC;
-                    aes.Padding = PaddingMode.PKCS7;
+                byte[] sendBuf = Encryption.Encrypt(temp, leftPaddingSize: Defines.PACKET_HEADER_SIZE);
 
-                    using (ICryptoTransform encryptor = aes.CreateEncryptor(AES_KEY, AES_IV))
-                    using (MemoryStream memoryStream = new MemoryStream())
-                    {
-                        memoryStream.Position += Defines.PACKET_HEADER_SIZE;
-                        // CryptoStream을 사용하여 암호화된 데이터를 MemoryStream에 쓰기
-                        using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-                        {
-                            cryptoStream.Write(temp, 0, temp.Length);
-                            cryptoStream.FlushFinalBlock();
-                        }
-
-                        var sendBuf = memoryStream.ToArray();
-                        // write size at header(2)
-                        ((ushort)(sendBuf.Length - Defines.PACKET_HEADER_SIZE)).FromUInt16(sendBuf, offset: 0);
-
-                        return sendBuf;
-                    }
-                }
+                // write size at header(2)
+                ((ushort)(sendBuf.Length - Defines.PACKET_HEADER_SIZE)).FromUInt16(sendBuf, offset: 0);
+                return sendBuf;
             }
             catch (KeyNotFoundException knfe)
             {
@@ -182,38 +158,6 @@ namespace ServerCoreTCP.MessageWrapper
             return SerializeEncrypt(message);
         }
 
-        public static byte[] Decrypt(ReadOnlySpan<byte> encryptedBytes)
-        {
-            // TODO : can remove copy?
-            return Decrypt(encryptedBytes.ToArray());
-        }
-
-        public static byte[] Decrypt(byte[] encryptedBytes)
-        {
-            try
-            {
-                using (Aes aes = Aes.Create())
-                {
-                    aes.Key = AES_KEY;
-                    aes.IV = AES_IV;
-                    aes.Mode = CipherMode.CBC;
-                    aes.Padding = PaddingMode.PKCS7;
-
-                    byte[] decrypted;
-                    using (ICryptoTransform decryptor = aes.CreateDecryptor(AES_KEY, AES_IV))
-                    {
-                        decrypted = decryptor.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
-
-                        return decrypted;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                CoreLogger.LogError("MessageWrapper.Decrypt", e, "Exception");
-                return null;
-            }
-
-        }
+        
     }
 }

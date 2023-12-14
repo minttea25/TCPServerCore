@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Google.Protobuf;
 using ServerCoreTCP.Core;
+using ServerCoreTCP.Secure;
 using ServerCoreTCP.Utils;
 
 namespace ServerCoreTCP.MessageWrapper
@@ -83,7 +84,7 @@ namespace ServerCoreTCP.MessageWrapper
                 if (bodySize + processed  > buffer.Count) break;
 
                 // The data should be [packet type(2 or 4)][message].
-                ReadOnlySpan<byte> data = Encrypt ? MessageWrapper.Decrypt(buffer.Slice(processed, bodySize)) : buffer.Slice(processed, bodySize);
+                ReadOnlySpan<byte> data = Encrypt ? Encryption.Decrypt(buffer.Slice(processed, bodySize)) : buffer.Slice(processed, bodySize);
                 processed += bodySize;
 
                 if (data == null) continue;

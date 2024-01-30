@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Google.Protobuf;
+using ServerCoreTCP.CLogger;
 using ServerCoreTCP.Core;
 using ServerCoreTCP.Utils;
 
@@ -31,6 +32,8 @@ namespace ServerCoreTCP.MessageWrapper
         public void Send<T>(T message) where T : IMessage
         {
             ArraySegment<byte> msg = message.SerializeWrapper();
+
+            if (msg == null) return;
 
             lock (_queueLock)
             {

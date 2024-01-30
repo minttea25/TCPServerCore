@@ -64,13 +64,15 @@ namespace ServerCoreTCP.MessageWrapper
             }
             catch (KeyNotFoundException knfe)
             {
-                CoreLogger.LogError("MessageWrapper.Serialize", knfe, "Can not find key={0} in PacketMap", typeof(T));
-                return null;
+                CoreLogger.LogError("MessageWrapper.Serialize", knfe, "Can not find key={0} in PacketMap. The MessageManager may not be initialized or the parameter message is not derived from Google.Protobuf.IMessage, and can be IMessage itself.", typeof(T));
+                throw new Exception($"Can not find key={typeof(T)} in PacketMap: {knfe}");
+                //return null;
             }
             catch (Exception e)
             {
                 CoreLogger.LogError("MessageWrapper.Serialize", e, "Other Exception");
-                return null;
+                throw new Exception($"Other Exception: {e}");
+                //return null;
             }
         }
 

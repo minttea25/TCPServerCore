@@ -21,8 +21,8 @@ namespace ServerCoreTCP.Job
 
     /// <summary>
     /// This is JobSerilizer class for executing jobs in one thread with serializing the jobs. 
-    /// It need to be called `Flush()` manually.
-    /// When `Flush()` called, the thread will invoke all actions in the queue.
+    /// <br/>It need to be called `Flush()` manually.
+    /// <br/>When `Flush()` called, it will invoke all actions in the queue.
     /// </summary>
     public abstract class JobSerializer : IJobSerializer
     {
@@ -73,9 +73,9 @@ namespace ServerCoreTCP.Job
 
     /// <summary>
     /// This is JobSerilizer class for executing jobs in one thread with serializing the jobs. 
-    /// It calls `Flush()` automatically, so you don't need to call `Flush()` manually.
-    /// The added cancelable jobs are executed when the reserved time comes. (miiliseconds)
-    /// It contains the whole functions of JobSerializer. (It is derived from JobSerializer)
+    /// <br/>It calls `Flush()` automatically, so you don't need to call `Flush()` manually.
+    /// <br/>The added cancelable jobs are executed when the reserved time comes. (miiliseconds)
+    /// <br/>It contains the whole functions of JobSerializer. (It is derived from JobSerializer)
     /// </summary>
     public class JobSerializerWithTimer : JobSerializer, IUseJobTimer
     {

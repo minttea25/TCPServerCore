@@ -14,7 +14,7 @@ namespace ServerCoreTCP.Job
     }
 
     /// <summary>
-    /// The cancelable job object which is used in JobTimer. Set `Canceled` to false when you want to cancel to invoke this job.
+    /// The cancelable job object which is used in JobTimer.<br/>Set `Canceled` to false when you want to cancel to invoke this job.
     /// </summary>
     public class CancelableJob : ICancelable, IComparable<CancelableJob>
     {

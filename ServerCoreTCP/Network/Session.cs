@@ -22,7 +22,7 @@ namespace ServerCoreTCP
         }
 
         /// <summary>
-        /// [Nullable] Connected Endpoint. (Null if the socket is null or not connected)
+        /// [Nullable] Connected Endpoint.<br/>(Null if the socket is null or not connected)
         /// </summary>
         public EndPoint ConnectedEndPoint => m_socket?.RemoteEndPoint;
         /// <summary>
@@ -34,7 +34,7 @@ namespace ServerCoreTCP
 
 
         /// <summary>
-        /// The value to check the session connected; 0: disconnected, 1: connected (Used with Interlocked)
+        /// The value to check the session connected;<br/>0: disconnected<br/>1: connected<br/>(Used with Interlocked)
         /// </summary>
         int _connected = 0;
         uint m_sessionId;
@@ -77,7 +77,7 @@ namespace ServerCoreTCP
 
         #region Abstract Methods
         /// <summary>
-        /// Called when the socket is connected. Initialize members of session here.
+        /// Called when the socket is connected.<br/>Initialize members of session here.
         /// </summary>
         public abstract void InitSession();
         /// <summary>
@@ -107,7 +107,7 @@ namespace ServerCoreTCP
         public abstract void OnDisconnected(EndPoint endPoint, object error = null);
 
         /// <summary>
-        /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
+        /// Check the received buffer.<br/>If there are multiple packet data on the buffer, each data is processed separately.<br/>OnRecv will be called here.
         /// </summary>
         /// <param name="buffer">The buffer received on socket.</param>
         /// <returns>The length of processed bytes.</returns>
@@ -192,7 +192,7 @@ namespace ServerCoreTCP
         #region Network IO
 
         /// <summary>
-        /// Reserve 'Send' for async-send (Note: It needs to be protected for race-condition.)
+        /// Reserve 'Send' for async-send.<br/>Note: It needs to be protected for race-condition.
         /// </summary>
         protected void RegisterSend()
         {
@@ -358,7 +358,7 @@ namespace ServerCoreTCP
         #endregion
 
         /// <summary>
-        /// Close the connection and the socket and clear the session. If it is in ServerService, returns the session to the pool.
+        /// Close the connection and the socket and clear the session.<br/>If it is in ServerService, returns the session to the pool.
         /// </summary>
         public void Disconnect()
         {

@@ -3,7 +3,7 @@
 namespace ServerCoreTCP
 {
     /// <summary>
-    /// Object that distinguishes type of the socket event. It is used with the socket.UserToken.
+    /// Object that distinguishes type of the socket event.<br/>It is used with the Socket.UserToken.
     /// </summary>
     internal abstract class SocketEventToken
     {

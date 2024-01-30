@@ -5,7 +5,7 @@ using System.Threading;
 namespace ServerCoreTCP
 {
     /// <summary>
-    /// Each thread sends data with this. It has SendBuffer in Thread-Local-Storage.
+    /// Each thread sends data with this.<br/>It has SendBuffer in Thread-Local-Storage.
     /// </summary>
     public class SendBufferTLS
     {
@@ -102,7 +102,7 @@ namespace ServerCoreTCP
         }
 
         /// <summary>
-        /// Return the segment with that size. (reserve + return) If there is not enough size, return the segment after setting usedSize 0.
+        /// Return the segment with that size. (reserve + return)<br/>If there is not enough size, returns the segment after setting usedSize 0.
         /// </summary>
         /// <param name="size">The size to get segment.</param>
         /// <returns>The segment of the buffer with the size.</returns>

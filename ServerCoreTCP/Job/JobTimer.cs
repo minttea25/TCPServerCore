@@ -13,8 +13,8 @@ namespace ServerCoreTCP.Job
 
     /// <summary>
     /// It is stored in the priority queue at the scheduled time, and when that time comes, it is automatically flushed and the job is executed. 
-    /// If the Canceled value of the job is false, the job will not be executed.
-    /// It uses the StopWatch in Global.
+    /// <br/>If the Canceled value of the job is false, the job will not be executed.
+    /// <br/>It uses the StopWatch in Global.
     /// </summary>
     public class JobTimer
     {

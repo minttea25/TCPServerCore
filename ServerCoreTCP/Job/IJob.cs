@@ -11,7 +11,7 @@ namespace ServerCoreTCP.Job
     }
 
     /// <summary>
-    /// The job object which is used in JobSerialier and JobTimer. Up to 5 arguments are provided.
+    /// The job object which is used in JobSerialier and JobTimer.<br/>Up to 5 arguments are provided.
     /// </summary>
     public class Job : IJob
     {

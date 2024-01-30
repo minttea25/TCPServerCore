@@ -101,7 +101,7 @@ namespace ServerCoreTCP
         // Semaphore m_maxConnections;
 
         /// <summary>
-        /// The constructor of serverservice. (Note: The sessions are created in the pool before formed connection.)
+        /// The constructor of serverservice.<br/>Note: The sessions are created in the pool before formed connection.
         /// </summary>
         /// <param name="endPoint">The endpoint to be opened.</param>
         /// <param name="emptySessionFactory">The factory of the empty session.</param>
@@ -156,7 +156,7 @@ namespace ServerCoreTCP
         public int ConnectionCount => m_connector.ConnectionCount;
 
         /// <summary>
-        /// The constructor of clientservice. (Note: The sessions are created before formed connection.)
+        /// The constructor of clientservice.<br/>Note: The sessions are created before formed connection.
         /// </summary>
         /// <param name="endPoint">The endpoint to connect to.</param>
         /// <param name="emptySessionFactory">The factory of the empty session.</param>

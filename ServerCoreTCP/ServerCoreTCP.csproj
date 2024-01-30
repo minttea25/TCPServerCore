@@ -5,6 +5,8 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <ApplicationIcon />
     <StartupObject />
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>C:\Users\kwy33\OneDrive\Desktop\Workplace\C#\TCPServerCore\ServerCoreTCP\Documentation\ServerCoreTCP.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

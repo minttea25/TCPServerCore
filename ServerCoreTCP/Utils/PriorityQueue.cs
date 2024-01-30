@@ -5,8 +5,8 @@ namespace ServerCoreTCP.Utils
 {
     /// <summary>
     /// PriorityQueue (If the type is numeric, Peek() will return highest value in default.)
-    /// NOTE: If count==0, `Peek()` and `Dequeue()` will return DEFAULT value.
-    /// Use `TryPeek` and `TryDequeue` safely with primitive types.
+    /// <br/>NOTE: If count==0, `Peek()` and `Dequeue()` will return DEFAULT value.
+    /// <br/>Use `TryPeek` and `TryDequeue` safely with primitive types.
     /// </summary>
     /// <typeparam name="T">System.IComparable: the comparable object</typeparam>
     public class PriorityQueue<T> where T : IComparable<T>

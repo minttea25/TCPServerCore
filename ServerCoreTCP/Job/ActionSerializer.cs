@@ -5,9 +5,9 @@ namespace ServerCoreTCP.Job
 {
     /// <summary>
     /// This is ActionSerilizer class for executing actions in one thread. 
-    /// If you want to user parameters, use IJobSerializer. 
-    /// It need to be called `Flush()` manually.
-    /// When `Flush()` called, the thread will invoke all actions in the queue.
+    /// <br/>If you want to user parameters, use IJobSerializer. 
+    /// <br/>It need to be called `Flush()` manually.
+    /// <br/>When `Flush()` called, the it will invoke all actions in the queue.
     /// </summary>
     public class ActionSerializer
     {
@@ -51,9 +51,9 @@ namespace ServerCoreTCP.Job
 
     /// <summary>
     /// This is ActionSerializerAuto class for executing actions in one thread.
-    /// If you want to user parameters, use IJobSerializerAuto.
-    /// When `Add()` called, the thread will begin to invoke actions in the queue if no thread is flushing.
-    /// At this time, other `Add()` can be called and it just adds a action to a queue.
+    /// <br/>If you want to user parameters, use IJobSerializerAuto.
+    /// <br/>When `Add()` called, it will begin to invoke actions in the queue if any thread is not flushing.
+    /// <br/>At this time, other `Add()` can be called and it just adds a action to a queue.
     /// </summary>
     public class ActionSerializerAuto
     {

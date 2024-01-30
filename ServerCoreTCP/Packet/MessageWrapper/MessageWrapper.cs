@@ -13,9 +13,9 @@ namespace ServerCoreTCP.MessageWrapper
     public static class MessageWrapper
     {
         /// <summary>
-        /// Note: It should contain the information of the ids about the message types. 
         /// The serializer will find the packet id of the message.
-        /// Add data at the MessageManager.Init().
+        /// <br/>Add data at the MessageManager.Init().
+        /// <br/>Note: It should contain the information of the ids about the message types. 
         /// </summary>
 #if PACKET_TYPE_INT
         public readonly static Dictionary<Type, uint> PacketMap = new Dictionary<Type, uint>()
@@ -36,7 +36,7 @@ namespace ServerCoreTCP.MessageWrapper
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
         /// <param name="message">The message to serialize.</param>
-        /// <returns>The serialized buffer with PacketWrapper. Null if failed.</returns>
+        /// <returns>The serialized buffer with PacketWrapper.<br/>Null if failed.</returns>
         public static ArraySegment<byte> Serialize<T>(T message) where T : IMessage
         {
             try
@@ -89,7 +89,7 @@ namespace ServerCoreTCP.MessageWrapper
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
         /// <param name="message">The message to serialize.</param>
-        /// <returns>The serialized buffer with PacketWrapper. Null if failed.</returns>
+        /// <returns>The serialized buffer with PacketWrapper.<br/>Null if failed.</returns>
         public static ArraySegment<byte> SerializeWrapper<T>(this T message) where T : IMessage
         {
             return Serialize(message);

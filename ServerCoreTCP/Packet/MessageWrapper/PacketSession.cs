@@ -19,8 +19,8 @@ namespace ServerCoreTCP.MessageWrapper
 
         /// <summary>
         /// Serialize the message and add the serialized message in the pending queue of the packet session.
-        /// (Note: It does not send the message right now.)
-        /// If serialization is failed, do nothing.
+        /// <br/>If serialization is failed, do nothing.
+        /// <br/>Note: It does not send the message directly.
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
         /// <param name="message">The message data</param>

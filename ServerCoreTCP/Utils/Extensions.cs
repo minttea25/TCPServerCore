@@ -24,7 +24,7 @@ namespace ServerCoreTCP.Utils
 
         #region Serialization
         /// <summary>
-        /// Converts the value to bytes at the offset starts in the buffer.
+        /// Converts the value to bytes at the offset starts in the buffer.<br/> 
         /// The buffer must have enough space.
         /// </summary>
         /// <param name="value">The value to convert</param>
@@ -36,9 +36,9 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the value to bytes at the offset starts in the buffer. 
-        /// Note: The offset is reference value.
+        /// Converts the value to bytes at the offset starts in the buffer.<br/>
         /// The buffer must have enough space.
+        /// Note: The offset is reference value.<br/>
         /// </summary>
         /// <param name="value">The value to convert</param>
         /// <param name="buffer">The buffer</param>
@@ -49,7 +49,7 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the value to bytes at the offset starts in the buffer.
+        /// Converts the value to bytes at the offset starts in the buffer.<br/> 
         /// The buffer must have enough space.
         /// </summary>
         /// <param name="value">The value to convert</param>
@@ -61,9 +61,9 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the value to bytes at the offset starts in the buffer. 
-        /// Note: The offset is reference value.
+        /// Converts the value to bytes at the offset starts in the buffer.<br/>
         /// The buffer must have enough space.
+        /// Note: The offset is reference value.<br/>
         /// </summary>
         /// <param name="value">The value to convert</param>
         /// <param name="buffer">The buffer</param>
@@ -74,7 +74,7 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the value to bytes at the offset starts in the buffer.
+        /// Converts the value to bytes at the offset starts in the buffer.<br/> 
         /// The buffer must have enough space.
         /// </summary>
         /// <param name="value">The value to convert</param>
@@ -86,9 +86,9 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the value to bytes at the offset starts in the buffer. 
-        /// Note: The offset is reference value.
+        /// Converts the value to bytes at the offset starts in the buffer.<br/>
         /// The buffer must have enough space.
+        /// Note: The offset is reference value.<br/>
         /// </summary>
         /// <param name="value">The value to convert</param>
         /// <param name="buffer">The buffer</param>
@@ -99,7 +99,7 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the value to bytes at the offset starts in the buffer.
+        /// Converts the value to bytes at the offset starts in the buffer.<br/> 
         /// The buffer must have enough space.
         /// </summary>
         /// <param name="value">The value to convert</param>
@@ -111,9 +111,9 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the value to bytes at the offset starts in the buffer. 
-        /// Note: The offset is reference value.
+        /// Converts the value to bytes at the offset starts in the buffer.<br/>
         /// The buffer must have enough space.
+        /// Note: The offset is reference value.<br/>
         /// </summary>
         /// <param name="value">The value to convert</param>
         /// <param name="buffer">The buffer</param>
@@ -126,7 +126,7 @@ namespace ServerCoreTCP.Utils
 
         #region Deserialization
         /// <summary>
-        /// Converts the buffer starts at the offset to value .
+        /// Converts the buffer starts at the offset to value. <br/>
         /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
         /// </summary>
         /// <param name="buffer">The buffer to convert</param>
@@ -138,9 +138,9 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the buffer starts at the offset to value .
+        /// Converts the buffer starts at the offset to value. <br/>
+        /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.<br/>
         /// Note: The offset is reference value.
-        /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
         /// </summary>
         /// <param name="buffer">The buffer to convert</param>
         /// <param name="offset">The offset of the buffer</param>
@@ -151,7 +151,7 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the buffer starts at the offset to value .
+        /// Converts the buffer starts at the offset to value. <br/>
         /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
         /// </summary>
         /// <param name="buffer">The buffer to convert</param>
@@ -163,9 +163,9 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the buffer starts at the offset to value .
+        /// Converts the buffer starts at the offset to value. <br/>
+        /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.<br/>
         /// Note: The offset is reference value.
-        /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
         /// </summary>
         /// <param name="buffer">The buffer to convert</param>
         /// <param name="offset">The offset of the buffer</param>
@@ -176,7 +176,7 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the buffer starts at the offset to value .
+        /// Converts the buffer starts at the offset to value. <br/>
         /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
         /// </summary>
         /// <param name="buffer">The buffer to convert</param>
@@ -188,9 +188,9 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the buffer starts at the offset to value .
+        /// Converts the buffer starts at the offset to value. <br/>
+        /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.<br/>
         /// Note: The offset is reference value.
-        /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
         /// </summary>
         /// <param name="buffer">The buffer to convert</param>
         /// <param name="offset">The offset of the buffer</param>
@@ -201,7 +201,7 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the buffer starts at the offset to value .
+        /// Converts the buffer starts at the offset to value. <br/>
         /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
         /// </summary>
         /// <param name="buffer">The buffer to convert</param>
@@ -213,9 +213,9 @@ namespace ServerCoreTCP.Utils
         }
 
         /// <summary>
-        /// Converts the buffer starts at the offset to value .
+        /// Converts the buffer starts at the offset to value. <br/>
+        /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.<br/>
         /// Note: The offset is reference value.
-        /// The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
         /// </summary>
         /// <param name="buffer">The buffer to convert</param>
         /// <param name="offset">The offset of the buffer</param>

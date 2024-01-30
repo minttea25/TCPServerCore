@@ -7,7 +7,7 @@ using System.Net.Sockets;
 namespace ServerCoreTCP
 {
     /// <summary>
-    /// The connector object to connect to other endpoint. The default connected count is 1, and it also provided the multiple connections for doing test.
+    /// The connector object to connect to other endpoint.<br/>The default connected count is 1, and it also provides the multiple connections for doing test.
     /// </summary>
     internal class Connector : SocketObject
     {

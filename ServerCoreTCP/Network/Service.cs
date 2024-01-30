@@ -31,11 +31,10 @@ namespace ServerCoreTCP
             Global.Clear();
         }
 
-
-        public Service(ServiceTypes serviceType)
+        public Service(ServiceTypes serviceType, int saeaPoolCount)
         {
             m_serviceType = serviceType;
-            m_saeaPool = new SocketAsyncEventArgsPool(1000, Dispatch);
+            m_saeaPool = new SocketAsyncEventArgsPool(saeaPoolCount, Dispatch);
         }
 
         void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
@@ -66,7 +65,7 @@ namespace ServerCoreTCP
         internal SessionPool m_sessionPool;
         // Semaphore m_maxConnections;
 
-        public ServerService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ServerServiceConfig config) : base(ServiceTypes.Server)
+        public ServerService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ServerServiceConfig config) : base(ServiceTypes.Server, config.SocketAsyncEventArgsPoolCount)
         {
             m_sessionPoolCount = config.SessionPoolCount;
 
@@ -103,7 +102,7 @@ namespace ServerCoreTCP
 
         public int ConnectionCount => m_connector.ConnectionCount;
 
-        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ClientServiceConfig config, Action<SocketError> connectFailedCallback = null) : base(ServiceTypes.Client)
+        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ClientServiceConfig config, Action<SocketError> connectFailedCallback = null) : base(ServiceTypes.Client, config.SocketAsyncEventArgsPoolCount)
         {
             m_sessionCount = config.ClientServiceSessionCount;
 

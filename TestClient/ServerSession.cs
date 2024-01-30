@@ -52,7 +52,7 @@ namespace TestClient
         {
         }
 
-        public override void PreSessionCleanup()
+        public override void ClearSession()
         {
         }
     }

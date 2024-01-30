@@ -57,16 +57,16 @@ namespace ServerCoreTCP.MessageWrapper
 #endif
                 message.WriteTo(buffer.Slice(offset));
 
-                // needless code
+                // meaningless code
                 // offset += packetSize - sizeof(ushort) or sizeof(uint);
 
                 return buffer;
             }
             catch (KeyNotFoundException knfe)
             {
-                CoreLogger.LogError("MessageWrapper.Serialize", knfe, "Can not find key={0} in PacketMap. The MessageManager may not be initialized or the parameter message is not derived from Google.Protobuf.IMessage, and can be IMessage itself.", typeof(T));
-                throw new Exception($"Can not find key={typeof(T)} in PacketMap: {knfe}");
-                //return null;
+                CoreLogger.LogError("MessageWrapper.Serialize", knfe, "Can not find key={0} in PacketMap. Init MessageManager first, or check the init method.", typeof(T));
+                //throw new Exception($"Can not find key={typeof(T)} in PacketMap. Init MessageManager first, or check the init method.");
+                return null;
             }
             catch (Exception e)
             {

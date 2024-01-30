@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ServerCoreTCP
 {
@@ -43,7 +39,11 @@ namespace ServerCoreTCP
 
         internal void Push(Session session)
         {
+#if RELEASE
+            if (session == null) return;
+#else
             if (session == null) throw new NullReferenceException();
+#endif
 
             // reset the session
             session.Clear();

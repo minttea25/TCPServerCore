@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using Google.Protobuf;
+﻿using Google.Protobuf;
 using ServerCoreTCP.CLogger;
 using ServerCoreTCP.Core;
 using ServerCoreTCP.Utils;
+using System;
+using System.Collections.Generic;
 
 namespace ServerCoreTCP.MessageWrapper
 {
@@ -47,7 +46,7 @@ namespace ServerCoreTCP.MessageWrapper
             // capture and copy the elements in the queue
             List<ArraySegment<byte>> sendList = null;
 
-            var dt = Global.G_Stopwatch.ElapsedTicks - _lastSendTick;
+            long dt = Global.G_Stopwatch.ElapsedTicks - _lastSendTick;
             if (dt < Defines.SessionSendFlushMinIntervalMilliseconds
                 && _reservedSendBytes < Defines.SessionSendFlushMinReservedByteLength) return;
             int b;
@@ -65,7 +64,9 @@ namespace ServerCoreTCP.MessageWrapper
             }
 
             SendRaw(sendList);
+#if DEBUG
             Console.WriteLine($"Sent: {sendList.Count} and {b} bytes");
+#endif
         }
 
         protected sealed override int OnRecvProcess(ArraySegment<byte> buffer)

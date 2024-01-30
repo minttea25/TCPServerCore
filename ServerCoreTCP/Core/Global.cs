@@ -14,7 +14,7 @@ namespace ServerCoreTCP.Core
 
         static int _refCount = 0;
         static bool _init = false;
-        static object _lock = new object();
+        readonly static object _lock = new object();
 
         /// <summary>
         /// It will be called when the service starts.

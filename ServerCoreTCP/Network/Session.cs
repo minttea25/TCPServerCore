@@ -17,7 +17,9 @@ namespace ServerCoreTCP
             get { return m_sessionId; }
             internal set { m_sessionId = value; }
         }
+
         public EndPoint ConnectedEndPoint => m_socket?.RemoteEndPoint;
+        public Socket Socket => m_socket;
 
         protected Socket m_socket;
 
@@ -72,7 +74,7 @@ namespace ServerCoreTCP
         /// <summary>
         /// Called before the session is cleaned up.
         /// </summary>
-        public abstract void PreSessionCleanup();
+        public abstract void ClearSession();
         /// <summary>
         /// Called when the socket is connected.
         /// </summary>
@@ -129,6 +131,7 @@ namespace ServerCoreTCP
             _sendEventArgs.UserToken = new SendEventToken(this);
 
             InitSession();
+
             RegisterRecv();
         }
 
@@ -161,8 +164,11 @@ namespace ServerCoreTCP
         /// <param name="sendBufferList">A list of serialized data to send</param>
         protected void SendRaw(List<ArraySegment<byte>> sendBufferList)
         {
+#if RELEASE
+            if (sendBufferList.Count == 0) return;
+#else
             if (sendBufferList.Count == 0) throw new Exception("The count of 'sendBufferList' was 0.");
-
+#endif
             lock (_lock)
             {
                 foreach (var buffer in sendBufferList)
@@ -370,7 +376,7 @@ namespace ServerCoreTCP
 
         internal void Clear()
         {
-            PreSessionCleanup();
+            ClearSession();
 
             _connected = 0;
             m_socket = null;

@@ -1,23 +1,22 @@
-﻿using System.Diagnostics;
-using ServerCoreTCP.Core;
+﻿using ServerCoreTCP.Core;
 using ServerCoreTCP.Utils;
 
 namespace ServerCoreTCP.Job
 {
     public interface IUseJobTimer
     {
-        public RevocableJob AddAfter(IJob job, int millisecondsAfter);
+        public CancelableJob AddAfter(IJob job, int millisecondsAfter);
     }
 
     public class JobTimer
     {
-        readonly PriorityQueue<RevocableJob> _pq = new PriorityQueue<RevocableJob>();
+        readonly PriorityQueue<CancelableJob> _pq = new PriorityQueue<CancelableJob>();
         readonly object _queueLock = new object();
 
-        public RevocableJob AddAfter(IJob job, long millisecondsAfter = 0) 
+        public CancelableJob AddAfter(IJob job, long millisecondsAfter = 0) 
         { 
             long millisecondsExec = Global.G_Stopwatch.ElapsedMilliseconds + millisecondsAfter;
-            RevocableJob revocableJob = new RevocableJob(job, millisecondsExec);
+            CancelableJob revocableJob = new CancelableJob(job, millisecondsExec);
 
             lock (_queueLock)
             {
@@ -33,7 +32,7 @@ namespace ServerCoreTCP.Job
             {
                 long now = Global.G_Stopwatch.ElapsedMilliseconds;
 
-                RevocableJob revocableJob;
+                CancelableJob revocableJob;
                 lock (_queueLock)
                 {
                     if (_pq.TryPeek(out revocableJob) == false) break;

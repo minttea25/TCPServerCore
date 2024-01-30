@@ -65,15 +65,15 @@ namespace ServerCoreTCP.Job
     {
         readonly JobTimer _jobTimer = new JobTimer();
 
-        public RevocableJob AddAfter(Action action, int millisecondsAfter) { return AddAfter(new Job(action), millisecondsAfter); }
-        public RevocableJob AddAfter<T1>(Action<T1> action, int millisecondsAfter, T1 t1) { return AddAfter(new Job<T1>(action, t1), millisecondsAfter); }
-        public RevocableJob AddAfter<T1, T2>(Action<T1, T2> action, int millisecondsAfter, T1 t1, T2 t2) { return AddAfter(new Job<T1, T2>(action, t1, t2), millisecondsAfter); }
-        public RevocableJob AddAfter<T1, T2, T3>(Action<T1, T2, T3> action, int millisecondsAfter, T1 t1, T2 t2, T3 t3) { return AddAfter(new Job<T1, T2, T3>(action, t1, t2, t3), millisecondsAfter); }
-        public RevocableJob AddAfter<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action, int millisecondsAfter, T1 t1, T2 t2, T3 t3, T4 t4) { return AddAfter(new Job<T1, T2, T3, T4>(action, t1, t2, t3, t4), millisecondsAfter); }
-        public RevocableJob AddAfter<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> action, int millisecondsAfter, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) { return AddAfter(new Job<T1, T2, T3, T4, T5>(action, t1, t2, t3, t4, t5), millisecondsAfter); }
+        public CancelableJob AddAfter(Action action, int millisecondsAfter) { return AddAfter(new Job(action), millisecondsAfter); }
+        public CancelableJob AddAfter<T1>(Action<T1> action, int millisecondsAfter, T1 t1) { return AddAfter(new Job<T1>(action, t1), millisecondsAfter); }
+        public CancelableJob AddAfter<T1, T2>(Action<T1, T2> action, int millisecondsAfter, T1 t1, T2 t2) { return AddAfter(new Job<T1, T2>(action, t1, t2), millisecondsAfter); }
+        public CancelableJob AddAfter<T1, T2, T3>(Action<T1, T2, T3> action, int millisecondsAfter, T1 t1, T2 t2, T3 t3) { return AddAfter(new Job<T1, T2, T3>(action, t1, t2, t3), millisecondsAfter); }
+        public CancelableJob AddAfter<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action, int millisecondsAfter, T1 t1, T2 t2, T3 t3, T4 t4) { return AddAfter(new Job<T1, T2, T3, T4>(action, t1, t2, t3, t4), millisecondsAfter); }
+        public CancelableJob AddAfter<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> action, int millisecondsAfter, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) { return AddAfter(new Job<T1, T2, T3, T4, T5>(action, t1, t2, t3, t4, t5), millisecondsAfter); }
 
 
-        public RevocableJob AddAfter(IJob job, int millisecondsAfter)
+        public CancelableJob AddAfter(IJob job, int millisecondsAfter)
         {
             return _jobTimer.AddAfter(job, millisecondsAfter);
         }

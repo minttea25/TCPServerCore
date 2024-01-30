@@ -107,7 +107,7 @@ namespace ServerCoreTCP
 
         public ArraySegment<byte> Use(int size)
         {
-            if (size > FreeSize) _usedSize = 0; // TODO : need to be refactored...
+            if (size > FreeSize) _usedSize = 0;
 
             ArraySegment<byte> segment = new ArraySegment<byte>(_buffer, _usedSize, size);
             _usedSize += size;

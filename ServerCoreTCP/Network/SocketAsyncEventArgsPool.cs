@@ -37,7 +37,11 @@ namespace ServerCoreTCP
 
         internal void Push(SocketAsyncEventArgs args)
         {
+#if RELEASE
+            if (args == null) return;
+#else
             if (args == null) throw new NullReferenceException();
+#endif
 
             // reset for reusing
             args.AcceptSocket = null;

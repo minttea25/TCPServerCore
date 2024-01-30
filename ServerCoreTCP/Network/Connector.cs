@@ -43,18 +43,25 @@ namespace ServerCoreTCP
         internal void Connect()
         {
             CoreLogger.LogInfo("Connector.Connect", "Connector is trying to connect the server: {0}, count={1}", _endPoint, m_connectionCount);
-
-            for (int i = 0; i < m_connectionCount; ++i)
+            try
             {
-                Socket socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                SocketAsyncEventArgs connectEventArgs = m_service.m_saeaPool.Pop();
-                connectEventArgs.RemoteEndPoint = _endPoint;
-                connectEventArgs.UserToken = new ConnectEventToken(this, socket, m_serverSession[i]);
+                for (int i = 0; i < m_connectionCount; ++i)
+                {
+                    Socket socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    SocketAsyncEventArgs connectEventArgs = m_service.m_saeaPool.Pop();
+                    connectEventArgs.RemoteEndPoint = _endPoint;
+                    connectEventArgs.UserToken = new ConnectEventToken(this, socket, m_serverSession[i]);
 
-                socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.SetReuseAddress(_reuseAddress);
+                    socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    socket.SetReuseAddress(_reuseAddress);
 
-                RegisterConnect(socket, connectEventArgs);
+                    RegisterConnect(socket, connectEventArgs);
+                }
+            }
+            catch (Exception ex)
+            {
+                CoreLogger.LogError("Connector.Connect", ex, "Exception");
+                throw ex;
             }
         }
 

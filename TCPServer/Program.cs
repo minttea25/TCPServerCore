@@ -73,7 +73,6 @@ namespace TCPServer
             ServerServiceConfig serverConfig = new()
             {
                 SessionPoolCount = 100,
-                SocketAsyncEventArgsPoolCount = 300,
                 ReuseAddress = true,
                 RegisterListenCount = 10,
                 ListenerBacklogCount = 100,

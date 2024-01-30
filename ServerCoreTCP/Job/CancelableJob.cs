@@ -4,18 +4,27 @@ using System.Text;
 
 namespace ServerCoreTCP.Job
 {
-    public interface IRevocableJob : IJob
+    /// <summary>
+    /// The interface of cancelable job.
+    /// </summary>
+    public interface ICancelable : IJob
     {
         bool Canceled { get; set; }
         long MillisecondsExec { get; }
     }
 
-    public class CancelableJob : IRevocableJob, IComparable<CancelableJob>
+    /// <summary>
+    /// The cancelable job object which is used in JobTimer. Set `Canceled` to false when you want to cancel to invoke this job.
+    /// </summary>
+    public class CancelableJob : ICancelable, IComparable<CancelableJob>
     {
         readonly IJob _job;
         readonly long _millisecondsAfterExec;
 
         bool m_canceled;
+        /// <summary>
+        /// Set this value to false if you want to cancel to invoke this job.
+        /// </summary>
         public bool Canceled
         {
             get => m_canceled;

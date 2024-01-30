@@ -3,10 +3,12 @@ using ServerCoreTCP.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 
 namespace ServerCoreTCP
 {
+    /// <summary>
+    /// The connector object to connect to other endpoint. The default connected count is 1, and it also provided the multiple connections for doing test.
+    /// </summary>
     internal class Connector : SocketObject
     {
         readonly IPEndPoint _endPoint;
@@ -17,9 +19,23 @@ namespace ServerCoreTCP
         readonly Action<SocketError> _connectFailedCallback;
         readonly bool _reuseAddress;
 
+        /// <summary>
+        /// The referenced ClientService
+        /// </summary>
         public ClientService ClientService => m_clientService;
+        /// <summary>
+        /// The count of the connections which is configured at first.
+        /// </summary>
         public int ConnectionCount => m_connectionCount;
 
+        /// <summary>
+        /// The constructor of the connector.
+        /// </summary>
+        /// <param name="clientService">The configured client service</param>
+        /// <param name="session">The empty sessions are created in advance</param>
+        /// <param name="endPoint">The endpoint to connect</param>
+        /// <param name="config">The ClientServiceConfig that contains information of service</param>
+        /// <param name="connectFailedCallback">The callback which is invoked when the connection is failed.</param>
         public Connector(ClientService clientService, Session[] session, IPEndPoint endPoint, ClientServiceConfig config, Action<SocketError> connectFailedCallback = null)
         {
             _reuseAddress = config.ReuseAddress;

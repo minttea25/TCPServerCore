@@ -3,14 +3,24 @@ using System.Collections.Generic;
 
 namespace ServerCoreTCP.Job
 {
+    /// <summary>
+    /// The interface of JobSerializer.
+    /// </summary>
     public interface IJobSerializer
     {
+        /// <summary>
+        /// Invokes all jobs in the queue.
+        /// </summary>
         public void Flush();
+        /// <summary>
+        /// Add job to serializer.
+        /// </summary>
+        /// <param name="job"></param>
         public void Add(IJob job);
     }
 
     /// <summary>
-    /// This is JobSerilizer class for executing jobs in one thread. 
+    /// This is JobSerilizer class for executing jobs in one thread with serializing the jobs. 
     /// It need to be called `Flush()` manually.
     /// When `Flush()` called, the thread will invoke all actions in the queue.
     /// </summary>
@@ -61,6 +71,12 @@ namespace ServerCoreTCP.Job
         }
     }
 
+    /// <summary>
+    /// This is JobSerilizer class for executing jobs in one thread with serializing the jobs. 
+    /// It calls `Flush()` automatically, so you don't need to call `Flush()` manually.
+    /// The added cancelable jobs are executed when the reserved time comes. (miiliseconds)
+    /// It contains the whole functions of JobSerializer. (It is derived from JobSerializer)
+    /// </summary>
     public class JobSerializerWithTimer : JobSerializer, IUseJobTimer
     {
         readonly JobTimer _jobTimer = new JobTimer();

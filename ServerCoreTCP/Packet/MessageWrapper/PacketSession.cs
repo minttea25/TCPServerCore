@@ -17,17 +17,13 @@ namespace ServerCoreTCP.MessageWrapper
         int _reservedSendBytes = 0;
         long _lastSendTick = 0;
 
-
         /// <summary>
-        /// Send message to endpoint of the socket [Protobuf Wrapper]
+        /// Serialize the message and add the serialized message in the pending queue of the packet session.
+        /// (Note: It does not send the message right now.)
+        /// If serialization is failed, do nothing.
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
-        /// <param name="packet">The message to send.</param>
-        //public void Send<T>(T message) where T : IMessage
-        //{
-        //    SendRaw(message.SerializeWrapper());
-        //}
-
+        /// <param name="message">The message data</param>
         public void Send<T>(T message) where T : IMessage
         {
             ArraySegment<byte> msg = message.SerializeWrapper();
@@ -41,6 +37,10 @@ namespace ServerCoreTCP.MessageWrapper
             }
         }
 
+        /// <summary>
+        /// Flushes serialized data in the pending queue according to specified conditions.
+        /// It contains to send data actually.
+        /// </summary>
         public void FlushSend()
         {
             // capture and copy the elements in the queue
@@ -69,6 +69,11 @@ namespace ServerCoreTCP.MessageWrapper
 #endif
         }
 
+        /// <summary>
+        /// Slices the buffer that contains multiple data and calls OnRecv of the session with sliced data.
+        /// </summary>
+        /// <param name="buffer">The buffer that the socket received at once</param>
+        /// <returns>The analyzed total length of the data</returns>
         protected sealed override int OnRecvProcess(ArraySegment<byte> buffer)
         {
             if (buffer.Count < MinimumPacketLength) return 0;

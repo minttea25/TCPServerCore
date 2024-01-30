@@ -3,7 +3,7 @@
 namespace ServerCoreTCP.Core
 {
     /// <summary>
-    /// This class will be initialized when the service starts.
+    /// The class that contains global members in Core. It will be initialized when the service starts. Some members can be used in user-codes.
     /// </summary>
     public static class Global
     {

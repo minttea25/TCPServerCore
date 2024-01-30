@@ -7,6 +7,9 @@ using System.Threading;
 
 namespace ServerCoreTCP
 {
+    /// <summary>
+    /// Session object of the core.
+    /// </summary>
     public abstract class Session : SocketObject
     {
         /// <summary>
@@ -18,7 +21,13 @@ namespace ServerCoreTCP
             internal set { m_sessionId = value; }
         }
 
+        /// <summary>
+        /// [Nullable] Connected Endpoint. (Null if the socket is null or not connected)
+        /// </summary>
         public EndPoint ConnectedEndPoint => m_socket?.RemoteEndPoint;
+        /// <summary>
+        /// [Nullable] The socket of the session.
+        /// </summary>
         public Socket Socket => m_socket;
 
         protected Socket m_socket;
@@ -68,11 +77,11 @@ namespace ServerCoreTCP
 
         #region Abstract Methods
         /// <summary>
-        /// Called when the socket is connected. Initialize values here.
+        /// Called when the socket is connected. Initialize members of session here.
         /// </summary>
         public abstract void InitSession();
         /// <summary>
-        /// Called before the session is cleaned up.
+        /// Called before the session is cleaned up and returns to pool. 
         /// </summary>
         public abstract void ClearSession();
         /// <summary>
@@ -91,7 +100,7 @@ namespace ServerCoreTCP
         /// <param name="numOfBytes">The length of bytes transferred.</param>
         public abstract void OnSend(int numOfBytes);
         /// <summary>
-        /// Called when the socket is disconnected
+        /// Called when the socket is disconnected.
         /// </summary>
         /// <param name="endPoint">The end point of the socket.</param>
         /// <param name="error">The additional object of error</param>
@@ -349,7 +358,7 @@ namespace ServerCoreTCP
         #endregion
 
         /// <summary>
-        /// Close the socket and clear the session.
+        /// Close the connection and the socket and clear the session. If it is in ServerService, returns the session to the pool.
         /// </summary>
         public void Disconnect()
         {
@@ -369,6 +378,10 @@ namespace ServerCoreTCP
             else Clear();
         }
 
+        /// <summary>
+        /// Not used.
+        /// </summary>
+        /// <param name="eventArgs"></param>
         public virtual void OnDisconnectedCompleted(SocketAsyncEventArgs eventArgs)
         {
             ;

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ServerCoreTCP
+﻿namespace ServerCoreTCP
 {
 #if PACKET_TYPE_INT
 #else

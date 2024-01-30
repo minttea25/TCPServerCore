@@ -1,15 +1,11 @@
 ﻿using ServerCoreTCP.CLogger;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ServerCoreTCP
 {
     /// <summary>
-    /// Each session should access the send buffer through this class.
+    /// Each thread sends data with this. It has SendBuffer in Thread-Local-Storage.
     /// </summary>
     public class SendBufferTLS
     {
@@ -63,7 +59,7 @@ namespace ServerCoreTCP
     }
 
     /// <summary>
-    /// The buffer for Send using byte array
+    /// The buffer for Send using byte array.
     /// </summary>
     public class SendBuffer
     {
@@ -105,6 +101,11 @@ namespace ServerCoreTCP
             return segment;
         }
 
+        /// <summary>
+        /// Return the segment with that size. (reserve + return) If there is not enough size, return the segment after setting usedSize 0.
+        /// </summary>
+        /// <param name="size">The size to get segment.</param>
+        /// <returns>The segment of the buffer with the size.</returns>
         public ArraySegment<byte> Use(int size)
         {
             if (size > FreeSize) _usedSize = 0;

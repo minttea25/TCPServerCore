@@ -2,6 +2,9 @@
 
 namespace ServerCoreTCP
 {
+    /// <summary>
+    /// Object that distinguishes type of the socket event. It is used with the socket.UserToken.
+    /// </summary>
     internal abstract class SocketEventToken
     {
         internal enum SocketEventType : ushort

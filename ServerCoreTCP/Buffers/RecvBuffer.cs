@@ -72,6 +72,9 @@ namespace ServerCoreTCP
             }
         }
 
+        /// <summary>
+        /// Reset the buffer.
+        /// </summary>
         public void ClearBuffer()
         {
             _readPtr = _writePtr = 0;

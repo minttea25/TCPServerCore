@@ -2,6 +2,9 @@
 
 namespace ServerCoreTCP.Utils
 {
+    /// <summary>
+    /// Static class for encoding of variant length with uint value. (Same as the way if encoding in the Protobuf about variant encoding)
+    /// </summary>
     public static class Base128Encoding
     {
         public static int WriteUInt32(uint value, Span<byte> buffer, int offset = 0)

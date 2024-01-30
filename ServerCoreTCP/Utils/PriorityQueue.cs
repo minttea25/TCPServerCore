@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace ServerCoreTCP.Utils
 {
     /// <summary>
-    /// PriorityQueue (If the type is numeric, Peek() will return highest value.)
+    /// PriorityQueue (If the type is numeric, Peek() will return highest value in default.)
     /// NOTE: If count==0, `Peek()` and `Dequeue()` will return DEFAULT value.
     /// Use `TryPeek` and `TryDequeue` safely with primitive types.
     /// </summary>

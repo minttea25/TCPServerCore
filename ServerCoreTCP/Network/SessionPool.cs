@@ -4,9 +4,18 @@ using System.Threading;
 
 namespace ServerCoreTCP
 {
+    /// <summary>
+    /// The pool of the sessions.
+    /// </summary>
     internal class SessionPool
     {
+        /// <summary>
+        /// The total count of the session of the pool.
+        /// </summary>
         public int TotalPoolCount => _id - 1;
+        /// <summary>
+        /// The count of the curently pooled sessions.
+        /// </summary>
         public int CurrentPooledCount => _pool.Count;
 
         readonly ConcurrentStack<Session> _pool;
@@ -56,6 +65,10 @@ namespace ServerCoreTCP
             _pool.Clear();
         }
 
+        /// <summary>
+        /// If there is no more pooled session, makes new one.
+        /// </summary>
+        /// <returns></returns>
         Session CreateNew()
         {
             int id = Interlocked.Increment(ref _id);

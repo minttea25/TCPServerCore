@@ -6,11 +6,26 @@ using System.Net.Sockets;
 
 namespace ServerCoreTCP
 {
+    /// <summary>
+    /// The listener object to listen for waiting connections of others.
+    /// </summary>
     internal class Listener : SocketObject
     {
+        /// <summary>
+        /// The opened port for listening
+        /// </summary>
         public int Port => m_port;
+        /// <summary>
+        /// The count of backlogs of listening
+        /// </summary>
         public int Backlog => m_backlog;
+        /// <summary>
+        /// The count of registered that are configured in advance.
+        /// </summary>
         public int RegisterCount => m_registerCount;
+        /// <summary>
+        /// The referenced ServerService.
+        /// </summary>
         public ServerService ServerService => m_serverService;
 
         internal ServerService m_serverService;

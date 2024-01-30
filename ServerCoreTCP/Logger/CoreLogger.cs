@@ -69,8 +69,8 @@ namespace ServerCoreTCP.CLogger
 
         public static void LogError(string header, Exception ex, string messageTemplate, params object?[]? propertyValues)
         {
-            string msg = $"[{header}] {messageTemplate}";
-            CLogger?.Error(ex, msg, propertyValues);
+            //string msg = $"[{header}] {messageTemplate}";
+            CLogger?.Error(ex, GetLogFormat(header, messageTemplate), propertyValues);
         }
 
         public static void LogError(string header, string messageTemplate, params object?[]? propertyValues)

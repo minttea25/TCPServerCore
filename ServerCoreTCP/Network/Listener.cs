@@ -37,11 +37,19 @@ namespace ServerCoreTCP
         readonly int m_registerCount;
 
         /// <summary>
+        /// 
+        /// </summary>
+
+        /// 
+
+        /// <summary>
         /// Create a socket and bind the endpoint.
         /// </summary>
         /// <param name="service">The ServerService Instance</param>
         /// <param name="endPoint">The endpoint to bind to socket</param>
         /// <param name="addressFamily"></param>
+        /// <param name="config">The configs of server service</param>
+        /// <exception cref="Exception"></exception>
         internal Listener(ServerService service, IPEndPoint endPoint, AddressFamily addressFamily, ServerServiceConfig config)
         {
             if (config.RegisterListenCount == 0)

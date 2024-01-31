@@ -290,11 +290,17 @@
         </member>
         <member name="M:ServerCoreTCP.Listener.#ctor(ServerCoreTCP.ServerService,System.Net.IPEndPoint,System.Net.Sockets.AddressFamily,ServerCoreTCP.ServerServiceConfig)">
             <summary>
+            
+            </summary>
+            
+            <summary>
             Create a socket and bind the endpoint.
             </summary>
             <param name="service">The ServerService Instance</param>
             <param name="endPoint">The endpoint to bind to socket</param>
             <param name="addressFamily"></param>
+            <param name="config">The configs of server service</param>
+            <exception cref="T:System.Exception"></exception>
         </member>
         <member name="M:ServerCoreTCP.Listener.StartListen">
             <summary>
@@ -606,7 +612,6 @@
             <summary>
             Callback that is called when recv-operation is completed.
             </summary>
-            <param name="sender">[Ignored] The source of the event</param>
             <param name="eventArgs">An object that contains the socket-async-recv-event data</param>
         </member>
         <member name="M:ServerCoreTCP.Session.Disconnect">

@@ -6,16 +6,18 @@
     <ApplicationIcon />
     <StartupObject />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <DocumentationFile>C:\Users\kwy33\OneDrive\Desktop\Workplace\C#\TCPServerCore\ServerCoreTCP\Documentation\ServerCoreTCP.xml</DocumentationFile>
+    <DocumentationFile>$(SolutionDir)\ServerCoreTCP\Documentation\ServerCoreTCP.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE</DefineConstants>
+    <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE;MESSAGE_WRAPPER_PACKET;</DefineConstants>
     <OutputPath></OutputPath>
+    <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

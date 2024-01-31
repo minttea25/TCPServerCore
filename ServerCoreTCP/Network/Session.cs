@@ -149,11 +149,6 @@ namespace ServerCoreTCP
             ;
         }
 
-
-        /// <summary>
-        /// Send data to endpoint of the socket. [ArraySegment]
-        /// </summary>
-        /// <param name="sendBuffer">Serialized data to send</param>
         //public void SendRaw(ArraySegment<byte> sendBuffer)
         //{
         //    if (sendBuffer == null) throw new Exception("Failed to serialize the message.");
@@ -290,7 +285,6 @@ namespace ServerCoreTCP
         /// <summary>
         /// Callback that is called when recv-operation is completed.
         /// </summary>
-        /// <param name="sender">[Ignored] The source of the event</param>
         /// <param name="eventArgs">An object that contains the socket-async-recv-event data</param>
         void OnRecvCompleted(SocketAsyncEventArgs eventArgs)
         {

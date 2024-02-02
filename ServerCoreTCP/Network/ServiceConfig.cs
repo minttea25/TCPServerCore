@@ -13,7 +13,14 @@ namespace ServerCoreTCP
         /// <summary>
         /// The count of SocketAsyncEventArgs must be larger than (SessionPoolCount * 2 + RegisterListenCount)
         /// </summary>
-        public readonly int SocketAsyncEventArgsPoolCount => m_socketAsyncEventArgsPoolCount;
+        public int SocketAsyncEventArgsPoolCount
+        {
+            get
+            {
+                if (m_socketAsyncEventArgsPoolCount == 0) m_socketAsyncEventArgsPoolCount = GetSAEAPoolCount(ClientServiceSessionCount);
+                return m_socketAsyncEventArgsPoolCount;
+            }
+        }
 
         /// <summary>
         /// The session count of the client service.
@@ -65,7 +72,15 @@ namespace ServerCoreTCP
         /// <summary>
         /// The count of SocketAsyncEventArgs must be larger than (SessionPoolCount * 2 + RegisterListenCount)
         /// </summary>
-        public readonly int SocketAsyncEventArgsPoolCount => m_socketAsyncEventArgsPoolCount;
+        public int SocketAsyncEventArgsPoolCount
+        {
+            get
+            {
+                if (m_socketAsyncEventArgsPoolCount == 0) m_socketAsyncEventArgsPoolCount = GetSAEAPoolCount(SessionPoolCount, RegisterListenCount);
+                return m_socketAsyncEventArgsPoolCount;
+            }
+        }
+
         public int SessionPoolCount { get; set; }
         
         /// <summary>

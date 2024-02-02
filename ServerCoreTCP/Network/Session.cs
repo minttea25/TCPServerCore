@@ -295,7 +295,7 @@ namespace ServerCoreTCP
                 {
                     if (_recvBuffer.OnWrite(eventArgs.BytesTransferred) == false)
                     {
-                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes is larger than current data size");
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes is larger than current data size at {0}", Socket?.RemoteEndPoint);
 
                         Disconnect();
                         return;
@@ -305,21 +305,21 @@ namespace ServerCoreTCP
 
                     if (processLength <= 0)
                     {
-                        CoreLogger.LogError("Session.OnRecvCompleted", "processLength <= 0");
+                        CoreLogger.LogError("Session.OnRecvCompleted at {0}", "processLength <= 0", Socket?.RemoteEndPoint);
                         Disconnect();
                         return;
                     }
 
                     if (_recvBuffer.DataSize < processLength)
                     {
-                        CoreLogger.LogError("Session.OnRecvCompleted", "The datasize of recvBuffer[{0}] was larger than processLength[{1}]", _recvBuffer.DataSize, processLength);
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The datasize of recvBuffer[{0}] was larger than processLength[{1}] at {3}", _recvBuffer.DataSize, processLength, Socket?.RemoteEndPoint);
                         Disconnect();
                         return;
                     }
 
                     if (_recvBuffer.OnRead(processLength) == false)
                     {
-                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes was larger than current data size");
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes was larger than current data size at {0}", Socket?.RemoteEndPoint);
                         Disconnect();
                         return;
                     }
@@ -334,17 +334,17 @@ namespace ServerCoreTCP
             }
             else if (eventArgs.SocketError != SocketError.Success)
             {
-                CoreLogger.LogError("Session.OnRecvCompleted", "SocketError was {0}", eventArgs.SocketError);
+                CoreLogger.LogError("Session.OnRecvCompleted", "SocketError was {0} at {1}", eventArgs.SocketError, Socket?.RemoteEndPoint);
                 Disconnect();
             }
             else if (eventArgs.BytesTransferred == 0)
             {
-                CoreLogger.LogError("Session.OnRecvCompleted", "BytesTransferred was 0");
+                CoreLogger.LogError("Session.OnRecvCompleted", "BytesTransferred was 0 at {0}", Socket?.RemoteEndPoint);
                 Disconnect();
             }
             else
             {
-                CoreLogger.LogError("Session.OnRecvCompleted", "Other error");
+                CoreLogger.LogError("Session.OnRecvCompleted", "Other error at {0}", Socket?.RemoteEndPoint);
                 Disconnect();
             }
         }
@@ -368,6 +368,7 @@ namespace ServerCoreTCP
             if (m_service.ServiceType == Service.ServiceTypes.Server)
             {
                 (m_service as ServerService).m_sessionPool.Push(this);
+                (m_service as ServerService).NotifySessionDisconnected();
             }
             else Clear();
         }

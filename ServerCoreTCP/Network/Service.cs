@@ -1,4 +1,5 @@
-﻿using ServerCoreTCP.Core;
+﻿using ServerCoreTCP.CLogger;
+using ServerCoreTCP.Core;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -41,6 +42,8 @@ namespace ServerCoreTCP
         public virtual void Stop()
         {
             Global.Clear();
+
+            CoreLogger.LogInfo("Service.Stop", $"Service stopped at {DateTime.Now}.");
         }
 
         /// <summary>
@@ -96,6 +99,11 @@ namespace ServerCoreTCP
         /// </summary>
         public int ListenrRegisterCount => m_listener.RegisterCount;
 
+        /// <summary>
+        /// The count of connected sessions. <br/>  = SessionTotalPoolCount - SessionCurrentPooledCount
+        /// </summary>
+        public int ConnectedSessionCount => SessionTotalPoolCount - SessionCurrentPooledCount;
+
         readonly Listener m_listener;
         internal SessionPool m_sessionPool;
         // Semaphore m_maxConnections;
@@ -134,10 +142,10 @@ namespace ServerCoreTCP
             Clear();
         }
 
-        //public void BroadCast(byte[] buffers)
-        //{
-        //    // TODO
-        //}
+        internal void NotifySessionDisconnected()
+        {
+            m_listener.ReleaseOneConnection();
+        }
     }
 
     /// <summary>

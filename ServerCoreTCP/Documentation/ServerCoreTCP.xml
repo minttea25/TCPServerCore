@@ -290,10 +290,6 @@
         </member>
         <member name="M:ServerCoreTCP.Listener.#ctor(ServerCoreTCP.ServerService,System.Net.IPEndPoint,System.Net.Sockets.AddressFamily,ServerCoreTCP.ServerServiceConfig)">
             <summary>
-            
-            </summary>
-            
-            <summary>
             Create a socket and bind the endpoint.
             </summary>
             <param name="service">The ServerService Instance</param>
@@ -374,6 +370,11 @@
         <member name="P:ServerCoreTCP.ServerService.ListenrRegisterCount">
             <summary>
             The count of the registered counts of the listener.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerService.ConnectedSessionCount">
+            <summary>
+            The count of connected sessions. <br/>  = SessionTotalPoolCount - SessionCurrentPooledCount
             </summary>
         </member>
         <member name="M:ServerCoreTCP.ServerService.#ctor(System.Net.IPEndPoint,System.Func{ServerCoreTCP.Session},ServerCoreTCP.ServerServiceConfig)">

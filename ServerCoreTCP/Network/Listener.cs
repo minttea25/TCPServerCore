@@ -3,6 +3,7 @@ using ServerCoreTCP.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace ServerCoreTCP
 {
@@ -36,11 +37,8 @@ namespace ServerCoreTCP
         readonly int m_backlog;
         readonly int m_registerCount;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        readonly Semaphore semaphore = null;
 
-        /// 
 
         /// <summary>
         /// Create a socket and bind the endpoint.
@@ -56,6 +54,8 @@ namespace ServerCoreTCP
             {
                 throw new Exception("The registerListenCount was 0. Check the config.");
             }
+
+            semaphore = new Semaphore(config.SessionPoolCount, config.SessionPoolCount);
 
             m_backlog = config.ListenerBacklogCount;
             m_registerCount = config.RegisterListenCount;
@@ -97,12 +97,20 @@ namespace ServerCoreTCP
             OnAcceptCompleted(eventArgs);
         }
 
+        internal void ReleaseOneConnection()
+        {
+            semaphore.Release();
+        }
+
         /// <summary>
         /// Register as waiting for Accept
         /// </summary>
         /// <param name="eventArgs">An object that contains the socket-async-event data</param>
         void RegisterAccept(SocketAsyncEventArgs eventArgs)
         {
+            semaphore.WaitOne();
+
+
             // Reset for re-using
             eventArgs.AcceptSocket = null;
 

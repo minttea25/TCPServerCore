@@ -33,7 +33,7 @@ namespace MessageWrapperFactory
                 Console.WriteLine($"The '{config.CommonNamespace}' is not invalid name for csharp-namespace.");
                 return false;
             }
-            
+
             if (Directory.Exists(config.TargetDirectoryPath) == false)
             {
                 Console.WriteLine($"Target Directory={config.TargetDirectoryPath} does not exist.");
@@ -87,7 +87,7 @@ namespace MessageWrapperFactory
             Console.WriteLine();
 
             Console.WriteLine($"Found .{config.ProtoFileExtension} files in {config.TargetDirectoryPath} ({protos.Count} files) : ");
-            foreach(var p in protos)
+            foreach (var p in protos)
             {
                 Console.WriteLine(p);
             }
@@ -107,6 +107,30 @@ namespace MessageWrapperFactory
                 int startIndex = 0;
                 for (int i = 0; i < text.Length; i++)
                 {
+                    // except //
+                    if (text[i] == '/' && i + 1 < text.Length && text[i + 1] == '/')
+                    {
+                        while (true)
+                        {
+                            i++;
+                            if (text[i] == '\n') break;
+                        }
+                        startIndex = i;
+                        i++;
+                    }
+
+                    // except /* */
+                    if (text[i] == '/' && i + 1 < text.Length && text[i + 1] == '*')
+                    {
+                        while (true)
+                        {
+                            i++;
+                            if (text[i] == '*' && i + 1 < text.Length && text[i + 1] == '/') break;
+                        }
+                        startIndex = i + 2;
+                        i += 2;
+                    }
+
                     if (text[i] == Braces_Open)
                     {
                         stack.Push(Braces_Open);
@@ -241,7 +265,7 @@ namespace MessageWrapperFactory
 
             ValidPacketMessagePrefix.Add(config.ClientPacketExcludePrefix);
             ValidPacketMessagePrefix.Add(config.ServerPacketExcludePrefix);
-            
+
 
             string messageTypesPath_server = $"{config.OutputServerCodeDirectoryPath}{Path.DirectorySeparatorChar}{MessageTypesFile}";
             string messageTypesPath_client = $"{config.OutputClientCodeDirectoryPath}{Path.DirectorySeparatorChar}{MessageTypesFile}";
@@ -300,9 +324,9 @@ namespace MessageWrapperFactory
 
         static bool ContainPacketEnum(string name)
         {
-            foreach(string prefix in ValidPacketMessagePrefix)
+            foreach (string prefix in ValidPacketMessagePrefix)
             {
-                if (name.StartsWith(prefix) ==  true)
+                if (name.StartsWith(prefix) == true)
                 {
                     return true;
                 }
@@ -335,7 +359,7 @@ namespace MessageWrapperFactory
             File.WriteAllText(filepath2, text);
         }
 
-        static void WriteMessageManager(string filepath, string namespaceName, List<string> messages, 
+        static void WriteMessageManager(string filepath, string namespaceName, List<string> messages,
             string messageManagerFormat,
             string messageManagerMappingFormat_uint,
             string messageManagerMappingFormat_ushort,
@@ -387,7 +411,7 @@ namespace MessageWrapperFactory
             string targetPrefix)
         {
             string packetHandlerItem = "";
-            foreach(string msg in messages)
+            foreach (string msg in messages)
             {
                 if (CheckExclude(msg, targetPrefix) == true) continue;
 

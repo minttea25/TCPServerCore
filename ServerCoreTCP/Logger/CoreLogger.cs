@@ -8,7 +8,7 @@ using System;
 namespace ServerCoreTCP.CLogger
 {
     /// <summary>
-    /// Static Class for Logging of the ServerCoreTCP.
+    /// A class for logging in ServerCoreTCP.
     /// </summary>
     public class CoreLogger
     {
@@ -22,8 +22,9 @@ namespace ServerCoreTCP.CLogger
         /// <summary>
         /// Logger can be created with 'CreateLoggerWithFlag' or user's needs in directly.
         /// </summary>
-        public static Logger CLogger { get; set; } = null;
+        public static Logger? CLogger { get; set; } = null;
 
+        
         public static void CreateLoggerWithFlag(uint flag, LoggerConfig loggerConfig)
         {
             LoggerConfiguration config = new LoggerConfiguration();
@@ -62,26 +63,31 @@ namespace ServerCoreTCP.CLogger
 
         public static void LogInfo(string header, string messageTemplate, params object?[]? propertyValues)
         {
-            string msg = $"[{header}] {messageTemplate}";
-            CLogger?.Information(msg, propertyValues);
+            //string msg = $"[{header}] {messageTemplate}";
+            CLogger?.Information(GetLogFormat(header, messageTemplate), propertyValues);
         }
 
         public static void LogError(string header, Exception ex, string messageTemplate, params object?[]? propertyValues)
         {
-            string msg = $"[{header}] {messageTemplate}";
-            CLogger?.Error(ex, msg, propertyValues);
+            //string msg = $"[{header}] {messageTemplate}";
+            CLogger?.Error(ex, GetLogFormat(header, messageTemplate), propertyValues);
         }
 
         public static void LogError(string header, string messageTemplate, params object?[]? propertyValues)
         {
-            string msg = $"[{header}] {messageTemplate}";
-            CLogger?.Error(msg, propertyValues);
+            //string msg = $"[{header}] {messageTemplate}";
+            CLogger?.Error(GetLogFormat(header, messageTemplate), propertyValues);
         }
 
         public static void LogDebug(string header, string messageTemplate, params object?[]? propertyValues)
         {
-            string msg = $"[{header}] {messageTemplate}";
-            CLogger?.Debug(msg, propertyValues);
+            //string msg = $"[{header}] {messageTemplate}";
+            CLogger?.Debug(GetLogFormat(header, messageTemplate), propertyValues);
+        }
+
+        static string GetLogFormat(string header, string messageTemplate)
+        {
+            return $"[{header}] {messageTemplate}";
         }
 
 

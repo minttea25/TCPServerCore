@@ -3,14 +3,30 @@ using ServerCoreTCP.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace ServerCoreTCP
 {
-    public class Listener : SocketObject
+    /// <summary>
+    /// The listener object to listen for waiting connections of others.
+    /// </summary>
+    internal class Listener : SocketObject
     {
+        /// <summary>
+        /// The opened port for listening
+        /// </summary>
         public int Port => m_port;
+        /// <summary>
+        /// The count of backlogs of listening
+        /// </summary>
         public int Backlog => m_backlog;
+        /// <summary>
+        /// The count of registered that are configured in advance.
+        /// </summary>
         public int RegisterCount => m_registerCount;
+        /// <summary>
+        /// The referenced ServerService.
+        /// </summary>
         public ServerService ServerService => m_serverService;
 
         internal ServerService m_serverService;
@@ -21,18 +37,25 @@ namespace ServerCoreTCP
         readonly int m_backlog;
         readonly int m_registerCount;
 
+        readonly Semaphore semaphore = null;
+
+
         /// <summary>
         /// Create a socket and bind the endpoint.
         /// </summary>
         /// <param name="service">The ServerService Instance</param>
         /// <param name="endPoint">The endpoint to bind to socket</param>
         /// <param name="addressFamily"></param>
+        /// <param name="config">The configs of server service</param>
+        /// <exception cref="Exception"></exception>
         internal Listener(ServerService service, IPEndPoint endPoint, AddressFamily addressFamily, ServerServiceConfig config)
         {
             if (config.RegisterListenCount == 0)
             {
                 throw new Exception("The registerListenCount was 0. Check the config.");
             }
+
+            semaphore = new Semaphore(config.SessionPoolCount, config.SessionPoolCount);
 
             m_backlog = config.ListenerBacklogCount;
             m_registerCount = config.RegisterListenCount;
@@ -52,7 +75,7 @@ namespace ServerCoreTCP
         /// <summary>
         /// Place the socket in a listening state.
         /// </summary>
-        public void StartListen()
+        internal void StartListen()
         {
             m_listenSocket.Listen(m_backlog);
 
@@ -74,7 +97,10 @@ namespace ServerCoreTCP
             OnAcceptCompleted(eventArgs);
         }
 
-        #region Networks
+        internal void ReleaseOneConnection()
+        {
+            semaphore.Release();
+        }
 
         /// <summary>
         /// Register as waiting for Accept
@@ -82,6 +108,9 @@ namespace ServerCoreTCP
         /// <param name="eventArgs">An object that contains the socket-async-event data</param>
         void RegisterAccept(SocketAsyncEventArgs eventArgs)
         {
+            semaphore.WaitOne();
+
+
             // Reset for re-using
             eventArgs.AcceptSocket = null;
 
@@ -130,7 +159,5 @@ namespace ServerCoreTCP
             // After Accept, wait again for other Accepts.
             RegisterAccept(eventArgs);
         }
-
-        #endregion
     }
 }

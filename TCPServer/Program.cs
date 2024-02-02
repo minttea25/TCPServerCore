@@ -64,7 +64,7 @@ namespace TCPServer
             MessageManager.Instance.Init();
 
             var config = LoggerConfig.GetDefault();
-            config.RestrictedMinimumLevel = Serilog.Events.LogEventLevel.Error;
+            //config.RestrictedMinimumLevel = Serilog.Events.LogEventLevel.Error;
             CoreLogger.CreateLoggerWithFlag(
                 (uint)(CoreLogger.LoggerSinks.CONSOLE | CoreLogger.LoggerSinks.FILE),
                 config);
@@ -76,10 +76,9 @@ namespace TCPServer
 
             ServerServiceConfig serverConfig = new()
             {
-                SessionPoolCount = 100,
-                SocketAsyncEventArgsPoolCount = 300,
+                SessionPoolCount = 1,
                 ReuseAddress = true,
-                RegisterListenCount = 10,
+                RegisterListenCount = 1,
                 ListenerBacklogCount = 100,
 
             };

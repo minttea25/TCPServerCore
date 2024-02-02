@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ServerCoreTCP
 {
@@ -77,6 +72,9 @@ namespace ServerCoreTCP
             }
         }
 
+        /// <summary>
+        /// Reset the buffer.
+        /// </summary>
         public void ClearBuffer()
         {
             _readPtr = _writePtr = 0;
@@ -86,7 +84,7 @@ namespace ServerCoreTCP
         /// Move the read pointer of the recvbuffer.
         /// </summary>
         /// <param name="numOfBytes">The length of bytes to check the data.</param>
-        /// <returns>False if the numOfBytes is bigger than current data size; True, otherwise.</returns>
+        /// <returns>False if the numOfBytes is bigger than current data size.<br/>True, otherwise.</returns>
         public bool OnRead(int numOfBytes)
         {
             // If numOfBytes are bigger than DataSize, it's wrong numOfBytes => return false
@@ -101,7 +99,7 @@ namespace ServerCoreTCP
         /// Move the write pointer of the recvbuffer.
         /// </summary>
         /// <param name="numOfBytes">The length of bytes to check the data.</param>
-        /// <returns>False if the numOfBytes is bigger than current-writable size; True, otherwise.</returns>
+        /// <returns>False if the numOfBytes is bigger than current-writable size.<br/>True, otherwise.</returns>
         public bool OnWrite(int numOfBytes)
         {
             // If there is not enough length to write in buffer, return false

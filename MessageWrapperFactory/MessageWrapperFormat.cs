@@ -28,8 +28,8 @@ namespace MessageWrapperFactory
                 TargetDirectoryPath = "",
                 OutputServerCodeDirectoryPath = "server",
                 OutputClientCodeDirectoryPath = "client",
-                ServerPacketExcludePrefix = "C_",
-                ClientPacketExcludePrefix = "S_",
+                ServerPacketExcludePrefix = "C",
+                ClientPacketExcludePrefix = "S",
                 ProtoFileExtension = "proto"
             };
         }

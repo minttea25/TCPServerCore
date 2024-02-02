@@ -5,6 +5,9 @@ using Serilog.Events;
 
 namespace ServerCoreTCP.CLogger
 {
+    /// <summary>
+    /// The default values are from the default values of LoggerConfiguration, and the defualt encoding is UTF8.
+    /// </summary>
     public struct LoggerConfig
     {
         public string DirPath;
@@ -23,7 +26,7 @@ namespace ServerCoreTCP.CLogger
                 FileNameFormat = LoggerHelper.FileNameFormat_DEFAULT,
                 LogFileExtension = LoggerHelper.LogFileExtension_DEFAULT,
                 OutputTemplate = LoggerHelper.OutputTemplate_DEFAULT,
-                FileEncoding = Encoding.Unicode,
+                FileEncoding = Encoding.UTF8,
                 RestrictedMinimumLevel = LogEventLevel.Verbose,
                 FlushToDistInterval = TimeSpan.FromSeconds(1)
             };

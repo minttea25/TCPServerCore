@@ -3,13 +3,10 @@ using System.Collections.Generic;
 
 namespace ServerCoreTCP.Utils
 {
-
-    // lock을 최소한으로 하거나, Concurrent Collection으로 사용할 수는 없을까...?
-
     /// <summary>
-    /// PriorityQueue (If the type is numeric, Peek() will return highest value.)
-    /// NOTE: If count==0, `Peek()` and `Dequeue()` will return DEFAULT value.
-    /// Use `TryPeek` and `TryDequeue` safely with primitive types.
+    /// PriorityQueue (If the type is numeric, Peek() will return highest value in default.)
+    /// <br/>NOTE: If count==0, `Peek()` and `Dequeue()` will return DEFAULT value.
+    /// <br/>Use `TryPeek` and `TryDequeue` safely with primitive types.
     /// </summary>
     /// <typeparam name="T">System.IComparable: the comparable object</typeparam>
     public class PriorityQueue<T> where T : IComparable<T>
@@ -56,7 +53,11 @@ namespace ServerCoreTCP.Utils
         {
             if (_heap.Count == 0)
             {
+#if DEBUG
                 throw new InvalidOperationException("PriorityQueue is empty. Can not be dequeued.");
+#else
+                return default;
+#endif
             }
 
             T result = _heap[0];
@@ -114,9 +115,7 @@ namespace ServerCoreTCP.Utils
 
         void Swap(int idx1, int idx2)
         {
-            T temp = _heap[idx1];
-            _heap[idx1] = _heap[idx2];
-            _heap[idx2] = temp;
+            (_heap[idx2], _heap[idx1]) = (_heap[idx1], _heap[idx2]);
         }
     }
 
@@ -305,6 +304,7 @@ namespace ServerCoreTCP.Utils
             lock (_lock)
             {
                 return _heap.Count == 0 ? throw new InvalidOperationException("PriorityQueue is empty. Can not be dequeued.") : DequeueRaw();
+
             }
         }
 
@@ -372,9 +372,7 @@ namespace ServerCoreTCP.Utils
 
         void Swap(int idx1, int idx2)
         {
-            T temp = _heap[idx1];
-            _heap[idx1] = _heap[idx2];
-            _heap[idx2] = temp;
+            (_heap[idx2], _heap[idx1]) = (_heap[idx1], _heap[idx2]);
         }
     }
 
@@ -524,9 +522,7 @@ namespace ServerCoreTCP.Utils
 
         void Swap(int idx1, int idx2)
         {
-            T temp = _heap[idx1];
-            _heap[idx1] = _heap[idx2];
-            _heap[idx2] = temp;
+            (_heap[idx2], _heap[idx1]) = (_heap[idx1], _heap[idx2]);
         }
     }
 }

@@ -1,0 +1,965 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ServerCoreTCP</name>
+    </assembly>
+    <members>
+        <member name="T:ServerCoreTCP.RecvBuffer">
+            <summary>
+            The buffer for Receive using byte ArraySegment
+            </summary>
+        </member>
+        <member name="F:ServerCoreTCP.RecvBuffer._readPtr">
+            <summary>
+            Pointer of reading in the buffer
+            </summary>
+        </member>
+        <member name="F:ServerCoreTCP.RecvBuffer._writePtr">
+            <summary>
+            Pointer of writing in the buffer
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.RecvBuffer.DataSize">
+            <summary>
+            Get size of written data.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.RecvBuffer.FreeSize">
+            <summary>
+            Get writable size of the buffer now.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.RecvBuffer.DataSegment">
+            <summary>
+            Return the byte segment of the written data.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.RecvBuffer.WriteSegment">
+            <summary>
+            Return the writable byte segment.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.RecvBuffer.CleanUp">
+            <summary>
+            Pulls the data to the front of the buffer and cleans it up. (Free up space of buffer)
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.RecvBuffer.ClearBuffer">
+            <summary>
+            Reset the buffer.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.RecvBuffer.OnRead(System.Int32)">
+            <summary>
+            Move the read pointer of the recvbuffer.
+            </summary>
+            <param name="numOfBytes">The length of bytes to check the data.</param>
+            <returns>False if the numOfBytes is bigger than current data size.<br/>True, otherwise.</returns>
+        </member>
+        <member name="M:ServerCoreTCP.RecvBuffer.OnWrite(System.Int32)">
+            <summary>
+            Move the write pointer of the recvbuffer.
+            </summary>
+            <param name="numOfBytes">The length of bytes to check the data.</param>
+            <returns>False if the numOfBytes is bigger than current-writable size.<br/>True, otherwise.</returns>
+        </member>
+        <member name="T:ServerCoreTCP.SendBufferTLS">
+            <summary>
+            Each thread sends data with this.<br/>It has SendBuffer in Thread-Local-Storage.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.SendBufferTLS.Reserve(System.Int32)">
+            <summary>
+            Helper method of SendBuffer.Reserve
+            </summary>
+            <param name="reserveSize">The size to reserve.</param>
+            <returns>The segment of Memory reserved</returns>
+        </member>
+        <member name="M:ServerCoreTCP.SendBufferTLS.Return(System.Int32)">
+            <summary>
+            Helper method of SendBuffer.Return
+            </summary>
+            <param name="usedSize">The size used actually.</param>
+            <returns>The segment of array used</returns>
+        </member>
+        <member name="T:ServerCoreTCP.SendBuffer">
+            <summary>
+            The buffer for Send using byte array.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.SendBuffer.Reserve(System.Int32)">
+            <summary>
+            Return a segment which can be used of the size of reserveSize.
+            </summary>
+            <param name="reserveSize"></param>
+            <returns>If there is no enough size to reserve, returns null.</returns>
+        </member>
+        <member name="M:ServerCoreTCP.SendBuffer.Return(System.Int32)">
+            <summary>
+            Return the used segment actually after calling Reserve.
+            </summary>
+            <param name="usedSize">Used buffer size actullay</param>
+            <returns>The segment of the actually used buffer.</returns>
+        </member>
+        <member name="M:ServerCoreTCP.SendBuffer.Use(System.Int32)">
+            <summary>
+            Return the segment with that size. (reserve + return)<br/>If there is not enough size, returns the segment after setting usedSize 0.
+            </summary>
+            <param name="size">The size to get segment.</param>
+            <returns>The segment of the buffer with the size.</returns>
+        </member>
+        <member name="T:ServerCoreTCP.Core.Global">
+            <summary>
+            The class that contains global members in Core.<br/>It will be initialized when the service starts.<br/>Some members can be used in user-codes.
+            </summary>
+        </member>
+        <member name="F:ServerCoreTCP.Core.Global.G_Stopwatch">
+            <summary>
+            JobTimer and PacketSession uses this stopwatch globally.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Core.Global.Init">
+            <summary>
+            It will be called when the service starts.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.ActionSerializer">
+            <summary>
+            This is ActionSerilizer class for executing actions in one thread. 
+            <br/>If you want to user parameters, use IJobSerializer. 
+            <br/>It need to be called `Flush()` manually.
+            <br/>When `Flush()` called, the it will invoke all actions in the queue.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.ActionSerializerAuto">
+            <summary>
+            This is ActionSerializerAuto class for executing actions in one thread.
+            <br/>If you want to user parameters, use IJobSerializerAuto.
+            <br/>When `Add()` called, it will begin to invoke actions in the queue if any thread is not flushing.
+            <br/>At this time, other `Add()` can be called and it just adds a action to a queue.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.ICancelable">
+            <summary>
+            The interface of cancelable job.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.CancelableJob">
+            <summary>
+            The cancelable job object which is used in JobTimer.<br/>Set `Canceled` to false when you want to cancel to invoke this job.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Job.CancelableJob.Canceled">
+            <summary>
+            Set this value to false if you want to cancel to invoke this job.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.IJob">
+            <summary>
+            The interface of Job.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.Job">
+            <summary>
+            The job object which is used in JobSerialier and JobTimer.<br/>Up to 5 arguments are provided.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.IJobSerializer">
+            <summary>
+            The interface of JobSerializer.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Job.IJobSerializer.Flush">
+            <summary>
+            Invokes all jobs in the queue.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Job.IJobSerializer.Add(ServerCoreTCP.Job.IJob)">
+            <summary>
+            Add job to serializer.
+            </summary>
+            <param name="job"></param>
+        </member>
+        <member name="T:ServerCoreTCP.Job.JobSerializer">
+            <summary>
+            This is JobSerilizer class for executing jobs in one thread with serializing the jobs. 
+            <br/>It need to be called `Flush()` manually.
+            <br/>When `Flush()` called, it will invoke all actions in the queue.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.JobSerializerWithTimer">
+            <summary>
+            This is JobSerilizer class for executing jobs in one thread with serializing the jobs. 
+            <br/>It calls `Flush()` automatically, so you don't need to call `Flush()` manually.
+            <br/>The added cancelable jobs are executed when the reserved time comes. (miiliseconds)
+            <br/>It contains the whole functions of JobSerializer. (It is derived from JobSerializer)
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.IUseJobTimer">
+            <summary>
+            The interface of the JobTimer using Cancelable jobs.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.Job.JobTimer">
+            <summary>
+            It is stored in the priority queue at the scheduled time, and when that time comes, it is automatically flushed and the job is executed. 
+            <br/>If the Canceled value of the job is false, the job will not be executed.
+            <br/>It uses the StopWatch in Global.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Job.JobTimer.AddAfter(ServerCoreTCP.Job.IJob,System.Int64)">
+            <summary>
+            Add Cancelable Job in the queue.
+            </summary>
+            <param name="job">The Job object</param>
+            <param name="millisecondsAfter">The reserved time to be executed</param>
+            <returns>The reserved Cancelable job.</returns>
+        </member>
+        <member name="T:ServerCoreTCP.CLogger.CoreLogger">
+            <summary>
+            A class for logging in ServerCoreTCP.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.CLogger.CoreLogger.CLogger">
+            <summary>
+            Logger can be created with 'CreateLoggerWithFlag' or user's needs in directly.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.CLogger.LoggerConfig">
+            <summary>
+            The default values are from the default values of LoggerConfiguration, and the defualt encoding is UTF8.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.CLogger.LoggerHelper.GetFileName(System.String,System.String)">
+            <summary>
+            Return a filename based on DateTime.Now.
+            </summary>
+            <param name="dirPath">The root directory of the file.</param>
+            <param name="extension">The extension of log file. e.g. log, txt, ...</param>
+            <returns>A filename based on DateTime.Now</returns>
+        </member>
+        <member name="T:ServerCoreTCP.Connector">
+            <summary>
+            The connector object to connect to other endpoint.<br/>The default connected count is 1, and it also provides the multiple connections for doing test.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Connector.ClientService">
+            <summary>
+            The referenced ClientService
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Connector.ConnectionCount">
+            <summary>
+            The count of the connections which is configured at first.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Connector.#ctor(ServerCoreTCP.ClientService,ServerCoreTCP.Session[],System.Net.IPEndPoint,ServerCoreTCP.ClientServiceConfig,System.Action{System.Net.Sockets.SocketError})">
+            <summary>
+            The constructor of the connector.
+            </summary>
+            <param name="clientService">The configured client service</param>
+            <param name="session">The empty sessions are created in advance</param>
+            <param name="endPoint">The endpoint to connect</param>
+            <param name="config">The ClientServiceConfig that contains information of service</param>
+            <param name="connectFailedCallback">The callback which is invoked when the connection is failed.</param>
+        </member>
+        <member name="T:ServerCoreTCP.Listener">
+            <summary>
+            The listener object to listen for waiting connections of others.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Listener.Port">
+            <summary>
+            The opened port for listening
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Listener.Backlog">
+            <summary>
+            The count of backlogs of listening
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Listener.RegisterCount">
+            <summary>
+            The count of registered that are configured in advance.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Listener.ServerService">
+            <summary>
+            The referenced ServerService.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Listener.#ctor(ServerCoreTCP.ServerService,System.Net.IPEndPoint,System.Net.Sockets.AddressFamily,ServerCoreTCP.ServerServiceConfig)">
+            <summary>
+            Create a socket and bind the endpoint.
+            </summary>
+            <param name="service">The ServerService Instance</param>
+            <param name="endPoint">The endpoint to bind to socket</param>
+            <param name="addressFamily"></param>
+            <param name="config">The configs of server service</param>
+            <exception cref="T:System.Exception"></exception>
+        </member>
+        <member name="M:ServerCoreTCP.Listener.StartListen">
+            <summary>
+            Place the socket in a listening state.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Listener.RegisterAccept(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Register as waiting for Accept
+            </summary>
+            <param name="eventArgs">An object that contains the socket-async-event data</param>
+        </member>
+        <member name="M:ServerCoreTCP.Listener.OnAcceptCompleted(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Callback that is called when Accept.
+            </summary>
+            <param name="eventArgs">An object that contains the socket-async-event data</param>
+        </member>
+        <member name="T:ServerCoreTCP.Service.ServiceTypes">
+            <summary>
+            The types of service.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Service.ServiceType">
+            <summary>
+            The ServiceType
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Service.SAEATotalPoolCount">
+            <summary>
+            The total count of SocketAsyncEventArgs in the pool.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Service.SAEACurrentPooledCount">
+            <summary>
+            The count of the currently pooled SocketAsyncEventArgs in the pool.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Service.#ctor(ServerCoreTCP.Service.ServiceTypes,System.Int32)">
+            <summary>
+            The constructor of Service.
+            </summary>
+            <param name="serviceType">The service type</param>
+            <param name="saeaPoolCount">The count of SAEA of the pool</param>
+        </member>
+        <member name="T:ServerCoreTCP.ServerService">
+            <summary>
+            The service that can listen the connections of others.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerService.SessionTotalPoolCount">
+            <summary>
+            The total count of the sessions in the pool.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerService.SessionCurrentPooledCount">
+            <summary>
+            The count of the currently pooled sessions in the pool.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerService.Port">
+            <summary>
+            The listening port number.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerService.ListenerBackLog">
+            <summary>
+            The count of the listening backlogs.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerService.ListenrRegisterCount">
+            <summary>
+            The count of the registered counts of the listener.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerService.ConnectedSessionCount">
+            <summary>
+            The count of connected sessions. <br/>  = SessionTotalPoolCount - SessionCurrentPooledCount
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.ServerService.#ctor(System.Net.IPEndPoint,System.Func{ServerCoreTCP.Session},ServerCoreTCP.ServerServiceConfig)">
+            <summary>
+            The constructor of serverservice.<br/>Note: The sessions are created in the pool before formed connection.
+            </summary>
+            <param name="endPoint">The endpoint to be opened.</param>
+            <param name="emptySessionFactory">The factory of the empty session.</param>
+            <param name="config">The configs of the server service.</param>
+        </member>
+        <member name="M:ServerCoreTCP.ServerService.Start">
+            <summary>
+            Starts the service. (Starts to listen)
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.ServerService.Stop">
+            <summary>
+            Stop the service.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.ClientService">
+            <summary>
+            The service for connecting to other.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ClientService.ConnectionCount">
+            <summary>
+            The count of connections configured in advance.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.ClientService.#ctor(System.Net.IPEndPoint,System.Func{ServerCoreTCP.Session},ServerCoreTCP.ClientServiceConfig,System.Action{System.Net.Sockets.SocketError})">
+            <summary>
+            The constructor of clientservice.<br/>Note: The sessions are created before formed connection.
+            </summary>
+            <param name="endPoint">The endpoint to connect to.</param>
+            <param name="emptySessionFactory">The factory of the empty session.</param>
+            <param name="config">The configs of the client service.</param>
+            <param name="connectFailedCallback">The callback which is invoked when the connection is failed.</param>
+        </member>
+        <member name="M:ServerCoreTCP.ClientService.Start">
+            <summary>
+            Start the servie. (Starts to connect)
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.ClientService.Stop">
+            <summary>
+            Stop the service.
+            </summary>
+        </member>
+        <member name="F:ServerCoreTCP.ClientServiceConfig.SAEACountMultiplier">
+            <summary>
+            The value of setting the margin counts of the SocketAsyncEventArgs.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ClientServiceConfig.SocketAsyncEventArgsPoolCount">
+            <summary>
+            The count of SocketAsyncEventArgs must be larger than (SessionPoolCount * 2 + RegisterListenCount)
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ClientServiceConfig.ClientServiceSessionCount">
+            <summary>
+            The session count of the client service.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ClientServiceConfig.ReuseAddress">
+            <summary>
+            Use reuse-address option of the socket.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.ClientServiceConfig.GetDefault(System.Int32)">
+            <summary>
+            ReuseAddress: true
+            </summary>
+            <param name="sessionCount">SessionCount</param>
+            <returns></returns>
+        </member>
+        <member name="M:ServerCoreTCP.ClientServiceConfig.GetSAEAPoolCount(System.Int32)">
+            <summary>
+            Calculate an additional margin of 10 percent. (SessionCount * 2 )
+            </summary>
+            <param name="sessionCount">SessionCount</param>
+            <returns></returns>
+        </member>
+        <member name="F:ServerCoreTCP.ServerServiceConfig.SAEACountMultiplier">
+            <summary>
+            The value of setting the margin counts of the SocketAsyncEventArgs.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerServiceConfig.SocketAsyncEventArgsPoolCount">
+            <summary>
+            The count of SocketAsyncEventArgs must be larger than (SessionPoolCount * 2 + RegisterListenCount)
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerServiceConfig.ListenerBacklogCount">
+            <summary>
+            The count of backlogs of listening.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerServiceConfig.RegisterListenCount">
+            <summary>
+            If 0, the listener will throw exception. It must be larger than 0.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerServiceConfig.NoDelay">
+            <summary>
+            Use Nagle algorithm option of the socket.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerServiceConfig.ReuseAddress">
+            <summary>
+            Reuse address option of the socket
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.ServerServiceConfig.Linger">
+            <summary>
+            If 0, linger set false, otherwise set the time in seconds.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.ServerServiceConfig.GetDefault(System.Int32,System.Int32)">
+            <summary>
+            NoDelay: false, ReuseAddress: true, Linger: false
+            </summary>
+            <param name="sessionCount">SessionPoolCount</param>
+            <param name="registerListenCount">RegisterListenCount</param>
+            <returns></returns>
+        </member>
+        <member name="M:ServerCoreTCP.ServerServiceConfig.GetSAEAPoolCount(System.Int32,System.Int32)">
+            <summary>
+            Calculate an additional margin of 10 percent. (SessionPoolCount * 2 + RegisterListenCount)
+            </summary>
+            <param name="sessionPoolCount">SessionPoolCount</param>
+            <param name="registerListenCount">RegisterListenCount</param>
+            <returns></returns>
+        </member>
+        <member name="T:ServerCoreTCP.Session">
+            <summary>
+            Session object of the core.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Session.SessionId">
+            <summary>
+            It is unique id of Session.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Session.ConnectedEndPoint">
+            <summary>
+            [Nullable] Connected Endpoint.<br/>(Null if the socket is null or not connected)
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.Session.Socket">
+            <summary>
+            [Nullable] The socket of the session.
+            </summary>
+        </member>
+        <member name="F:ServerCoreTCP.Session._connected">
+            <summary>
+            The value to check the session connected;<br/>0: disconnected<br/>1: connected<br/>(Used with Interlocked)
+            </summary>
+        </member>
+        <member name="F:ServerCoreTCP.Session._lock">
+            <summary>
+            Note: Send/Recv can be occurred in multiple threads
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Session.InitSession">
+            <summary>
+            Called when the socket is connected.<br/>Initialize members of session here.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Session.ClearSession">
+            <summary>
+            Called before the session is cleaned up and returns to pool. 
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Session.OnConnected(System.Net.EndPoint)">
+            <summary>
+            Called when the socket is connected.
+            </summary>
+            <param name="endPoint">The endpoint of connected socket</param>
+        </member>
+        <member name="M:ServerCoreTCP.Session.OnRecv(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Called when the socket received data(buffer)
+            </summary>
+            <param name="buffer">The buffer of unit packet received.</param>
+        </member>
+        <member name="M:ServerCoreTCP.Session.OnSend(System.Int32)">
+            <summary>
+            Called when the socket sent data.
+            </summary>
+            <param name="numOfBytes">The length of bytes transferred.</param>
+        </member>
+        <member name="M:ServerCoreTCP.Session.OnDisconnected(System.Net.EndPoint,System.Object)">
+            <summary>
+            Called when the socket is disconnected.
+            </summary>
+            <param name="endPoint">The end point of the socket.</param>
+            <param name="error">The additional object of error</param>
+        </member>
+        <member name="M:ServerCoreTCP.Session.OnRecvProcess(System.ArraySegment{System.Byte})">
+            <summary>
+            Check the received buffer.<br/>If there are multiple packet data on the buffer, each data is processed separately.<br/>OnRecv will be called here.
+            </summary>
+            <param name="buffer">The buffer received on socket.</param>
+            <returns>The length of processed bytes.</returns>
+        </member>
+        <member name="M:ServerCoreTCP.Session.Init(System.Net.Sockets.Socket)">
+            <summary>
+            A session must be initialized with this method with socket.
+            </summary>
+            <param name="socket">The socket to be connected to the session.</param>
+        </member>
+        <member name="M:ServerCoreTCP.Session.SendRaw(System.Collections.Generic.List{System.ArraySegment{System.Byte}})">
+            <summary>
+            Send a list of data to endpoint of the socket. [ArraySegment]
+            </summary>
+            <param name="sendBufferList">A list of serialized data to send</param>
+        </member>
+        <member name="M:ServerCoreTCP.Session.RegisterSend">
+            <summary>
+            Reserve 'Send' for async-send.<br/>Note: It needs to be protected for race-condition.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Session.RegisterRecv">
+            <summary>
+            Reserve 'Receive' for async-receive
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Session.OnSendCompleted(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Callback that is called when send-operation is completed.
+            </summary>
+            <param name="eventArgs">An object that contains the socket-async-send-event data</param>
+        </member>
+        <member name="M:ServerCoreTCP.Session.OnRecvCompleted(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Callback that is called when recv-operation is completed.
+            </summary>
+            <param name="eventArgs">An object that contains the socket-async-recv-event data</param>
+        </member>
+        <member name="M:ServerCoreTCP.Session.Disconnect">
+            <summary>
+            Close the connection and the socket and clear the session.<br/>If it is in ServerService, returns the session to the pool.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Session.OnDisconnectedCompleted(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Not used.
+            </summary>
+            <param name="eventArgs"></param>
+        </member>
+        <member name="T:ServerCoreTCP.SessionPool">
+            <summary>
+            The pool of the sessions.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.SessionPool.TotalPoolCount">
+            <summary>
+            The total count of the session of the pool.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.SessionPool.CurrentPooledCount">
+            <summary>
+            The count of the curently pooled sessions.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.SessionPool.CreateNew">
+            <summary>
+            If there is no more pooled session, makes new one.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ServerCoreTCP.SocketAsyncEventArgsPool">
+            <summary>
+            The pool of the SocketAsyncEventArgs of the socket events.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.SocketAsyncEventArgsPool.TotalPoolCount">
+            <summary>
+            The total count of the SocketAsyncEventArgs of the pool.
+            </summary>
+        </member>
+        <member name="P:ServerCoreTCP.SocketAsyncEventArgsPool.CurrentPooledCount">
+            <summary>
+            The count of the currently pooled SocketAsyncEventArgs.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.SocketAsyncEventArgsPool.CreateNew">
+            <summary>
+            If there is no more pooled SocketAsyncEventArgs, makes new one.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ServerCoreTCP.SocketEventToken">
+            <summary>
+            Object that distinguishes type of the socket event.<br/>It is used with the Socket.UserToken.
+            </summary>
+        </member>
+        <member name="T:ServerCoreTCP.MessageWrapper.MessageWrapper">
+            <summary>
+            Serializes the message(Google.Protobuf.IMessage) with the specified packet type.
+            </summary>
+        </member>
+        <member name="F:ServerCoreTCP.MessageWrapper.MessageWrapper.PacketMap">
+            <summary>
+            The serializer will find the packet id of the message.
+            <br/>Add data at the MessageManager.Init().
+            <br/>Note: It should contain the information of the ids about the message types. 
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.MessageWrapper.MessageWrapper.Serialize``1(``0)">
+            <summary>
+            Serialize the message with PacketWrapper using little-endian [ArraySegment]
+            </summary>
+            <typeparam name="T">Google.Protobuf.IMessage</typeparam>
+            <param name="message">The message to serialize.</param>
+            <returns>The serialized buffer with PacketWrapper.<br/>Null if failed.</returns>
+        </member>
+        <member name="M:ServerCoreTCP.MessageWrapper.MessageWrapper.SerializeWrapper``1(``0)">
+            <summary>
+            Extended function of PacketWrapper.Serialize().
+            </summary>
+            <typeparam name="T">Google.Protobuf.IMessage</typeparam>
+            <param name="message">The message to serialize.</param>
+            <returns>The serialized buffer with PacketWrapper.<br/>Null if failed.</returns>
+        </member>
+        <member name="M:ServerCoreTCP.MessageWrapper.PacketSession.Send``1(``0)">
+            <summary>
+            Serialize the message and add the serialized message in the pending queue of the packet session.
+            <br/>If serialization is failed, do nothing.
+            <br/>Note: It does not send the message directly.
+            </summary>
+            <typeparam name="T">Google.Protobuf.IMessage</typeparam>
+            <param name="message">The message data</param>
+        </member>
+        <member name="M:ServerCoreTCP.MessageWrapper.PacketSession.FlushSend">
+            <summary>
+            Flushes serialized data in the pending queue according to specified conditions.
+            It contains to send data actually.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.MessageWrapper.PacketSession.OnRecvProcess(System.ArraySegment{System.Byte})">
+            <summary>
+            Slices the buffer that contains multiple data and calls OnRecv of the session with sliced data.
+            </summary>
+            <param name="buffer">The buffer that the socket received at once</param>
+            <returns>The analyzed total length of the data</returns>
+        </member>
+        <member name="T:ServerCoreTCP.Utils.Base128Encoding">
+            <summary>
+            Static class for encoding of variant length with uint value.<br/>(Same as the way if encoding in the Protobuf about variant encoding)
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.FromUInt16(System.UInt16,System.Span{System.Byte},System.Int32)">
+            <summary>
+            Converts the value to bytes at the offset starts in the buffer.<br/> 
+            The buffer must have enough space.
+            </summary>
+            <param name="value">The value to convert</param>
+            <param name="buffer">The buffer</param>
+            <param name="offset">The offset of the buffer</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.FromUInt16(System.UInt16,System.Span{System.Byte},System.Int32@)">
+            <summary>
+            Converts the value to bytes at the offset starts in the buffer.<br/>
+            The buffer must have enough space.
+            Note: The offset is reference value.<br/>
+            </summary>
+            <param name="value">The value to convert</param>
+            <param name="buffer">The buffer</param>
+            <param name="offset">The offset of the buffer</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.FromInt16(System.Int16,System.Span{System.Byte},System.Int32)">
+            <summary>
+            Converts the value to bytes at the offset starts in the buffer.<br/> 
+            The buffer must have enough space.
+            </summary>
+            <param name="value">The value to convert</param>
+            <param name="buffer">The buffer</param>
+            <param name="offset">The offset of the buffer</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.FromInt16(System.Int16,System.Span{System.Byte},System.Int32@)">
+            <summary>
+            Converts the value to bytes at the offset starts in the buffer.<br/>
+            The buffer must have enough space.
+            Note: The offset is reference value.<br/>
+            </summary>
+            <param name="value">The value to convert</param>
+            <param name="buffer">The buffer</param>
+            <param name="offset">The offset of the buffer</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.FromUInt32(System.UInt32,System.Span{System.Byte},System.Int32)">
+            <summary>
+            Converts the value to bytes at the offset starts in the buffer.<br/> 
+            The buffer must have enough space.
+            </summary>
+            <param name="value">The value to convert</param>
+            <param name="buffer">The buffer</param>
+            <param name="offset">The offset of the buffer</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.FromUInt32(System.UInt32,System.Span{System.Byte},System.Int32@)">
+            <summary>
+            Converts the value to bytes at the offset starts in the buffer.<br/>
+            The buffer must have enough space.
+            Note: The offset is reference value.<br/>
+            </summary>
+            <param name="value">The value to convert</param>
+            <param name="buffer">The buffer</param>
+            <param name="offset">The offset of the buffer</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.FromInt32(System.Int32,System.Span{System.Byte},System.Int32)">
+            <summary>
+            Converts the value to bytes at the offset starts in the buffer.<br/> 
+            The buffer must have enough space.
+            </summary>
+            <param name="value">The value to convert</param>
+            <param name="buffer">The buffer</param>
+            <param name="offset">The offset of the buffer</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.FromInt32(System.Int32,System.Span{System.Byte},System.Int32@)">
+            <summary>
+            Converts the value to bytes at the offset starts in the buffer.<br/>
+            The buffer must have enough space.
+            Note: The offset is reference value.<br/>
+            </summary>
+            <param name="value">The value to convert</param>
+            <param name="buffer">The buffer</param>
+            <param name="offset">The offset of the buffer</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.ToUInt16(System.ReadOnlySpan{System.Byte},System.Int32)">
+            <summary>
+            Converts the buffer starts at the offset to value. <br/>
+            The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
+            </summary>
+            <param name="buffer">The buffer to convert</param>
+            <param name="offset">The offset of the buffer</param>
+            <returns>The converted value</returns>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.ToUInt16(System.ReadOnlySpan{System.Byte},System.Int32@)">
+            <summary>
+            Converts the buffer starts at the offset to value. <br/>
+            The bytes starts at the offet of the buffer must have correct data to convert to the type of value.<br/>
+            Note: The offset is reference value.
+            </summary>
+            <param name="buffer">The buffer to convert</param>
+            <param name="offset">The offset of the buffer</param>
+            <returns>The converted value</returns>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.ToInt16(System.ReadOnlySpan{System.Byte},System.Int32)">
+            <summary>
+            Converts the buffer starts at the offset to value. <br/>
+            The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
+            </summary>
+            <param name="buffer">The buffer to convert</param>
+            <param name="offset">The offset of the buffer</param>
+            <returns>The converted value</returns>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.ToInt16(System.ReadOnlySpan{System.Byte},System.Int32@)">
+            <summary>
+            Converts the buffer starts at the offset to value. <br/>
+            The bytes starts at the offet of the buffer must have correct data to convert to the type of value.<br/>
+            Note: The offset is reference value.
+            </summary>
+            <param name="buffer">The buffer to convert</param>
+            <param name="offset">The offset of the buffer</param>
+            <returns>The converted value</returns>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.ToUInt32(System.ReadOnlySpan{System.Byte},System.Int32)">
+            <summary>
+            Converts the buffer starts at the offset to value. <br/>
+            The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
+            </summary>
+            <param name="buffer">The buffer to convert</param>
+            <param name="offset">The offset of the buffer</param>
+            <returns>The converted value</returns>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.ToUInt32(System.ReadOnlySpan{System.Byte},System.Int32@)">
+            <summary>
+            Converts the buffer starts at the offset to value. <br/>
+            The bytes starts at the offet of the buffer must have correct data to convert to the type of value.<br/>
+            Note: The offset is reference value.
+            </summary>
+            <param name="buffer">The buffer to convert</param>
+            <param name="offset">The offset of the buffer</param>
+            <returns>The converted value</returns>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.ToInt32(System.ReadOnlySpan{System.Byte},System.Int32)">
+            <summary>
+            Converts the buffer starts at the offset to value. <br/>
+            The bytes starts at the offet of the buffer must have correct data to convert to the type of value.
+            </summary>
+            <param name="buffer">The buffer to convert</param>
+            <param name="offset">The offset of the buffer</param>
+            <returns>The converted value</returns>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.Extensions.ToInt32(System.ReadOnlySpan{System.Byte},System.Int32@)">
+            <summary>
+            Converts the buffer starts at the offset to value. <br/>
+            The bytes starts at the offet of the buffer must have correct data to convert to the type of value.<br/>
+            Note: The offset is reference value.
+            </summary>
+            <param name="buffer">The buffer to convert</param>
+            <param name="offset">The offset of the buffer</param>
+            <returns>The converted value</returns>
+        </member>
+        <member name="T:ServerCoreTCP.Utils.PriorityQueue`1">
+            <summary>
+            PriorityQueue (If the type is numeric, Peek() will return highest value in default.)
+            <br/>NOTE: If count==0, `Peek()` and `Dequeue()` will return DEFAULT value.
+            <br/>Use `TryPeek` and `TryDequeue` safely with primitive types.
+            </summary>
+            <typeparam name="T">System.IComparable: the comparable object</typeparam>
+        </member>
+        <member name="T:ServerCoreTCP.Utils.PriorityQueueCompare`1">
+            <summary>
+            PrioirtyQueue with user-defined Compare function.
+            </summary>
+            <typeparam name="T">Any object</typeparam>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.PriorityQueueCompare`1.#ctor(System.Comparison{`0})">
+            <summary>
+            PrioirtyQueue with user-defined Compare function.
+            </summary>
+            <param name="compare">The function to compare two objects.</param>
+        </member>
+        <member name="T:ServerCoreTCP.Utils.ConcurrentPriorityQueue`1">
+            <summary>
+            PriorityQueue (If the type is numeric, Peek() will return highest value.)
+            </summary>
+            <typeparam name="T">System.IComparable: the comparable object</typeparam>
+        </member>
+        <member name="T:ServerCoreTCP.Utils.ConcurrentPriorityQueueCompare`1">
+            <summary>
+            PrioirtyQueue with user-defined Compare function.
+            </summary>
+            <typeparam name="T">Any object</typeparam>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.ConcurrentPriorityQueueCompare`1.#ctor(System.Comparison{`0})">
+            <summary>
+            PrioirtyQueue with user-defined Compare function.
+            </summary>
+            <param name="compare">The function to compare two objects.</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.TaskManager.SetMain(System.Action)">
+            <summary>
+            The main task does not contain infite-loop for the action.
+            </summary>
+            <param name="mainTask"></param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.TaskManager.AddTask(System.Action)">
+            <summary>
+            Add a new task that invokes the action infinitely with options of LongRunning.
+            </summary>
+            <param name="action"></param>
+        </member>
+        <member name="T:ServerCoreTCP.Utils.ThreadManager">
+            <summary>
+            It uses Thread directly and is recommended in Debug mode for identifying the thread names.
+            </summary>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.ThreadManager.#ctor(System.Int32)">
+            <summary>
+            The taskCount does not contains the main task.
+            </summary>
+            <param name="taskCount">The task count except main task.</param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.ThreadManager.SetMainTask(System.Action,System.String)">
+            <summary>
+            Do not change the thread name before or after calling this function.
+            </summary>
+            <param name="mainTaskAction"></param>
+            <param name="mainThreadName"></param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.ThreadManager.AddTask(System.Action,System.String)">
+            <summary>
+            Do not change the thread name before or after calling this function.
+            </summary>
+            <param name="task"></param>
+            <param name="threadName"></param>
+        </member>
+        <member name="M:ServerCoreTCP.Utils.ThreadManager.StartTasks">
+            <summary>
+            Start all registered tasks. 
+            NOTE: Each task will invoke repeatedly with `Thread.Sleep(0)` in infinite loop at each thread, but the main task will be called only invoke once.
+            </summary>
+        </member>
+    </members>
+</doc>

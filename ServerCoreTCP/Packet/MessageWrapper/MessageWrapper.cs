@@ -7,8 +7,16 @@ using ServerCoreTCP.Utils;
 
 namespace ServerCoreTCP.MessageWrapper
 {
+    /// <summary>
+    /// Serializes the message(Google.Protobuf.IMessage) with the specified packet type.
+    /// </summary>
     public static class MessageWrapper
     {
+        /// <summary>
+        /// The serializer will find the packet id of the message.
+        /// <br/>Add data at the MessageManager.Init().
+        /// <br/>Note: It should contain the information of the ids about the message types. 
+        /// </summary>
 #if PACKET_TYPE_INT
         public readonly static Dictionary<Type, uint> PacketMap = new Dictionary<Type, uint>()
         {
@@ -28,7 +36,7 @@ namespace ServerCoreTCP.MessageWrapper
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
         /// <param name="message">The message to serialize.</param>
-        /// <returns>The serialized buffer with PacketWrapper.</returns>
+        /// <returns>The serialized buffer with PacketWrapper.<br/>Null if failed.</returns>
         public static ArraySegment<byte> Serialize<T>(T message) where T : IMessage
         {
             try
@@ -57,20 +65,22 @@ namespace ServerCoreTCP.MessageWrapper
 #endif
                 message.WriteTo(buffer.Slice(offset));
 
-                // needless code
+                // meaningless code
                 // offset += packetSize - sizeof(ushort) or sizeof(uint);
 
                 return buffer;
             }
             catch (KeyNotFoundException knfe)
             {
-                CoreLogger.LogError("MessageWrapper.Serialize", knfe, "Can not find key={0} in PacketMap", typeof(T));
+                CoreLogger.LogError("MessageWrapper.Serialize", knfe, "Can not find key={0} in PacketMap. Init MessageManager first, or check the init method.", typeof(T));
+                //throw new Exception($"Can not find key={typeof(T)} in PacketMap. Init MessageManager first, or check the init method.");
                 return null;
             }
             catch (Exception e)
             {
                 CoreLogger.LogError("MessageWrapper.Serialize", e, "Other Exception");
-                return null;
+                throw new Exception($"Other Exception: {e}");
+                //return null;
             }
         }
 
@@ -79,7 +89,7 @@ namespace ServerCoreTCP.MessageWrapper
         /// </summary>
         /// <typeparam name="T">Google.Protobuf.IMessage</typeparam>
         /// <param name="message">The message to serialize.</param>
-        /// <returns>The serialized buffer with PacketWrapper.</returns>
+        /// <returns>The serialized buffer with PacketWrapper.<br/>Null if failed.</returns>
         public static ArraySegment<byte> SerializeWrapper<T>(this T message) where T : IMessage
         {
             return Serialize(message);

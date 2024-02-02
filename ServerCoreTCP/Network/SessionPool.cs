@@ -1,16 +1,21 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ServerCoreTCP
 {
+    /// <summary>
+    /// The pool of the sessions.
+    /// </summary>
     internal class SessionPool
     {
+        /// <summary>
+        /// The total count of the session of the pool.
+        /// </summary>
         public int TotalPoolCount => _id - 1;
+        /// <summary>
+        /// The count of the curently pooled sessions.
+        /// </summary>
         public int CurrentPooledCount => _pool.Count;
 
         readonly ConcurrentStack<Session> _pool;
@@ -43,7 +48,11 @@ namespace ServerCoreTCP
 
         internal void Push(Session session)
         {
+#if RELEASE
+            if (session == null) return;
+#else
             if (session == null) throw new NullReferenceException();
+#endif
 
             // reset the session
             session.Clear();
@@ -56,6 +65,10 @@ namespace ServerCoreTCP
             _pool.Clear();
         }
 
+        /// <summary>
+        /// If there is no more pooled session, makes new one.
+        /// </summary>
+        /// <returns></returns>
         Session CreateNew()
         {
             int id = Interlocked.Increment(ref _id);

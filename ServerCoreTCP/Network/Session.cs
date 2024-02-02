@@ -7,6 +7,9 @@ using System.Threading;
 
 namespace ServerCoreTCP
 {
+    /// <summary>
+    /// Session object of the core.
+    /// </summary>
     public abstract class Session : SocketObject
     {
         /// <summary>
@@ -17,13 +20,21 @@ namespace ServerCoreTCP
             get { return m_sessionId; }
             internal set { m_sessionId = value; }
         }
+
+        /// <summary>
+        /// [Nullable] Connected Endpoint.<br/>(Null if the socket is null or not connected)
+        /// </summary>
         public EndPoint ConnectedEndPoint => m_socket?.RemoteEndPoint;
+        /// <summary>
+        /// [Nullable] The socket of the session.
+        /// </summary>
+        public Socket Socket => m_socket;
 
         protected Socket m_socket;
 
 
         /// <summary>
-        /// The value to check the session connected; 0: disconnected, 1: connected (Used with Interlocked)
+        /// The value to check the session connected;<br/>0: disconnected<br/>1: connected<br/>(Used with Interlocked)
         /// </summary>
         int _connected = 0;
         uint m_sessionId;
@@ -66,13 +77,13 @@ namespace ServerCoreTCP
 
         #region Abstract Methods
         /// <summary>
-        /// Called when the socket is connected. Initialize values here.
+        /// Called when the socket is connected.<br/>Initialize members of session here.
         /// </summary>
         public abstract void InitSession();
         /// <summary>
-        /// Called before the session is cleaned up.
+        /// Called before the session is cleaned up and returns to pool. 
         /// </summary>
-        public abstract void PreSessionCleanup();
+        public abstract void ClearSession();
         /// <summary>
         /// Called when the socket is connected.
         /// </summary>
@@ -89,14 +100,14 @@ namespace ServerCoreTCP
         /// <param name="numOfBytes">The length of bytes transferred.</param>
         public abstract void OnSend(int numOfBytes);
         /// <summary>
-        /// Called when the socket is disconnected
+        /// Called when the socket is disconnected.
         /// </summary>
         /// <param name="endPoint">The end point of the socket.</param>
         /// <param name="error">The additional object of error</param>
         public abstract void OnDisconnected(EndPoint endPoint, object error = null);
 
         /// <summary>
-        /// Check the received buffer. If there are multiple packet data on the buffer, each data is processed separately. OnRecv will be called here.
+        /// Check the received buffer.<br/>If there are multiple packet data on the buffer, each data is processed separately.<br/>OnRecv will be called here.
         /// </summary>
         /// <param name="buffer">The buffer received on socket.</param>
         /// <returns>The length of processed bytes.</returns>
@@ -129,6 +140,7 @@ namespace ServerCoreTCP
             _sendEventArgs.UserToken = new SendEventToken(this);
 
             InitSession();
+
             RegisterRecv();
         }
 
@@ -137,11 +149,6 @@ namespace ServerCoreTCP
             ;
         }
 
-
-        /// <summary>
-        /// Send data to endpoint of the socket. [ArraySegment]
-        /// </summary>
-        /// <param name="sendBuffer">Serialized data to send</param>
         //public void SendRaw(ArraySegment<byte> sendBuffer)
         //{
         //    if (sendBuffer == null) throw new Exception("Failed to serialize the message.");
@@ -161,8 +168,11 @@ namespace ServerCoreTCP
         /// <param name="sendBufferList">A list of serialized data to send</param>
         protected void SendRaw(List<ArraySegment<byte>> sendBufferList)
         {
+#if RELEASE
+            if (sendBufferList.Count == 0) return;
+#else
             if (sendBufferList.Count == 0) throw new Exception("The count of 'sendBufferList' was 0.");
-
+#endif
             lock (_lock)
             {
                 foreach (var buffer in sendBufferList)
@@ -177,7 +187,7 @@ namespace ServerCoreTCP
         #region Network IO
 
         /// <summary>
-        /// Reserve 'Send' for async-send (Note: It needs to be protected for race-condition.)
+        /// Reserve 'Send' for async-send.<br/>Note: It needs to be protected for race-condition.
         /// </summary>
         protected void RegisterSend()
         {
@@ -275,7 +285,6 @@ namespace ServerCoreTCP
         /// <summary>
         /// Callback that is called when recv-operation is completed.
         /// </summary>
-        /// <param name="sender">[Ignored] The source of the event</param>
         /// <param name="eventArgs">An object that contains the socket-async-recv-event data</param>
         void OnRecvCompleted(SocketAsyncEventArgs eventArgs)
         {
@@ -286,7 +295,7 @@ namespace ServerCoreTCP
                 {
                     if (_recvBuffer.OnWrite(eventArgs.BytesTransferred) == false)
                     {
-                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes is larger than current data size");
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes is larger than current data size at {0}", Socket?.RemoteEndPoint);
 
                         Disconnect();
                         return;
@@ -296,21 +305,21 @@ namespace ServerCoreTCP
 
                     if (processLength <= 0)
                     {
-                        CoreLogger.LogError("Session.OnRecvCompleted", "processLength <= 0");
+                        CoreLogger.LogError("Session.OnRecvCompleted at {0}", "processLength <= 0", Socket?.RemoteEndPoint);
                         Disconnect();
                         return;
                     }
 
                     if (_recvBuffer.DataSize < processLength)
                     {
-                        CoreLogger.LogError("Session.OnRecvCompleted", "The datasize of recvBuffer[{0}] was larger than processLength[{1}]", _recvBuffer.DataSize, processLength);
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The datasize of recvBuffer[{0}] was larger than processLength[{1}] at {3}", _recvBuffer.DataSize, processLength, Socket?.RemoteEndPoint);
                         Disconnect();
                         return;
                     }
 
                     if (_recvBuffer.OnRead(processLength) == false)
                     {
-                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes was larger than current data size");
+                        CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes was larger than current data size at {0}", Socket?.RemoteEndPoint);
                         Disconnect();
                         return;
                     }
@@ -325,17 +334,17 @@ namespace ServerCoreTCP
             }
             else if (eventArgs.SocketError != SocketError.Success)
             {
-                CoreLogger.LogError("Session.OnRecvCompleted", "SocketError was {0}", eventArgs.SocketError);
+                CoreLogger.LogError("Session.OnRecvCompleted", "SocketError was {0} at {1}", eventArgs.SocketError, Socket?.RemoteEndPoint);
                 Disconnect();
             }
             else if (eventArgs.BytesTransferred == 0)
             {
-                CoreLogger.LogError("Session.OnRecvCompleted", "BytesTransferred was 0");
+                CoreLogger.LogError("Session.OnRecvCompleted", "BytesTransferred was 0 at {0}", Socket?.RemoteEndPoint);
                 Disconnect();
             }
             else
             {
-                CoreLogger.LogError("Session.OnRecvCompleted", "Other error");
+                CoreLogger.LogError("Session.OnRecvCompleted", "Other error at {0}", Socket?.RemoteEndPoint);
                 Disconnect();
             }
         }
@@ -343,7 +352,7 @@ namespace ServerCoreTCP
         #endregion
 
         /// <summary>
-        /// Close the socket and clear the session.
+        /// Close the connection and the socket and clear the session.<br/>If it is in ServerService, returns the session to the pool.
         /// </summary>
         public void Disconnect()
         {
@@ -359,10 +368,15 @@ namespace ServerCoreTCP
             if (m_service.ServiceType == Service.ServiceTypes.Server)
             {
                 (m_service as ServerService).m_sessionPool.Push(this);
+                (m_service as ServerService).NotifySessionDisconnected();
             }
             else Clear();
         }
 
+        /// <summary>
+        /// Not used.
+        /// </summary>
+        /// <param name="eventArgs"></param>
         public virtual void OnDisconnectedCompleted(SocketAsyncEventArgs eventArgs)
         {
             ;
@@ -370,7 +384,7 @@ namespace ServerCoreTCP
 
         internal void Clear()
         {
-            PreSessionCleanup();
+            ClearSession();
 
             _connected = 0;
             m_socket = null;

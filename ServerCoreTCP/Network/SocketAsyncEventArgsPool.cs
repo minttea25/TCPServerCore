@@ -5,9 +5,18 @@ using System.Threading;
 
 namespace ServerCoreTCP
 {
+    /// <summary>
+    /// The pool of the SocketAsyncEventArgs of the socket events.
+    /// </summary>
     internal class SocketAsyncEventArgsPool
     {
+        /// <summary>
+        /// The total count of the SocketAsyncEventArgs of the pool.
+        /// </summary>
         public int TotalPoolCount => m_totalCount;
+        /// <summary>
+        /// The count of the currently pooled SocketAsyncEventArgs.
+        /// </summary>
         public int CurrentPooledCount => _pool.Count;
 
 
@@ -37,7 +46,11 @@ namespace ServerCoreTCP
 
         internal void Push(SocketAsyncEventArgs args)
         {
+#if RELEASE
+            if (args == null) return;
+#else
             if (args == null) throw new NullReferenceException();
+#endif
 
             // reset for reusing
             args.AcceptSocket = null;
@@ -53,6 +66,10 @@ namespace ServerCoreTCP
             _pool.Clear();
         }
 
+        /// <summary>
+        /// If there is no more pooled SocketAsyncEventArgs, makes new one.
+        /// </summary>
+        /// <returns></returns>
         SocketAsyncEventArgs CreateNew()
         {
             _ = Interlocked.Increment(ref m_totalCount);

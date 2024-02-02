@@ -3,7 +3,7 @@
 namespace ServerCoreTCP.Core
 {
     /// <summary>
-    /// This class will be initialized when the service starts.
+    /// The class that contains global members in Core.<br/>It will be initialized when the service starts.<br/>Some members can be used in user-codes.
     /// </summary>
     public static class Global
     {
@@ -14,7 +14,7 @@ namespace ServerCoreTCP.Core
 
         static int _refCount = 0;
         static bool _init = false;
-        static object _lock = new object();
+        readonly static object _lock = new object();
 
         /// <summary>
         /// It will be called when the service starts.

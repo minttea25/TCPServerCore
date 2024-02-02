@@ -1,12 +1,10 @@
 ﻿using ServerCoreTCP.Utils;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 namespace ServerCoreTCP.Job
 {
-    internal struct ActionTimerElement : IComparable<ActionTimerElement>
+    internal readonly struct ActionTimerElement : IComparable<ActionTimerElement>
     {
         readonly internal long MillisecondsExec;
         readonly internal Action Action;
@@ -17,9 +15,10 @@ namespace ServerCoreTCP.Job
             MillisecondsExec = millisecondsExec;
         }
 
-        // take faster tick
-        public int CompareTo(ActionTimerElement other)
+        
+        public readonly int CompareTo(ActionTimerElement other)
         {
+            // take faster tick
             return (int)(other.MillisecondsExec - MillisecondsExec);
         }
     }

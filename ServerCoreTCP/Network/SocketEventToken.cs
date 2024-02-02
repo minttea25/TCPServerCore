@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Sockets;
 
 namespace ServerCoreTCP
 {
+    /// <summary>
+    /// Object that distinguishes type of the socket event.<br/>It is used with the Socket.UserToken.
+    /// </summary>
     internal abstract class SocketEventToken
     {
         internal enum SocketEventType : ushort

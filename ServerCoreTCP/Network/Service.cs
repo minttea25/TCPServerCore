@@ -1,4 +1,5 @@
-﻿using ServerCoreTCP.Core;
+﻿using ServerCoreTCP.CLogger;
+using ServerCoreTCP.Core;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -7,21 +8,27 @@ namespace ServerCoreTCP
 {
     public abstract class Service
     {
+        /// <summary>
+        /// The types of service.
+        /// </summary>
         public enum ServiceTypes
         {
             Server = 1,
             Client = 2
         }
 
+        /// <summary>
+        /// The ServiceType
+        /// </summary>
         public ServiceTypes ServiceType => m_serviceType;
-        readonly public ServiceTypes m_serviceType;
+        readonly ServiceTypes m_serviceType;
 
         /// <summary>
-        /// The total count of SAEA that the pool has.
+        /// The total count of SocketAsyncEventArgs in the pool.
         /// </summary>
         public int SAEATotalPoolCount => m_saeaPool.TotalPoolCount;
         /// <summary>
-        /// The count of SAEA left in the pool.
+        /// The count of the currently pooled SocketAsyncEventArgs in the pool.
         /// </summary>
         public int SAEACurrentPooledCount => m_saeaPool.CurrentPooledCount;
 
@@ -35,13 +42,19 @@ namespace ServerCoreTCP
         public virtual void Stop()
         {
             Global.Clear();
+
+            CoreLogger.LogInfo("Service.Stop", $"Service stopped at {DateTime.Now}.");
         }
 
-
-        public Service(ServiceTypes serviceType)
+        /// <summary>
+        /// The constructor of Service.
+        /// </summary>
+        /// <param name="serviceType">The service type</param>
+        /// <param name="saeaPoolCount">The count of SAEA of the pool</param>
+        public Service(ServiceTypes serviceType, int saeaPoolCount)
         {
             m_serviceType = serviceType;
-            m_saeaPool = new SocketAsyncEventArgsPool(1000, Dispatch);
+            m_saeaPool = new SocketAsyncEventArgsPool(saeaPoolCount, Dispatch);
         }
 
         void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
@@ -58,27 +71,50 @@ namespace ServerCoreTCP
         }
     }
 
+    /// <summary>
+    /// The service that can listen the connections of others.
+    /// </summary>
     public class ServerService : Service
     {
         readonly int m_sessionPoolCount;
 
         /// <summary>
-        /// The total count of sessions that the pool has.
+        /// The total count of the sessions in the pool.
         /// </summary>
         public int SessionTotalPoolCount => m_sessionPool.TotalPoolCount;
         /// <summary>
-        /// The count of sessions left in the pool.
+        /// The count of the currently pooled sessions in the pool.
         /// </summary>
         public int SessionCurrentPooledCount => m_sessionPool.CurrentPooledCount;
+        /// <summary>
+        /// The listening port number.
+        /// </summary>
         public int Port => m_listener.Port;
+        /// <summary>
+        /// The count of the listening backlogs.
+        /// </summary>
         public int ListenerBackLog => m_listener.Backlog;
+        /// <summary>
+        /// The count of the registered counts of the listener.
+        /// </summary>
         public int ListenrRegisterCount => m_listener.RegisterCount;
+
+        /// <summary>
+        /// The count of connected sessions. <br/>  = SessionTotalPoolCount - SessionCurrentPooledCount
+        /// </summary>
+        public int ConnectedSessionCount => SessionTotalPoolCount - SessionCurrentPooledCount;
 
         readonly Listener m_listener;
         internal SessionPool m_sessionPool;
         // Semaphore m_maxConnections;
 
-        public ServerService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ServerServiceConfig config) : base(ServiceTypes.Server)
+        /// <summary>
+        /// The constructor of serverservice.<br/>Note: The sessions are created in the pool before formed connection.
+        /// </summary>
+        /// <param name="endPoint">The endpoint to be opened.</param>
+        /// <param name="emptySessionFactory">The factory of the empty session.</param>
+        /// <param name="config">The configs of the server service.</param>
+        public ServerService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ServerServiceConfig config) : base(ServiceTypes.Server, config.SocketAsyncEventArgsPoolCount)
         {
             m_sessionPoolCount = config.SessionPoolCount;
 
@@ -87,12 +123,18 @@ namespace ServerCoreTCP
             m_sessionPool = new SessionPool(this, m_sessionPoolCount, emptySessionFactory);
         }
 
+        /// <summary>
+        /// Starts the service. (Starts to listen)
+        /// </summary>
         public sealed override void Start()
         {
             base.Start();
             m_listener.StartListen();
         }
 
+        /// <summary>
+        /// Stop the service.
+        /// </summary>
         public sealed override void Stop()
         {
             base.Stop();
@@ -100,12 +142,15 @@ namespace ServerCoreTCP
             Clear();
         }
 
-        //public void BroadCast(byte[] buffers)
-        //{
-        //    // TODO
-        //}
+        internal void NotifySessionDisconnected()
+        {
+            m_listener.ReleaseOneConnection();
+        }
     }
 
+    /// <summary>
+    /// The service for connecting to other.
+    /// </summary>
     public class ClientService : Service
     {
         readonly int m_sessionCount = 1;
@@ -113,9 +158,19 @@ namespace ServerCoreTCP
         readonly Connector m_connector;
         readonly Session[] m_session;
 
+        /// <summary>
+        /// The count of connections configured in advance.
+        /// </summary>
         public int ConnectionCount => m_connector.ConnectionCount;
 
-        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ClientServiceConfig config, Action<SocketError> connectFailedCallback = null) : base(ServiceTypes.Client)
+        /// <summary>
+        /// The constructor of clientservice.<br/>Note: The sessions are created before formed connection.
+        /// </summary>
+        /// <param name="endPoint">The endpoint to connect to.</param>
+        /// <param name="emptySessionFactory">The factory of the empty session.</param>
+        /// <param name="config">The configs of the client service.</param>
+        /// <param name="connectFailedCallback">The callback which is invoked when the connection is failed.</param>
+        public ClientService(IPEndPoint endPoint, Func<Session> emptySessionFactory, ClientServiceConfig config, Action<SocketError> connectFailedCallback = null) : base(ServiceTypes.Client, config.SocketAsyncEventArgsPoolCount)
         {
             m_sessionCount = config.ClientServiceSessionCount;
 
@@ -128,12 +183,18 @@ namespace ServerCoreTCP
             m_connector = new Connector(this, m_session, endPoint, config, connectFailedCallback);
         }
 
+        /// <summary>
+        /// Start the servie. (Starts to connect)
+        /// </summary>
         public sealed override void Start()
         {
             base.Start();
             m_connector.Connect();
         }
 
+        /// <summary>
+        /// Stop the service.
+        /// </summary>
         public sealed override void Stop()
         {
             base.Stop();

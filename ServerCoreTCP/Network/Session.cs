@@ -89,11 +89,16 @@ namespace ServerCoreTCP
         /// </summary>
         /// <param name="endPoint">The endpoint of connected socket</param>
         public abstract void OnConnected(EndPoint endPoint);
+#if PROTOBUF
         /// <summary>
         /// Called when the socket received data(buffer)
         /// </summary>
         /// <param name="buffer">The buffer of unit packet received.</param>
         public abstract void OnRecv(ReadOnlySpan<byte> buffer);
+#endif
+#if FLATBUFFERS
+        public abstract void OnRecv(ArraySegment<byte> buffer, int offset, int count);
+#endif
         /// <summary>
         /// Called when the socket sent data.
         /// </summary>
@@ -113,7 +118,7 @@ namespace ServerCoreTCP
         /// <returns>The length of processed bytes.</returns>
         protected abstract int OnRecvProcess(ArraySegment<byte> buffer);
 
-        #endregion
+#endregion
 
         public Session()
         {

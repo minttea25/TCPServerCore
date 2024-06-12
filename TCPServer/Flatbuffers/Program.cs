@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using Chat;
-using Serilog;
+﻿#if FLATBUFFERS
+
 using ServerCoreTCP;
 using ServerCoreTCP.CLogger;
 using ServerCoreTCP.Utils;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading;
 
-namespace TCPServer
+namespace Test.Flatbuffers
 {
-    class Program
+    public class Program
     {
         static Server server = null;
         static List<ClientSession> sessions = new();
-        static object _lock = new();
+        readonly static object _lock = new();
 
         static void NetworkTask()
         {
@@ -61,7 +60,7 @@ namespace TCPServer
 
         static void Main(string[] args)
         {
-            MessageManager.Instance.Init();
+            PacketManager.Instance.Init();
 
             var config = LoggerConfig.GetDefault();
             //config.RestrictedMinimumLevel = Serilog.Events.LogEventLevel.Error;
@@ -82,13 +81,12 @@ namespace TCPServer
                 ListenerBacklogCount = 100,
 
             };
-            //var serverConfig = ServerServiceConfig.GetDefault();
 
             server = new(
                 endPoint,
-                () => { 
-                    var s = new ClientSession(); 
-                    lock(_lock)
+                () => {
+                    var s = new ClientSession();
+                    lock (_lock)
                     {
                         sessions.Add(s);
                     }
@@ -100,9 +98,13 @@ namespace TCPServer
             tasks.AddTask(NetworkTask);
             tasks.SetMain(ServerCommand);
 
+            server.Start();
+
             tasks.StartTasks();
 
             CoreLogger.StopLogging();
         }
     }
 }
+
+#endif

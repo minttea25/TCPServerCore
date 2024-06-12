@@ -6,10 +6,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);FLATBUFFERS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.FlatBuffers" Version="24.3.7" />
     <PackageReference Include="Google.Protobuf" Version="3.23.4" />
   </ItemGroup>
 

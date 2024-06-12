@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if PROTOBUF
+
+using System;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -9,7 +11,7 @@ using ServerCoreTCP;
 using ServerCoreTCP.CLogger;
 using ServerCoreTCP.Utils;
 
-namespace TestClient
+namespace Chat.Protobuf
 {
     class Program
     {
@@ -70,6 +72,6 @@ namespace TestClient
             CoreLogger.StopLogging();
         }
     }
-
-
 }
+
+#endif

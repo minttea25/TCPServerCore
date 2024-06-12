@@ -1,6 +1,8 @@
+#if PROTOBUF
+
 using System;
 
-namespace Chat
+namespace Chat.Protobuf
 {
 #if PACKET_TYPE_INT
     public enum PacketType : uint
@@ -44,3 +46,5 @@ namespace Chat
     }
 #endif
 }
+
+#endif

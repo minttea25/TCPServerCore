@@ -1,19 +1,17 @@
-﻿using ServerCoreTCP;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿#if FLATBUFFERS
 
-namespace TCPServer
+using ServerCoreTCP;
+using System;
+using System.Net;
+
+namespace Test.Flatbuffers
 {
     public class Server
     {
         bool _isRunning = false;
         public readonly ServerService Service;
 
-        public Server(IPEndPoint endPoint, Func<ClientSession> factory, ServerServiceConfig config) 
+        public Server(IPEndPoint endPoint, Func<ClientSession> factory, ServerServiceConfig config)
         {
             Service = new(endPoint, factory, config);
         }
@@ -34,3 +32,5 @@ namespace TCPServer
 
     }
 }
+
+#endif

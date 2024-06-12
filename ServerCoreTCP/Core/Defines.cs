@@ -6,15 +6,9 @@
         /// <summary>
         /// The size of packet body: sizeof(ushort).
         /// </summary>
-        public const int PACKET_HEADER_SIZE = sizeof(ushort);
-        /// <summary>
-        /// The size of packet type.
-        /// </summary>
-#if PACKET_TYPE_INT
-        public const int PACKET_DATATYPE_SIZE = sizeof(uint);
-#else
-        public const int PACKET_DATATYPE_SIZE = sizeof(ushort);
-#endif
+        public const int PACKET_HEADER_SIZE = sizeof(ushort) + sizeof(ushort);
+        public const int PACKET_ID_SIZE = sizeof(ushort);
+        public const int PACKET_SIZETYPE_SIZE = sizeof(ushort);
         #endregion
 
         #region Buffer

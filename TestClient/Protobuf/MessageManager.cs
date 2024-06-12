@@ -1,13 +1,15 @@
+#if PROTOBUF
+
 using System;
 using System.Collections.Generic;
 
 using Google.Protobuf;
 
 using ServerCoreTCP;
-using ServerCoreTCP.MessageWrapper;
+using ServerCoreTCP.Protobuf;
 using ServerCoreTCP.Utils;
 
-namespace Chat
+namespace Chat.Protobuf
 {
     public class MessageManager
     {
@@ -23,13 +25,9 @@ namespace Chat
         }
         #endregion
 
-#if PACKET_TYPE_INT
-        readonly Dictionary<uint, MessageParser> _parsers = new Dictionary<uint, MessageParser>();
-        readonly Dictionary<uint, Action<IMessage, Session>> _handlers = new Dictionary<uint, Action<IMessage, Session>>();
-#else
+
         readonly Dictionary<ushort, MessageParser> _parsers = new Dictionary<ushort, MessageParser>();
         readonly Dictionary<ushort, Action<IMessage, Session>> _handlers = new Dictionary<ushort, Action<IMessage, Session>>();
-#endif
 
         MessageManager()
         {
@@ -40,23 +38,7 @@ namespace Chat
         /// </summary>
         public void Init()
         {
-#if PACKET_TYPE_INT
-            MessageWrapper.PacketMap.Add(typeof(ChatBase), (uint)PacketType.P_ChatBase);
-            MessageWrapper.PacketMap.Add(typeof(SSendChatText), (uint)PacketType.P_SSendChatText);
-            MessageWrapper.PacketMap.Add(typeof(SSendChatIcon), (uint)PacketType.P_SSendChatIcon);
-            MessageWrapper.PacketMap.Add(typeof(CRecvChatText), (uint)PacketType.P_CRecvChatText);
-            MessageWrapper.PacketMap.Add(typeof(CRecvChatIcon), (uint)PacketType.P_CRecvChatIcon);
-            MessageWrapper.PacketMap.Add(typeof(SReqRoomList), (uint)PacketType.P_SReqRoomList);
-            MessageWrapper.PacketMap.Add(typeof(CResRoomList), (uint)PacketType.P_CResRoomList);
-            MessageWrapper.PacketMap.Add(typeof(SReqCreateRoom), (uint)PacketType.P_SReqCreateRoom);
-            MessageWrapper.PacketMap.Add(typeof(CResCreateRoom), (uint)PacketType.P_CResCreateRoom);
-            MessageWrapper.PacketMap.Add(typeof(SLeaveRoom), (uint)PacketType.P_SLeaveRoom);
-            MessageWrapper.PacketMap.Add(typeof(CLeaveRoom), (uint)PacketType.P_CLeaveRoom);
-            MessageWrapper.PacketMap.Add(typeof(CRemovedRoom), (uint)PacketType.P_CRemovedRoom);
-            MessageWrapper.PacketMap.Add(typeof(CUserAuthRes), (uint)PacketType.P_CUserAuthRes);
-            MessageWrapper.PacketMap.Add(typeof(SUserAuthReq), (uint)PacketType.P_SUserAuthReq);
 
-#else
             MessageWrapper.PacketMap.Add(typeof(ChatBase), (ushort)PacketType.P_ChatBase);
             MessageWrapper.PacketMap.Add(typeof(SSendChatText), (ushort)PacketType.P_SSendChatText);
             MessageWrapper.PacketMap.Add(typeof(SSendChatIcon), (ushort)PacketType.P_SSendChatIcon);
@@ -71,8 +53,6 @@ namespace Chat
             MessageWrapper.PacketMap.Add(typeof(CRemovedRoom), (ushort)PacketType.P_CRemovedRoom);
             MessageWrapper.PacketMap.Add(typeof(CUserAuthRes), (ushort)PacketType.P_CUserAuthRes);
             MessageWrapper.PacketMap.Add(typeof(SUserAuthReq), (ushort)PacketType.P_SUserAuthReq);
-
-#endif
 
             _parsers.Add(MessageWrapper.PacketMap[typeof(CRecvChatText)], CRecvChatText.Parser);
             _handlers.Add(MessageWrapper.PacketMap[typeof(CRecvChatText)], MessageHandler.CRecvChatTextMessageHandler);
@@ -132,7 +112,7 @@ namespace Chat
 
             if (_parsers.TryGetValue(packetType, out var parser))
             {
-                var msg = parser.ParseFrom(buffer.Slice(Defines.PACKET_DATATYPE_SIZE));
+                var msg = parser.ParseFrom(buffer.Slice(Defines.PACKET_ID_SIZE));
 
                 if (callback != null) callback.Invoke(packetType, session, msg);
                 else HandlePacket(packetType, msg, session);
@@ -169,3 +149,4 @@ namespace Chat
 #endif
     }
 }
+#endif

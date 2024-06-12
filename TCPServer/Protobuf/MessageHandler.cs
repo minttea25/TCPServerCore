@@ -1,9 +1,11 @@
+#if PROTOBUF
+
 using System;
 
 using ServerCoreTCP;
 using Google.Protobuf;
 
-namespace Chat
+namespace Chat.Protobuf
 {
     public class MessageHandler
     {
@@ -53,3 +55,4 @@ namespace Chat
 
     }
 }
+#endif

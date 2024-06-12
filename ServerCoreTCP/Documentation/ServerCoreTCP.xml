@@ -108,6 +108,16 @@
             <param name="size">The size to get segment.</param>
             <returns>The segment of the buffer with the size.</returns>
         </member>
+        <member name="F:ServerCoreTCP.Defines.PACKET_HEADER_SIZE">
+            <summary>
+            The size of packet body: sizeof(ushort).
+            </summary>
+        </member>
+        <member name="F:ServerCoreTCP.Defines.SessionSendFlushMinIntervalMilliseconds">
+            <summary>
+            It can be changed by user.
+            </summary>
+        </member>
         <member name="T:ServerCoreTCP.Core.Global">
             <summary>
             The class that contains global members in Core.<br/>It will be initialized when the service starts.<br/>Some members can be used in user-codes.
@@ -555,12 +565,6 @@
             </summary>
             <param name="endPoint">The endpoint of connected socket</param>
         </member>
-        <member name="M:ServerCoreTCP.Session.OnRecv(System.ReadOnlySpan{System.Byte})">
-            <summary>
-            Called when the socket received data(buffer)
-            </summary>
-            <param name="buffer">The buffer of unit packet received.</param>
-        </member>
         <member name="M:ServerCoreTCP.Session.OnSend(System.Int32)">
             <summary>
             Called when the socket sent data.
@@ -673,55 +677,18 @@
             Object that distinguishes type of the socket event.<br/>It is used with the Socket.UserToken.
             </summary>
         </member>
-        <member name="T:ServerCoreTCP.MessageWrapper.MessageWrapper">
-            <summary>
-            Serializes the message(Google.Protobuf.IMessage) with the specified packet type.
-            </summary>
-        </member>
-        <member name="F:ServerCoreTCP.MessageWrapper.MessageWrapper.PacketMap">
-            <summary>
-            The serializer will find the packet id of the message.
-            <br/>Add data at the MessageManager.Init().
-            <br/>Note: It should contain the information of the ids about the message types. 
-            </summary>
-        </member>
-        <member name="M:ServerCoreTCP.MessageWrapper.MessageWrapper.Serialize``1(``0)">
-            <summary>
-            Serialize the message with PacketWrapper using little-endian [ArraySegment]
-            </summary>
-            <typeparam name="T">Google.Protobuf.IMessage</typeparam>
-            <param name="message">The message to serialize.</param>
-            <returns>The serialized buffer with PacketWrapper.<br/>Null if failed.</returns>
-        </member>
-        <member name="M:ServerCoreTCP.MessageWrapper.MessageWrapper.SerializeWrapper``1(``0)">
-            <summary>
-            Extended function of PacketWrapper.Serialize().
-            </summary>
-            <typeparam name="T">Google.Protobuf.IMessage</typeparam>
-            <param name="message">The message to serialize.</param>
-            <returns>The serialized buffer with PacketWrapper.<br/>Null if failed.</returns>
-        </member>
-        <member name="M:ServerCoreTCP.MessageWrapper.PacketSession.Send``1(``0)">
-            <summary>
-            Serialize the message and add the serialized message in the pending queue of the packet session.
-            <br/>If serialization is failed, do nothing.
-            <br/>Note: It does not send the message directly.
-            </summary>
-            <typeparam name="T">Google.Protobuf.IMessage</typeparam>
-            <param name="message">The message data</param>
-        </member>
-        <member name="M:ServerCoreTCP.MessageWrapper.PacketSession.FlushSend">
-            <summary>
-            Flushes serialized data in the pending queue according to specified conditions.
-            It contains to send data actually.
-            </summary>
-        </member>
-        <member name="M:ServerCoreTCP.MessageWrapper.PacketSession.OnRecvProcess(System.ArraySegment{System.Byte})">
+        <member name="M:ServerCoreTCP.PacketSession.OnRecvProcess(System.ArraySegment{System.Byte})">
             <summary>
             Slices the buffer that contains multiple data and calls OnRecv of the session with sliced data.
             </summary>
             <param name="buffer">The buffer that the socket received at once</param>
             <returns>The analyzed total length of the data</returns>
+        </member>
+        <member name="M:ServerCoreTCP.PacketSession.FlushSend">
+            <summary>
+            Flushes serialized data in the pending queue according to specified conditions.
+            It contains to send data actually.
+            </summary>
         </member>
         <member name="T:ServerCoreTCP.Utils.Base128Encoding">
             <summary>

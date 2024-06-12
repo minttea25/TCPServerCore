@@ -1,6 +1,5 @@
-﻿using Chat;
-using Google.Protobuf.WellKnownTypes;
-using ServerCoreTCP.MessageWrapper;
+﻿#if FLATBUFFERS
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +7,11 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using Google.FlatBuffers;
+using ServerCoreTCP;
+using ServerCoreTCP.Flatbuffers;
 
-namespace TestClient
+namespace Test.Flatbuffers
 {
     public class ServerSession : PacketSession
     {
@@ -26,13 +28,12 @@ namespace TestClient
             {
                 for (int i = 0; i < 5; ++i)
                 {
-                    SSendChatText chatTextPacket = new()
-                    {
-                        ChatBase = new() { Timestamp = Timestamp.FromDateTime(DateTime.UtcNow) },
-                        Msg = $"It is {i} th message! Genshin is sooooo fun!!!",
-                        SenderInfo = null,
-                    };
-                    Send(chatTextPacket);
+                    FlatBufferBuilder fb = new(128);
+                    var msg = fb.CreateString("This is a message!");
+                    var offset = TestPacket.CreateTestPacket(fb, msg, 10000);
+                    fb.Finish(offset.Value);
+                    var buf = PacketWrapper.Serialize(fb, ushort.MaxValue - 1);
+                    Send(buf);
                 }
             };
             timer.Start();
@@ -43,11 +44,6 @@ namespace TestClient
             Console.WriteLine($"OnDisconnected");
         }
 
-        public override void OnRecv(ReadOnlySpan<byte> buffer)
-        {
-            MessageManager.Instance.OnRecvPacket(this, buffer);
-        }
-
         public override void OnSend(int numOfBytes)
         {
         }
@@ -55,5 +51,12 @@ namespace TestClient
         public override void ClearSession()
         {
         }
+
+        public override void OnRecv(ArraySegment<byte> buffer, int offset, int count)
+        {
+            PacketManager.Instance.OnRecvPacket(this, buffer, offset, count);
+        }
     }
 }
+
+#endif

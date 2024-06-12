@@ -1,10 +1,14 @@
-﻿using Chat;
-using Google.Protobuf.WellKnownTypes;
-using ServerCoreTCP.MessageWrapper;
+﻿#if PROTOBUF
+using Chat;
+
+using ServerCoreTCP;
+
 using System;
 using System.Net;
+using ServerCoreTCP.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
-namespace TCPServer
+namespace Chat.Protobuf
 {
     public class ClientSession : PacketSession
     {
@@ -38,3 +42,4 @@ namespace TCPServer
         }
     }
 }
+#endif

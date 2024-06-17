@@ -14,7 +14,7 @@ namespace ServerCoreTCP.Flatbuffers
             int dataPosition = fb.DataBuffer.Position;
 
             byte[] buffer = new byte[Defines.PACKET_HEADER_SIZE + dataSize];
-            WritePacketHeader(id, (ushort)(dataSize + Defines.PACKET_ID_SIZE), buffer);
+            WritePacketHeader(id, (ushort)(dataSize + Defines.PACKET_HEADER_SIZE), buffer);
 
             ArraySegment<byte> flatBufferSegment = fb.DataBuffer.ToArraySegment(dataPosition, dataSize);
             Buffer.BlockCopy(flatBufferSegment.Array!, flatBufferSegment.Offset, buffer, Defines.PACKET_HEADER_SIZE, dataSize);
@@ -27,7 +27,7 @@ namespace ServerCoreTCP.Flatbuffers
             int dataSize = fb.Offset;
             int dataPosition = fb.DataBuffer.Position;
 
-            var header = new PacketHeader(id, (ushort)(dataSize + Defines.PACKET_ID_SIZE));
+            var header = new PacketHeader(id, (ushort)(dataSize + Defines.PACKET_HEADER_SIZE));
             byte[] buffer = new byte[Defines.PACKET_HEADER_SIZE + dataSize];
 
             header.WriteTo(buffer);

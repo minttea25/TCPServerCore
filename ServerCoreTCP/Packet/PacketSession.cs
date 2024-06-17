@@ -106,14 +106,17 @@ namespace ServerCoreTCP
 
             while (processed < buffer.Count)
             {
-                // bodysize =  sizeof(pkt id) + serialized data of flatbuffers
+                // bodysize =  sizeof(packet header) + serialized data of flatbuffers
                 ushort packetSize = (ushort)(buffer[processed] | (buffer[processed + 1] << 8));
-                processed += Defines.PACKET_SIZETYPE_SIZE;
                 if (processed + packetSize > buffer.Count) break;
 
-                OnRecv(buffer, processed, packetSize);
+                processed += Defines.PACKET_SIZETYPE_SIZE;
 
-                processed += packetSize;
+                var validLen = packetSize - Defines.PACKET_SIZETYPE_SIZE;
+                // buffer except size data
+                OnRecv(buffer, processed, validLen);
+
+                processed += validLen;
             }
 
             return processed;

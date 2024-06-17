@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using Google.Protobuf;
 using Serilog;
 using Serilog.Core;
 using System;
@@ -91,19 +90,18 @@ namespace ServerCoreTCP.CLogger
         }
 
 
-#if CUSTOM_PACKET
-#else
-        public static void LogRecv<T>(T message, string header = "Recv") where T : IMessage
+#if PROTOBUF
+        public static void LogRecv<T>(T message, string header = "Recv") where T : Google.Protobuf.IMessage
         {
             string msg = $"[{header}] [{typeof(T)}] {message}";
             CLogger?.Information(msg);
         }
 
-        public static void LogSend<T>(T message, string header = "Send") where T : IMessage
+        public static void LogSend<T>(T message, string header = "Send") where T : Google.Protobuf.IMessage
         {
             string msg = $"[{header}] [{typeof(T)}] {message}";
             CLogger?.Information(msg);
         }
-    }
 #endif
+    }
 }

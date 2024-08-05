@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using Serilog.Events;
 
-namespace ServerCoreTCP.CLogger
+namespace NetCore.CLogger
 {
     /// <summary>
     /// The default values are from the default values of LoggerConfiguration, and the defualt encoding is UTF8.

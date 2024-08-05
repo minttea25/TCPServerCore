@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     /// <summary>
     /// Object that distinguishes type of the socket event.<br/>It is used with the Socket.UserToken.

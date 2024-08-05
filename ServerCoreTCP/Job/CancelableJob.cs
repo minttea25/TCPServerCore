@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ServerCoreTCP.Job
+namespace NetCore.Job
 {
     /// <summary>
     /// The interface of cancelable job.

@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace ServerCoreTCP.Utils
+namespace NetCore.Utils
 {
     public class SpinLock
     {

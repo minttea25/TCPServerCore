@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ServerCoreTCP.Utils
+namespace NetCore.Utils
 {
     /// <summary>
     /// PriorityQueue (If the type is numeric, Peek() will return highest value in default.)

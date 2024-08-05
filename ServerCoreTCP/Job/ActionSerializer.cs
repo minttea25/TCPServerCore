@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ServerCoreTCP.Job
+namespace NetCore.Job
 {
     /// <summary>
     /// This is ActionSerilizer class for executing actions in one thread. 

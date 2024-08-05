@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     public abstract class SocketObject
     {

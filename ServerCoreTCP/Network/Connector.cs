@@ -1,10 +1,10 @@
-﻿using ServerCoreTCP.CLogger;
-using ServerCoreTCP.Utils;
+﻿using NetCore.CLogger;
+using NetCore.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     /// <summary>
     /// The connector object to connect to other endpoint.<br/>The default connected count is 1, and it also provides the multiple connections for doing test.

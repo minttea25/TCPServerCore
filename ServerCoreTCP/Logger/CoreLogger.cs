@@ -3,19 +3,19 @@
 using Serilog;
 using Serilog.Core;
 using System;
+using System.Runtime.CompilerServices;
 
-namespace ServerCoreTCP.CLogger
+namespace NetCore.CLogger
 {
     /// <summary>
-    /// A class for logging in ServerCoreTCP.
+    /// A class for logging in NetCore.
     /// </summary>
     public class CoreLogger
     {
         public enum LoggerSinks : uint
         {
-            DEBUG = 1,
-            CONSOLE = 1 << 1,
-            FILE = 1 << 2,
+            CONSOLE = 1,
+            FILE = 1 << 1,
         }
 
         /// <summary>
@@ -27,13 +27,6 @@ namespace ServerCoreTCP.CLogger
         public static void CreateLoggerWithFlag(uint flag, LoggerConfig loggerConfig)
         {
             LoggerConfiguration config = new LoggerConfiguration();
-
-            if ((flag & (uint)LoggerSinks.DEBUG) == (uint)LoggerSinks.DEBUG)
-            {
-                config.WriteTo.Debug(
-                    outputTemplate: loggerConfig.OutputTemplate,
-                    restrictedToMinimumLevel: loggerConfig.RestrictedMinimumLevel);
-            }
 
             if ((flag & (uint)LoggerSinks.CONSOLE) == (uint)LoggerSinks.CONSOLE)
             {
@@ -55,35 +48,40 @@ namespace ServerCoreTCP.CLogger
             CLogger = config.CreateLogger();
         }
 
-        public static void StopLogging()
+        public static void DisposeLogging()
         {
             CLogger?.Dispose();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogInfo(string header, string messageTemplate, params object?[]? propertyValues)
         {
             //string msg = $"[{header}] {messageTemplate}";
             CLogger?.Information(GetLogFormat(header, messageTemplate), propertyValues);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogError(string header, Exception ex, string messageTemplate, params object?[]? propertyValues)
         {
             //string msg = $"[{header}] {messageTemplate}";
             CLogger?.Error(ex, GetLogFormat(header, messageTemplate), propertyValues);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogError(string header, string messageTemplate, params object?[]? propertyValues)
         {
             //string msg = $"[{header}] {messageTemplate}";
             CLogger?.Error(GetLogFormat(header, messageTemplate), propertyValues);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogDebug(string header, string messageTemplate, params object?[]? propertyValues)
         {
             //string msg = $"[{header}] {messageTemplate}";
             CLogger?.Debug(GetLogFormat(header, messageTemplate), propertyValues);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static string GetLogFormat(string header, string messageTemplate)
         {
             return $"[{header}] {messageTemplate}";

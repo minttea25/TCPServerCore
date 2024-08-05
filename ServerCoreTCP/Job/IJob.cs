@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ServerCoreTCP.Job
+namespace NetCore.Job
 {
     /// <summary>
     /// The interface of Job.

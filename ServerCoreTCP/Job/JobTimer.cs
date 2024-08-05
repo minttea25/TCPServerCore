@@ -1,7 +1,7 @@
-﻿using ServerCoreTCP.Core;
-using ServerCoreTCP.Utils;
+﻿using NetCore.Core;
+using NetCore.Utils;
 
-namespace ServerCoreTCP.Job
+namespace NetCore.Job
 {
     /// <summary>
     /// The interface of the JobTimer using Cancelable jobs.

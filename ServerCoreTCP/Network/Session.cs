@@ -1,11 +1,13 @@
-﻿using ServerCoreTCP.CLogger;
+﻿#nullable enable
+
+using NetCore.CLogger;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     /// <summary>
     /// Session object of the core.
@@ -13,7 +15,7 @@ namespace ServerCoreTCP
     public abstract class Session : SocketObject
     {
         /// <summary>
-        /// It is unique id of Session.
+        /// Unique id of Session.
         /// </summary>
         public uint SessionId
         {
@@ -24,29 +26,36 @@ namespace ServerCoreTCP
         /// <summary>
         /// [Nullable] Connected Endpoint.<br/>(Null if the socket is null or not connected)
         /// </summary>
-        public EndPoint ConnectedEndPoint => m_socket?.RemoteEndPoint;
+        public EndPoint? ConnectedEndPoint => m_socket?.RemoteEndPoint;
         /// <summary>
-        /// [Nullable] The socket of the session.
+        /// The socket of the session.
         /// </summary>
-        public Socket Socket => m_socket;
+        public Socket? Socket => m_socket;
 
-        protected Socket m_socket;
+        protected Socket? m_socket = null;
 
 
         /// <summary>
-        /// The value to check the session connected;<br/>0: disconnected<br/>1: connected<br/>(Used with Interlocked)
+        /// The value to check the session connected;<br/>0: disconnected<br/>1: connected
         /// </summary>
         int _connected = 0;
         uint m_sessionId;
 
-        SocketAsyncEventArgs _recvEventArgs = null;
-        SocketAsyncEventArgs _sendEventArgs = null;
+        SocketAsyncEventArgs? _recvEventArgs = null;
+        SocketAsyncEventArgs? _sendEventArgs = null;
 
         /// <summary>
         /// Note: Send/Recv can be occurred in multiple threads
         /// </summary>
         readonly object _lock = new object();
 
+        /// <summary>
+        /// Dispatch the socket event.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        /// <exception cref="InvalidCastException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         internal sealed override void Dispatch(object sender, SocketAsyncEventArgs eventArgs)
         {
             if (!(eventArgs.UserToken is SocketEventToken)) throw new InvalidCastException("The UserToken was not SocketEventToken"); ;
@@ -77,26 +86,24 @@ namespace ServerCoreTCP
 
         #region Abstract Methods
         /// <summary>
-        /// Called when the socket is connected.<br/>Initialize members of session here.
-        /// </summary>
-        public abstract void InitSession();
-        /// <summary>
-        /// Called before the session is cleaned up and returns to pool. 
-        /// </summary>
-        public abstract void ClearSession();
-        /// <summary>
         /// Called when the socket is connected.
         /// </summary>
         /// <param name="endPoint">The endpoint of connected socket</param>
         public abstract void OnConnected(EndPoint endPoint);
 #if PROTOBUF
         /// <summary>
-        /// Called when the socket received data(buffer)
+        /// Called when the socket received data.
         /// </summary>
         /// <param name="buffer">The buffer of unit packet received.</param>
         public abstract void OnRecv(ReadOnlySpan<byte> buffer);
 #endif
 #if FLATBUFFERS
+        /// <summary>
+        /// Called when the socket received data.
+        /// </summary>
+        /// <param name="buffer">Received buffer</param>
+        /// <param name="offset">offset of the data</param>
+        /// <param name="count">length of the data</param>
         public abstract void OnRecv(ArraySegment<byte> buffer, int offset, int count);
 #endif
         /// <summary>
@@ -109,17 +116,19 @@ namespace ServerCoreTCP
         /// </summary>
         /// <param name="endPoint">The end point of the socket.</param>
         /// <param name="error">The additional object of error</param>
-        public abstract void OnDisconnected(EndPoint endPoint, object error = null);
+        public abstract void OnDisconnected(EndPoint endPoint, object? error = null);
 
         /// <summary>
-        /// Check the received buffer.<br/>If there are multiple packet data on the buffer, each data is processed separately.<br/>OnRecv will be called here.
+        /// Override this method to process the received buffer.
         /// </summary>
         /// <param name="buffer">The buffer received on socket.</param>
         /// <returns>The length of processed bytes.</returns>
         protected abstract int OnRecvProcess(ArraySegment<byte> buffer);
+        #endregion
 
-#endregion
-
+        /// <summary>
+        /// Constructor of Session.
+        /// </summary>
         public Session()
         {
             _recvBuffer = new RecvBuffer(Defines.RecvBufferSize);
@@ -144,8 +153,6 @@ namespace ServerCoreTCP
             _recvEventArgs.UserToken = new RecvEventToken(this);
             _sendEventArgs.UserToken = new SendEventToken(this);
 
-            InitSession();
-
             RegisterRecv();
         }
 
@@ -154,30 +161,37 @@ namespace ServerCoreTCP
             ;
         }
 
-        //public void SendRaw(ArraySegment<byte> sendBuffer)
-        //{
-        //    if (sendBuffer == null) throw new Exception("Failed to serialize the message.");
-        //    if (sendBuffer.Count == 0) throw new Exception("The count of 'sendBuffer' was 0.");
+        /// <summary>
+        /// [lock] Send data to endpoint.
+        /// </summary>
+        /// <param name="sendBuffer">buffer of data</param>
+        /// <exception cref="Exception">if the session is not connected or the length of buffer is 0</exception>
+        /// <exception cref="ArgumentNullException">if buffer is null</exception>
+        public void Send(ArraySegment<byte> sendBuffer)
+        {
+            if (_connected == 0) throw new Exception("This session is not connected.");
+            if (sendBuffer == null) throw new ArgumentNullException("Failed to serialize the message.");
+            if (sendBuffer.Count == 0) throw new Exception("Parameter sendBuffer is empty.");
 
-        //    lock (_lock)
-        //    {
-        //        m_sendQueue.Enqueue(sendBuffer);
+            lock (_lock)
+            {
+                _sendQueue.Enqueue(sendBuffer);
 
-        //        if (m_sendPendingList.Count == 0) RegisterSend();
-        //    }
-        //}
+                if (_sendPendingList.Count == 0) RegisterSend();
+            }
+        }
 
         /// <summary>
-        /// Send a list of data to endpoint of the socket. [ArraySegment]
+        /// [lock] Send a list of data to endpoint of the socket.
         /// </summary>
         /// <param name="sendBufferList">A list of serialized data to send</param>
-        protected void SendRaw(List<ArraySegment<byte>> sendBufferList)
+        /// <exception cref="Exception">if sendBufferList is empty.</exception>
+        protected void Send(List<ArraySegment<byte>> sendBufferList)
         {
-#if RELEASE
             if (sendBufferList.Count == 0) return;
-#else
+
             if (sendBufferList.Count == 0) throw new Exception("The count of 'sendBufferList' was 0.");
-#endif
+
             lock (_lock)
             {
                 foreach (var buffer in sendBufferList)
@@ -192,7 +206,7 @@ namespace ServerCoreTCP
         #region Network IO
 
         /// <summary>
-        /// Reserve 'Send' for async-send.<br/>Note: It needs to be protected for race-condition.
+        /// Send asynchrously all buffer in sendPendingList.
         /// </summary>
         protected void RegisterSend()
         {
@@ -210,11 +224,11 @@ namespace ServerCoreTCP
                 _sendPendingList.Add(_sendQueue.Dequeue());
             }
 
-            _sendEventArgs.BufferList = _sendPendingList;
+            _sendEventArgs!.BufferList = _sendPendingList;
 
             try
             {
-                bool pending = m_socket.SendAsync(_sendEventArgs);
+                bool pending = m_socket!.SendAsync(_sendEventArgs);
                 if (pending == false) OnSendCompleted(_sendEventArgs);
             }
             catch (Exception ex)
@@ -224,7 +238,7 @@ namespace ServerCoreTCP
         }
 
         /// <summary>
-        /// Reserve 'Receive' for async-receive
+        /// Receive asynchrously.
         /// </summary>
         protected void RegisterRecv()
         {
@@ -233,11 +247,11 @@ namespace ServerCoreTCP
 
             _recvBuffer.CleanUp(); // expensive
             var segment = _recvBuffer.WriteSegment;
-            _recvEventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
+            _recvEventArgs!.SetBuffer(segment.Array, segment.Offset, segment.Count);
 
             try
             {
-                bool pending = m_socket.ReceiveAsync(_recvEventArgs);
+                bool pending = m_socket!.ReceiveAsync(_recvEventArgs);
                 if (pending == false) OnRecvCompleted(_recvEventArgs);
             }
             catch (Exception ex)
@@ -261,7 +275,7 @@ namespace ServerCoreTCP
                     {
                         OnSend(eventArgs.BytesTransferred);
 
-                        _sendEventArgs.BufferList = null;
+                        _sendEventArgs!.BufferList = null;
                         _sendPendingList.Clear();
 
                         if (_sendQueue.Count > 0) RegisterSend();
@@ -282,7 +296,7 @@ namespace ServerCoreTCP
                 else
                 {
                     CoreLogger.LogError("Session.OnSendCompleted", "Other error");
-                    Disconnect();
+                    Disconnect("Other error");
                 }
             }
         }
@@ -302,7 +316,7 @@ namespace ServerCoreTCP
                     {
                         CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes is larger than current data size at {0}", Socket?.RemoteEndPoint);
 
-                        Disconnect();
+                        Disconnect("Failed to write recvBuffer.");
                         return;
                     }
 
@@ -311,21 +325,21 @@ namespace ServerCoreTCP
                     if (processLength <= 0)
                     {
                         CoreLogger.LogError("Session.OnRecvCompleted at {0}", "processLength <= 0", Socket?.RemoteEndPoint);
-                        Disconnect();
+                        Disconnect("Processed length is 0 or less.");
                         return;
                     }
 
                     if (_recvBuffer.DataSize < processLength)
                     {
                         CoreLogger.LogError("Session.OnRecvCompleted", "The datasize of recvBuffer[{0}] was larger than processLength[{1}] at {3}", _recvBuffer.DataSize, processLength, Socket?.RemoteEndPoint);
-                        Disconnect();
+                        Disconnect("RecvBuffer Overflow");
                         return;
                     }
 
                     if (_recvBuffer.OnRead(processLength) == false)
                     {
                         CoreLogger.LogError("Session.OnRecvCompleted", "The numOfBytes was larger than current data size at {0}", Socket?.RemoteEndPoint);
-                        Disconnect();
+                        Disconnect("RecvBuffer Overflow");
                         return;
                     }
 
@@ -340,31 +354,31 @@ namespace ServerCoreTCP
             else if (eventArgs.SocketError != SocketError.Success)
             {
                 CoreLogger.LogError("Session.OnRecvCompleted", "SocketError was {0} at {1}", eventArgs.SocketError, Socket?.RemoteEndPoint);
-                Disconnect();
+                Disconnect("SocketError was not Success.");
             }
             else if (eventArgs.BytesTransferred == 0)
             {
                 CoreLogger.LogError("Session.OnRecvCompleted", "BytesTransferred was 0 at {0}", Socket?.RemoteEndPoint);
-                Disconnect();
+                Disconnect("BytesTransferred was 0.");
             }
             else
             {
                 CoreLogger.LogError("Session.OnRecvCompleted", "Other error at {0}", Socket?.RemoteEndPoint);
-                Disconnect();
+                Disconnect("Other error");
             }
         }
 
         #endregion
 
         /// <summary>
-        /// Close the connection and the socket and clear the session.<br/>If it is in ServerService, returns the session to the pool.
+        /// Close the connection and the socket and clear the session.
         /// </summary>
-        public void Disconnect()
+        public void Disconnect(string? msg)
         {
             // Check that it is already disconnected
             if (Interlocked.Exchange(ref _connected, 0) == 0) return;
 
-            OnDisconnected(m_socket.RemoteEndPoint);
+            OnDisconnected(m_socket!.RemoteEndPoint, msg);
 
             // Shutdown send/recv both
             m_socket.Shutdown(SocketShutdown.Both);
@@ -372,14 +386,14 @@ namespace ServerCoreTCP
 
             if (m_service.ServiceType == Service.ServiceTypes.Server)
             {
-                (m_service as ServerService).m_sessionPool.Push(this);
-                (m_service as ServerService).NotifySessionDisconnected();
+                (m_service as ServerService)?.m_sessionPool.Push(this);
+                (m_service as ServerService)?.NotifySessionDisconnected();
             }
             else Clear();
         }
 
         /// <summary>
-        /// Not used.
+        /// Callback of disconnect operation.
         /// </summary>
         /// <param name="eventArgs"></param>
         public virtual void OnDisconnectedCompleted(SocketAsyncEventArgs eventArgs)
@@ -389,8 +403,6 @@ namespace ServerCoreTCP
 
         internal void Clear()
         {
-            ClearSession();
-
             _connected = 0;
             m_socket = null;
 

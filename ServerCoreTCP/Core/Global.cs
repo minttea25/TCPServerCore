@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace ServerCoreTCP.Core
+namespace NetCore.Core
 {
     /// <summary>
     /// The class that contains global members in Core.<br/>It will be initialized when the service starts.<br/>Some members can be used in user-codes.

@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace ServerCoreTCP.Utils
+namespace NetCore.Utils
 {
     static class SocketUtils
     {

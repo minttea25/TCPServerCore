@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ServerCoreTCP.Utils
+namespace NetCore.Utils
 {
     public class TaskManager
     {

@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Collections.Concurrent;
 using System.Threading;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     /// <summary>
     /// The pool of the SocketAsyncEventArgs of the socket events.

@@ -1,4 +1,4 @@
-﻿namespace ServerCoreTCP.Utils
+﻿namespace NetCore.Utils
 {
     public interface IUpdate
     {

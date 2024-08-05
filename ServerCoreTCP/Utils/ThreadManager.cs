@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace ServerCoreTCP.Utils
+namespace NetCore.Utils
 {
     /// <summary>
     /// It uses Thread directly and is recommended in Debug mode for identifying the thread names.

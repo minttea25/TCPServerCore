@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 
-namespace ServerCoreTCP.Utils
+namespace NetCore.Utils
 {
     public static class Extensions
     {

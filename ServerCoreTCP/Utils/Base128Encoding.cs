@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ServerCoreTCP.Utils
+namespace NetCore.Utils
 {
     /// <summary>
     /// Static class for encoding of variant length with uint value.<br/>(Same as the way if encoding in the Protobuf about variant encoding)

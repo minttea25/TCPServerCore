@@ -4,10 +4,10 @@ using System;
 using System.Collections.Generic;
 
 using Google.Protobuf;
-using ServerCoreTCP.CLogger;
-using ServerCoreTCP.Utils;
+using NetCore.CLogger;
+using NetCore.Utils;
 
-namespace ServerCoreTCP.Protobuf
+namespace NetCore.Protobuf
 {
     /// <summary>
     /// Serializes the message(Google.Protobuf.IMessage) with the specified packet type.

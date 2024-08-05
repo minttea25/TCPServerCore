@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     /// <summary>
     /// The buffer for Receive using byte ArraySegment

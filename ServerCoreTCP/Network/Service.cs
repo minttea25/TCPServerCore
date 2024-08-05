@@ -1,10 +1,10 @@
-﻿using ServerCoreTCP.CLogger;
-using ServerCoreTCP.Core;
+﻿using NetCore.CLogger;
+using NetCore.Core;
 using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     public abstract class Service
     {

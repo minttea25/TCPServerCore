@@ -1,8 +1,8 @@
-﻿using ServerCoreTCP.Utils;
+﻿using NetCore.Utils;
 using System;
 using System.Diagnostics;
 
-namespace ServerCoreTCP.Job
+namespace NetCore.Job
 {
     internal readonly struct ActionTimerElement : IComparable<ActionTimerElement>
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     [Serializable]
     public struct ClientServiceConfig

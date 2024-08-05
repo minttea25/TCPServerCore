@@ -1,11 +1,11 @@
-﻿using ServerCoreTCP.CLogger;
-using ServerCoreTCP.Utils;
+﻿using NetCore.CLogger;
+using NetCore.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     /// <summary>
     /// The listener object to listen for waiting connections of others.

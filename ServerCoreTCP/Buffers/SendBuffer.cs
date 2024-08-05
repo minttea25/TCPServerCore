@@ -1,8 +1,8 @@
-﻿using ServerCoreTCP.CLogger;
+﻿using NetCore.CLogger;
 using System;
 using System.Threading;
 
-namespace ServerCoreTCP
+namespace NetCore
 {
     /// <summary>
     /// Each thread sends data with this.<br/>It has SendBuffer in Thread-Local-Storage.

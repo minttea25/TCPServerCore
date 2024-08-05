@@ -1,6 +1,5 @@
 ﻿#if FLATBUFFERS
-using ServerCoreTCP.Core;
-using ServerCoreTCP.Utils;
+using NetCore.Core;
 using System;
 using System.Collections.Generic;
 
@@ -11,11 +10,14 @@ using ServerCoreTCP.Protobuf;
 
 #if FLATBUFFERS
 using Google.FlatBuffers;
-using ServerCoreTCP.Flatbuffers;
+using NetCore.Flatbuffers;
 #endif
 
-namespace ServerCoreTCP
+namespace NetCore
 {
+    /// <summary>
+    /// Session to pend packets and send them manually. (Call FlushSend())
+    /// </summary>
     public abstract class PacketSession : Session
     {
         List<ArraySegment<byte>> _reserveQueue = new List<ArraySegment<byte>>();
@@ -77,12 +79,21 @@ namespace ServerCoreTCP
 #endif
 
 #if FLATBUFFERS
+        /// <summary>
+        /// Serialize finished FlatBufferBuilder with id and send it.
+        /// </summary>
+        /// <param name="fb">FlatBufferBuilder which is finished serialization.</param>
+        /// <param name="id">packet id</param>
         public void Send(FlatBufferBuilder fb, ushort id)
         {
             Send(PacketWrapper.Serialize(fb, id));
         }
 
-        public void Send(ArraySegment<byte> data)
+        /// <summary>
+        /// Send raw data
+        /// </summary>
+        /// <param name="data">buffer to send</param>
+        public new void Send(ArraySegment<byte> data)
         {
             if (data == null) return;
 
@@ -124,7 +135,6 @@ namespace ServerCoreTCP
 #endif
         /// <summary>
         /// Flushes serialized data in the pending queue according to specified conditions.
-        /// It contains to send data actually.
         /// </summary>
         public void FlushSend()
         {
@@ -134,27 +144,22 @@ namespace ServerCoreTCP
             long dt = Global.G_Stopwatch.ElapsedTicks - _lastSendTick;
             if (dt < Defines.SessionSendFlushMinIntervalMilliseconds
                 && _reservedSendBytes < Defines.SessionSendFlushMinReservedByteLength) return;
-            int b;
+            //int b;
             lock (_queueLock)
             {
                 if (_reserveQueue.Count == 0) return;
 
                 // send list
                 _lastSendTick = Global.G_Stopwatch.ElapsedTicks;
-                b = _reservedSendBytes;
+                //b = _reservedSendBytes;
                 _reservedSendBytes = 0;
 
                 sendList = _reserveQueue;
                 _reserveQueue = new List<ArraySegment<byte>>();
             }
 
-            SendRaw(sendList);
-#if DEBUG
-            Console.WriteLine($"Sent: {sendList.Count} and {b} bytes");
-#endif
+            Send(sendList);
         }
-
-        
     }
 }
 #endif

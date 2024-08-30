@@ -8,7 +8,9 @@ This is a library that can be used in both Client and Server based on **TCP**.
 
 
 ## Conditional Compile Symbols
-`PACKET_TYPE_INT`: Determines the data type of the packet type. By default, ushort (2bytes) is used, and when `PACKET_TYPE_INT` is declared, uint (4bytes) is used. This may specify the range of values of packet types.
+`PROTOBUF`: Compile with option `Google.Protobuf`. The `PacketSession` will use Protobuf as a packet type.
+
+`FLATBUFFERS`: Compile with option `Google.Flatbuffers`. The `PacketSession` will use Flatbuffers as a packet type.
 
 ## XML API Documentation
 XML documentation for the library API is provided in build files and external files.
@@ -36,29 +38,33 @@ XML documentation for the library API is provided in build files and external fi
     - `int SocketAsyncEventArgsPoolCount`: **[ReadOnly]** Determines the number of asynchronous processing event arguments (`SocketAsyncEventArgs`) of the socket based on the value specified by the user for `ClientServiceSessionCount`.
 
 ### Sessions
-- Users can create custom sessions by inheriting from the `Session` class and the `PacketSession` class.
+- Users can create custom sessions by inheriting the `Session` class and the `PacketSession` class.
 - The `SessionPool` pre-creates sessions. **Therefore, the `SessionFactory` parameter should create an empty session as the session's constructor is called before the service starts. Session members should be initialized in the abstract methods below.**
 - The `Session` has the following abstract methods:
-    - `void InitSession()`: Executed when the socket connection is successful and the session starts. **Initialize user members here.**
-    - `void ClearSession()`: Called when the socket is no longer valid and returns back to the pool.
     - `void OnConnected(EndPoint endPoint)`: Called when the socket is connected to the server. endPoint represents the endpoint of the connected server.
     - `void OnRecv(ReadOnlySpan<byte> buffer)`: Called when data is received through the socket and sliced into a single message. Takes the sliced buffer as an argument.
     - `void OnSend(int numOfBytes)`: Called when data is sent through the socket. Takes the number of bytes sent as an argument.
     - `void OnDisconnected(EndPoint endPoint, object error)`: Called when the connection is disconnected for the connected socket. Also called when Disconnect is called. `endPoint` represents the endpoint of the connected socket, and `error` contains the reason for disconnection.
     - `void OnRecvProcess(ArraySegment<byte> buffer)`: Called when data is received through the socket. Multiple messages may be included. If you need to override this function, you should slice multiple messages into units and then call `OnRecv(ReadOnlySpan<byte> buffer)` for each.
-    - `PacketSession`: Provides functionality to collect and transmit messages. Inherits from `Session` and internally implements `OnRecvProcess()`. **Even if `Send()` is called, the message is not immediately sent but stored in a queue. Later, the messages stored in the queue are actually sent through `FlushSend()`. Transmission criteria include the size and time of reserved messages.** Please check the values of `SessionSendFlushMinReservedByteLength` and `SessionSendFlushMinIntervalMilliseconds` in the `Defines` class. Typically, `FlushSend()` is executed infinitely inside a loop.
+    - `PacketSession`: Provides functionality to collect and transmit messages and to parse pre-defined packet types. Inherits from `Session` and internally implements `OnRecvProcess()`. **Even if `Send()` is called, the message is not immediately sent but stored in a queue. Later, the messages stored in the queue are actually sent through `FlushSend()`. Transmission criteria include the size and time of reserved messages.** Please check the values of `SessionSendFlushMinReservedByteLength` and `SessionSendFlushMinIntervalMilliseconds` in the `Defines` class. Typically, `FlushSend()` is executed infinitely inside a loop.
 
 ### Serializations
-- Serialization and deserialization for messages are primarily handled using `Google.Protobuf`.
-- The `MessageWrapper` class provides serialization capabilities for `Google.Protobuf.IMessage`.
-- By default, the following packet structure is used:
-    - `[size, 2][message_type, 2(or4)[message, N~]`
-- `MessageWrapper` has a member called `PacketMap`, which is a **Dictionary** type, and it is referenced during serialization/deserialization. This value stores the message type and its value in the `MessageManager` class.
+- Serialization and deserialization for messages are primarily handled using `Google.Protobuf` or `Google.Flatbuffers`.
+- `Google.Protobuf`:
+    - The `MessageWrapper` class provides serialization capabilities for `Google.Protobuf.IMessage`.
+    - By default, the following packet structure is used:
+    - `[size, 2][message_type, 2][message, N~]`
+    - `MessageWrapper` has a member called `PacketMap`, which is a **Dictionary** type, and it is referenced during serialization/deserialization. This value stores the message type and its value in the `MessageManager` class.
+- `Google.FlatBuffers`:
+  - The `MessageWrapper` class provides serialization with PacketHeader. It creates a packet by adding the header before the data which is serialized by FlatBuffers.
+  - By default, the following packet structure is used:
+  - `[size, 2][packet_type, 2][data(table), N~]`
+  - `PacketHeader` is consist of Size(ushort, 2 bytes) and Id(ushort, 2 bytes). it uses memory laytou with `[StructLayout(LayoutKind.Sequential, Pack = 2)]` for compatibility with C++ struct.
 
 ### Loggings
 - Logging is used with `Serilog`.
-- `CoreLogger` is provided as a global variable, and logging sinks can be specified using `CreateLoggerWithFlag()`. Supports `CONSOLE`, `FILE`, and `DEBUG` logging.
-- `CoreLogger.CreateLoggerWithFlag()`: Allows specifying logging sinks (`CONSOLE`, `FILE`, `DEBUG`) in bit flag format and options using the `LoggerConfig` structure. Default Serilog options can be set with `LoggerConfig.GetDefault()` or specified directly by the user. 
+- `CoreLogger` is provided as a global variable, and logging sinks can be specified using `CreateLoggerWithFlag()`. Supports `CONSOLE` and `FILE` logging.
+- `CoreLogger.CreateLoggerWithFlag()`: Allows specifying logging sinks (`CONSOLE`,  `DEBUG`) in bit flag format and options using the `LoggerConfig` structure. Default Serilog options can be set with `LoggerConfig.GetDefault()` or specified directly by the user. 
     - Example
     ```csharp 
     var config = LoggerConfig.GetDefault();
@@ -93,11 +99,11 @@ XML documentation for the library API is provided in build files and external fi
 - The `Serialization` and `Deserialization` classes provide serialization and deserialization using bit-shift operations for types **int, uint, short, and ushort**.
 - The `Global` class provides stopwatch functionality globally using the `Stopwatch` class. `JobSerializerWithTimer` calculates time using this stopwatch. It can also be used in user code.
 
-## External Libraries
+## External Libraries and Dependencies
 - [Google.Protobuf](https://protobuf.dev/) (3.21.12)
+- [Google.FlatBuffers](https://flatbuffers.dev/) (24.3.7)
 - [Serilog](https://serilog.net/) (3.1.1)
     - [Serilog.Sinks.Console] (5.0.1)
-    - [Serilog.Sinks.Debug] (2.0.0)
     - [Serilog.Sinks.File] (5.0.0)
 
 ---
@@ -174,7 +180,9 @@ This tool automatically generates `MessageManager.cs`, `MessageHandler.cs`, and 
 
 
 ## Conditional Compile Symbols
-- `PACKET_TYPE_INT`: 패킷 타입의 데이터 유형을 정합니다. default로 ushort(2bytes)를 사용하며, `PACKET_TYPE_INT` 선언시, uint(4bytes)를 사용합니다. 패킷의 타입의 종류나 값에 대한 범위를 지정할 수 있을 것입니다.
+`PROTOBUF`: `Google.Protobuf` 옵션으로 컴파일합니다. `PacketSession`은 패킷 유형으로 `Google.Protobuf`를 사용합니다.
+
+`FLATBUFFERS`: `Google.Flatbuffers` 옵션으로 컴파일합니다. `PacketSession`은 패킷 유형으로 `Google.FlatBuffers`를 사용합니다.
 
 ## XML API Documentation
 - 빌드 파일과 외부 파일에 해당 라이브러리 API에 대한 xml documentation이 제공됩니다.
@@ -205,26 +213,30 @@ This tool automatically generates `MessageManager.cs`, `MessageHandler.cs`, and 
 - 사용자는 `Session` 클래스와 `PacketSession` 클래스를 상속하여 사용자 정의 세션을 만들 수 있습니다.
 - `SessionPool`에서는 미리 Session을 생성해 놓습니다. **따라서 `SessionFactory` 파라미터는 비어있는 세션(Empty Session)을 생성해야 합니다. Session의 생성자는 서비스 시작전에 호출되기 때문입니다. 세션의 멤버들은 아래 추상 메서드에서 초기화 해야합니다.**
 - `Session`은 다음과 같은 추상 메서드들을 가집니다.
-    - `void InitSession()`: 소켓이 연결 성공이 되어 세션을 시작할 때 실행됩니다. **여기서 사용자 정의 멤버들을 초기화하면 됩니다.**
-    - `void ClearSession()`: 소켓이 더 이상 유효하지 않아 정리 될 때, Pool로 되돌아 가기전 호출 되는 함수 입니다.
     - `void OnConnected(EndPoint endPoint)`: 소켓이 서버와 연결이 되었을 때 호출 되는 함수입니다. `endPoint`는 연결된 서버의 엔드 포인트를 나타냅니다.
     - `void OnRecv(ReadOnlySpan<byte> buffer)`: 소켓으로 데이터를 수신하고 그 데이터를 하나의 메시지로 슬라이스 했을 때 호출되는 함수입니다. 메시지 단위로 슬라이스된 `buffer`를 인자로 갖습니다.
     - `void OnSend(int numOfBytes)`: 소켓으로 데이터를 송신했을 때 호출 되는 함수입니다. 보낸 바이트 수를 인자로 갖습니다.
     - `void OnDisconnected(EndPoint endPoint, object error)`: 연결된 소켓에 대해 연결이 끊어졌을 때 호출되는 함수 입니다. Disconnect가 호출되었을 때도 호출 됩니다. `endPoint`는 연결되어 있던 소켓의 엔드 포인트를 나타내고, `error` disconnected 사유가 담겨 있습니다.
     - `void OnRecvProcess(ArraySegment<byte> buffer)`: 소켓으로 데이터를 수신했을 때 호출 되는 함수입니다. 여러개의 메시지가 포함되어 있을 수 있습니다. 이 함수를 오버라이드할 필요가 있을 경우, 다수의 메시지를 슬라이스하여 유닛으로 만든 다음 각각에 대해 `OnRecv(ReadOnlySpan<byte> buffer)`를 호출해야 합니다.
-- `PacketSession`: 메시지를 모아서 전송하는 기능을 제공합니다. `Session`을 상속하고 있고, 내부적으로 `OnRecvPrcoess()`가 구현되어 있습니다. **Send를 호출해도 실제로 바로 메시지가 전송되지 않고 큐에 저장이 됩니다. 이후 `FlushSend()`를 통해 큐에 저장되어 있는 메세지를 실제로 전송하게 됩니다.** 전송을 하는 기준에는 예약된 메시지의 크기와 시간이 있습니다. `Defines`클래스의 `SessionSendFlushMinReservedByteLength`값과 `SessionSendFlushMinIntervalMilliseconds` 확인해주세요. 보통 `FlushSend()`는 루프 안에서 무한히 실행시킵니다.
+- `PacketSession`: 메시지를 모아서 전송하는 기능과 미리 정의되어 있는 패킷 파싱 방법을 제공합니다. `Session`을 상속하고 있고, 내부적으로 `OnRecvPrcoess()`가 구현되어 있습니다. **Send를 호출해도 실제로 바로 메시지가 전송되지 않고 큐에 저장이 됩니다. 이후 `FlushSend()`를 통해 큐에 저장되어 있는 메세지를 실제로 전송하게 됩니다.** 전송을 하는 기준에는 예약된 메시지의 크기와 시간이 있습니다. `Defines`클래스의 `SessionSendFlushMinReservedByteLength`값과 `SessionSendFlushMinIntervalMilliseconds` 확인해주세요. 보통 `FlushSend()`는 루프 안에서 무한히 실행시킵니다.
 
 ### Serializations
-- 기본적으로 메시지에 대한 직렬화 및 역직렬화는 `Google.Protobuf`를 사용하고 있습니다.
-- `MessageWrapper`클래스는 `Google.Protobuf.IMessage`에 대한 직렬화 기능을 제공합니다.
-- 기본적으로 다음의 패킷 구조를 사용합니다.
+- 기본적으로 메시지에 대한 직렬화 및 역직렬화는 `Google.Protobuf` 또는 `Google.FlatBuffers`를 사용하고 있습니다.
+- `Google.Protobuf`:
+    - `MessageWrapper`클래스는 `Google.Protobuf.IMessage`에 대한 직렬화 기능을 제공합니다.
+    - 기본적으로 다음 패킷 구조가 사용됩니다.
     - `[size, 2][message_type, 2(or4)[message, N~]`
-- `MessageWrapper`는 `PacketMap`이라는 **Dictionary** 타입의 멤버를 가지고 있고, 직렬화/역직렬화 시에 이 값의 Key-Value 쌍을 참고하게 됩니다. 이 값은 `MessageManager` 클래스에서 메시지 타입과 그 값을 저장합니다.
+    - `MessageWrapper`는 `PacketMap`이라는 **Dictionary** 타입의 멤버를 가지고 있고, 직렬화/역직렬화 시에 이 값의 Key-Value 쌍을 참고하게 됩니다. 이 값은 `MessageManager` 클래스에서 메시지 타입과 그 값을 저장합니다.
+-  `Google.FlatBuffers`:
+   - `MessageWrapper` 클래스는 PacketHeader를 사용하여 직렬화를 제공합니다. 이는 FlatBuffers에서 직렬화되는 데이터 앞에 헤더를 추가하여 패킷을 만듭니다.
+    - 기본적으로 다음 패킷 구조가 사용됩니다.
+    - `[size, 2][packet_type, 2][data(table), N~]` 
+    - `PacketHeader`는 Size(ushort, 2바이트)와 Id(ushort, 2바이트)로 구성됩니다. C++ 구조체와의 호환성을 위해 `[StructLayout(LayoutKind.Sequential, Pack = 2)]`를 사용하는 메모리 레이아웃을 사용합니다.
 
 ### Loggings
 - `Serilog`를 이용하여 로깅을 합니다.
-- 전역 변수로 `CoreLogger`를 제공하고 `CreateLoggerWithFlag()`를 통해 로깅 Sink를 지정할 수 있습니다. `CONSOLE`, `FILE`, `DEBUG`로깅을 지원합니다. 
-- `CoreLogger.CreateLoggerWithFlag()`: 로깅 Sink(`CONSOLE`, `FILE`, `DEBUG`)를 비트 플래그 형식으로 지정할 수 있고, LoggerConfig 구조체로 옵션을 지정할 수 있습니다. `LoggerConfig.GetDefault()`로 `Serilog`의 기본 옵션을 설정할 수 있고, 사용자가 직접 지정할 수도 있습니다.  
+- 전역 변수로 `CoreLogger`를 제공하고 `CreateLoggerWithFlag()`를 통해 로깅 Sink를 지정할 수 있습니다. `CONSOLE`, `FILE` 로깅을 지원합니다. 
+- `CoreLogger.CreateLoggerWithFlag()`: 로깅 Sink(`CONSOLE`, `FILE`)를 비트 플래그 형식으로 지정할 수 있고, LoggerConfig 구조체로 옵션을 지정할 수 있습니다. `LoggerConfig.GetDefault()`로 `Serilog`의 기본 옵션을 설정할 수 있고, 사용자가 직접 지정할 수도 있습니다.  
     - Example
     ```csharp 
     var config = LoggerConfig.GetDefault();
@@ -259,11 +271,11 @@ This tool automatically generates `MessageManager.cs`, `MessageHandler.cs`, and 
 - `Serialization`와 `Deserialization` 클래스에서는 **`int`, `uint`, `short`, `ushort`** 타입에 대한 비트연산을 사용한 직렬화 및 역직렬화를 제공합니다.
 - `Global` 클래스에서는 `Stopwatch` 클래스를 이용한 스톱워치 기능을 전역으로 제공합니다. `JobSerializerWithTimer`는 이 스톱워치로 시간을 계산합니다. 사용자 코드에서도 사용할 수 있습니다.
 
-## External Libraries
+## External Libraries and Dependencies
 - [Google.Protobuf](https://protobuf.dev/) (3.21.12)
+- [Google.FlatBuffers](https://flatbuffers.dev/) (24.3.7)
 - [Serilog](https://serilog.net/) (3.1.1)
     - [Serilog.Sinks.Console] (5.0.1)
-    - [Serilog.Sinks.Debug] (2.0.0)
     - [Serilog.Sinks.File] (5.0.0)
 
 ---

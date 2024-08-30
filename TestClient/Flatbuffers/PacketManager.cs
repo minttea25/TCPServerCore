@@ -1,13 +1,13 @@
 ﻿#if FLATBUFFERS
 
 using Google.FlatBuffers;
-using ServerCoreTCP;
+using NetCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ServerCoreTCP.Utils;
+using NetCore.Utils;
 using System.Diagnostics;
 
 namespace Test.Flatbuffers

@@ -1,6 +1,6 @@
 ﻿#if FLATBUFFERS
 
-using ServerCoreTCP;
+using NetCore;
 using System;
 using System.Net;
 
@@ -8,14 +8,6 @@ namespace Test.Flatbuffers
 {
     public class ClientSession : PacketSession
     {
-        public override void ClearSession()
-        {
-        }
-
-        public override void InitSession()
-        {
-        }
-
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine($"Connected to {endPoint}");

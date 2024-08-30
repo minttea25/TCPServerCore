@@ -1,6 +1,6 @@
 ﻿#if FLATBUFFERS
 using Google.FlatBuffers;
-using ServerCoreTCP;
+using NetCore;
 using System;
 using System.Collections.Generic;
 

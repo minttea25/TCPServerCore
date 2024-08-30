@@ -8,17 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using Google.FlatBuffers;
-using ServerCoreTCP;
-using ServerCoreTCP.Flatbuffers;
+using NetCore;
+using NetCore.Flatbuffers;
 
 namespace Test.Flatbuffers
 {
     public class ServerSession : PacketSession
     {
-        public override void InitSession()
-        {
-        }
-
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine($"Connected to {endPoint}");
@@ -45,10 +41,6 @@ namespace Test.Flatbuffers
         }
 
         public override void OnSend(int numOfBytes)
-        {
-        }
-
-        public override void ClearSession()
         {
         }
 

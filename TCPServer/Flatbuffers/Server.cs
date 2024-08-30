@@ -1,6 +1,6 @@
 ﻿#if FLATBUFFERS
 
-using ServerCoreTCP;
+using NetCore;
 using System;
 using System.Net;
 

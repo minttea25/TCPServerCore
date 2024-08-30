@@ -1,8 +1,8 @@
 ﻿#if FLATBUFFERS
 
-using ServerCoreTCP.CLogger;
-using ServerCoreTCP.Utils;
-using ServerCoreTCP;
+using NetCore.CLogger;
+using NetCore.Utils;
+using NetCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +32,6 @@ namespace Test.Flatbuffers
                 string s = Console.ReadLine();
                 if (s == "exit") break;
             }
-            session.Disconnect();
         }
 
         static void Main(string[] args)
@@ -68,7 +67,7 @@ namespace Test.Flatbuffers
 
             tasks.StartTasks();
 
-            CoreLogger.StopLogging();
+            CoreLogger.DisposeLogging();
         }
     }
 }

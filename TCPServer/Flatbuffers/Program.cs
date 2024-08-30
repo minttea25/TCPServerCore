@@ -1,8 +1,8 @@
 ﻿#if FLATBUFFERS
 
-using ServerCoreTCP;
-using ServerCoreTCP.CLogger;
-using ServerCoreTCP.Utils;
+using NetCore;
+using NetCore.CLogger;
+using NetCore.Utils;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -102,7 +102,7 @@ namespace Test.Flatbuffers
 
             tasks.StartTasks();
 
-            CoreLogger.StopLogging();
+            CoreLogger.DisposeLogging();
         }
     }
 }
